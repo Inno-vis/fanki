@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'preact/hooks';
-import { allCards, allProgress, getMeta, getSettings, pendingCount } from './db';
-import { DEFAULT_SETTINGS, type Card, type Settings, type Tag } from './types';
+import { allCards, allProgress, getMeta, getSettings, pendingCount, type SessionRecord } from './db';
+import { DEFAULT_SETTINGS, type Card, type CurriculumRow, type Settings, type Tag } from './types';
 import type { Progress } from './scheduler';
 import { todaysIntro, type Intro } from './session';
 
@@ -18,6 +18,8 @@ export type State = {
   progress: Map<string, Progress>;
   intro: Intro;
   pending: number; // reviews not yet sent
+  curriculum: CurriculumRow[];
+  lastSession: SessionRecord | null;
 };
 
 let state: State = {
@@ -30,7 +32,9 @@ let state: State = {
   sync: 'idle',
   progress: new Map(),
   intro: todaysIntro(undefined),
-  pending: 0
+  pending: 0,
+  curriculum: [],
+  lastSession: null
 };
 const listeners = new Set<(s: State) => void>();
 
@@ -59,7 +63,7 @@ export function byAdded(a: Card & { order?: number }, b: Card & { order?: number
 }
 
 export async function loadFromDb(): Promise<void> {
-  const [cards, settings, tags, compliments, lastSync, progress, intro, pending] = await Promise.all([
+  const [cards, settings, tags, compliments, lastSync, progress, intro, pending, curriculum, lastSession] = await Promise.all([
     allCards(),
     getSettings(),
     getMeta('tags'),
@@ -67,7 +71,9 @@ export async function loadFromDb(): Promise<void> {
     getMeta('lastSync'),
     allProgress(),
     getMeta('intro'),
-    pendingCount()
+    pendingCount(),
+    getMeta('curriculum'),
+    getMeta('lastSession')
   ]);
   setState({
     loaded: true,
@@ -78,6 +84,8 @@ export async function loadFromDb(): Promise<void> {
     lastSync: lastSync ?? null,
     progress,
     intro: todaysIntro(intro),
-    pending
+    pending,
+    curriculum: curriculum ?? [],
+    lastSession: lastSession ?? null
   });
 }

@@ -1,6 +1,6 @@
 import { openDB, type DBSchema, type IDBPDatabase } from 'idb';
 import { NS } from './config';
-import { DEFAULT_SETTINGS, type Card, type Settings, type Tag } from './types';
+import { DEFAULT_SETTINGS, type Card, type CurriculumRow, type Settings, type Tag } from './types';
 import type { Progress, Snapshot, Track } from './scheduler';
 import type { Intro, Mode } from './session';
 
@@ -29,7 +29,12 @@ export type Meta = {
   compliments: string[];
   lastSync: string; // ISO time of the last successful sync
   intro: Intro; // new cards introduced today
+  curriculum: CurriculumRow[];
+  lastSession: SessionRecord; // for the cooldown
 };
+
+/** The last session that counted (>= min_reviews_to_count reviews). */
+export type SessionRecord = { start: string; end: string; reviews: number };
 
 interface FankiDB extends DBSchema {
   cards: { key: string; value: Card; indexes: { added: string } };

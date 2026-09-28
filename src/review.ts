@@ -22,7 +22,8 @@ export async function rate(item: Item, outcome: Outcome, shownAt: number, now = 
     const list = item.track === 'prod' && item.card.type === 'word' ? intro.prod : intro.main;
     if (!list.includes(item.card.id)) list.push(item.card.id);
   }
-  const next = { ...outcome.next, last_review: now.toISOString() };
+  const prev = s.progress.get(outcome.next.key);
+  const next = { ...outcome.next, last_review: now.toISOString(), first_review: prev?.first_review || prev?.last_review || now.toISOString() };
   const event: ReviewEvent = {
     event_id: uuid(),
     card_id: item.card.id,

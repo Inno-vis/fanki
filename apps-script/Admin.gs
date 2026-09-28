@@ -6,7 +6,7 @@ function adminListCards_() {
 
 function adminListUntagged_() {
   var cards = readTable_(sheet_('Cards')).rows.filter(function (r) {
-    return r.id && bool_(r.active) && splitTags_(r.tags).length === 0 && String(r.tags_source).trim() !== 'manual';
+    return r.id && bool_(r.active) && splitTags_(r.tags).length === 0 && sourceCode_(r.tags_source) !== 'manual';
   }).map(cardToJson_);
   return { cards: cards };
 }
@@ -35,7 +35,7 @@ function adminTags_(add) {
   return { tags: tags, added: added };
 }
 
-/** updates = [{id, tags: [..]}]. Writes tags_source=auto. Never touches manual rows. */
+/** updates = [{id, tags: [..]}]. Writes tags_source=automatisch. Never touches handmatig rows. */
 function adminSetTags_(updates) {
   if (!Array.isArray(updates)) throw apiError_('bad_request', 'updates[] required');
   return withLock_(function () {
@@ -49,12 +49,12 @@ function adminSetTags_(updates) {
     updates.forEach(function (u) {
       var r = byId[String(u && u.id)];
       if (!r) { skipped.push({ id: u && u.id, reason: 'not_found' }); return; }
-      if (String(r.tags_source).trim() === 'manual') { skipped.push({ id: r.id, reason: 'manual' }); return; }
+      if (sourceCode_(r.tags_source) === 'manual') { skipped.push({ id: r.id, reason: 'manual' }); return; }
       var tags = (u.tags || []).map(function (x) { return String(x).trim().toLowerCase(); }).filter(function (x) { return x; });
       var unknown = tags.filter(function (x) { return known.indexOf(x) === -1; });
       if (unknown.length) { skipped.push({ id: r.id, reason: 'unknown_tags:' + unknown.join(',') }); return; }
       if (tags.length > 3) { skipped.push({ id: r.id, reason: 'too_many_tags' }); return; }
-      sh.getRange(r._row, tagsCol, 1, 2).setValues([[tags.join(', '), 'auto']]);
+      sh.getRange(r._row, tagsCol, 1, 2).setValues([[tags.join(', '), sourceNl_('auto')]]);
       updated.push(r.id);
     });
     return { updated: updated, skipped: skipped };
@@ -69,7 +69,7 @@ function adminAppendInbox_(rows) {
     var today = new Date(); today.setHours(0, 0, 0, 0);
     var headers = SCHEMA.Inbox;
     // Idempotent: skip anything whose (type, nl) already exists in Cards or Inbox.
-    var key = function (type, nl) { return String(type || 'word') + '|' + String(nl || '').trim().toLowerCase(); };
+    var key = function (type, nl) { return (typeCode_(type) || 'word') + '|' + String(nl || '').trim().toLowerCase(); };
     var seen = {};
     readTable_(sheet_('Cards')).rows.concat(readTable_(sh).rows)
       .forEach(function (r) { if (r.nl) seen[key(r.type, r.nl)] = true; });
@@ -85,10 +85,10 @@ function adminAppendInbox_(rows) {
       var tags = Array.isArray(r.tags) ? r.tags.join(', ') : String(r.tags || '');
       var flags = Array.isArray(r.flags) ? r.flags.join(', ') : String(r.flags || '');
       return rowFromObject_(headers, {
-        id: newId_('c_'), type: CARD_TYPES.indexOf(r.type) === -1 ? 'word' : r.type, nl: String(r.nl || ''),
-        article: r.article === 'de' || r.article === 'het' ? r.article : '', pos: String(r.pos || ''),
+        id: newId_('c_'), type: typeNl_(typeCode_(r.type) || 'word'), nl: String(r.nl || ''),
+        article: r.article === 'de' || r.article === 'het' ? r.article : '', pos: posNl_(r.pos),
         fr: String(r.fr || ''), example_nl: String(r.example_nl || ''), example_fr: String(r.example_fr || ''),
-        tags: tags, tags_source: tags ? 'auto' : '', flags: flags, added: today, active: true, status: 'proposed'
+        tags: tagsNl_(tags), tags_source: tags ? sourceNl_('auto') : '', flags: flags, added: today, active: true, status: 'proposed'
       });
     });
     sh.getRange(nextRow_(sh, 3), 1, out.length, headers.length).setValues(out);
@@ -133,19 +133,20 @@ function adminPromoteInbox_() {
 /** Rewrites Progress from the latest Log snapshot per (card_id, track). */
 function adminRebuildProgress_() {
   return withLock_(function () {
-    var latest = {};
+    var latest = {}, first = {};
     readTable_(sheet_('Log')).rows.forEach(function (r) {
       var key = r.card_id + '|' + r.track;
       var ts = toDate_(r.ts);
       if (!ts) return;
+      if (!first[key] || ts < first[key]) first[key] = ts;
       if (latest[key] && latest[key].ts >= ts) return;
       var snap;
       try { snap = JSON.parse(r.snapshot); } catch (e) { return; }
-      latest[key] = { ts: ts, card_id: String(r.card_id), track: String(r.track), s: snap };
+      latest[key] = { ts: ts, card_id: String(r.card_id), track: String(r.track), s: snap, first: first[key] };
     });
     var rows = Object.keys(latest).map(function (k) {
       var x = latest[k];
-      return [x.card_id, x.track, x.s.state, new Date(x.s.due), x.s.stability, x.s.difficulty, x.s.reps, x.s.lapses, x.ts];
+      return [x.card_id, x.track, x.s.state, new Date(x.s.due), x.s.stability, x.s.difficulty, x.s.reps, x.s.lapses, x.ts, first[k]];
     });
     var sh = sheet_('Progress');
     if (sh.getLastRow() > 1) sh.getRange(2, 1, sh.getLastRow() - 1, SCHEMA.Progress.length).clearContent();

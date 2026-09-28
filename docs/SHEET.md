@@ -7,6 +7,12 @@ Two spreadsheets, created by `setup()` in their Apps Script projects:
 | DEV  | "Dutch DEV"  | `.clasp.dev.json`  |
 | PROD | "Dutch PROD" | `.clasp.prod.json` |
 
+**The sheet is in Dutch.** Card types are `woord` | `zin` | `vraag`, tags_source is `handmatig` |
+`automatisch`, part of speech is Dutch (`zelfstandig naamwoord`, `werkwoord`, `scheidbaar werkwoord`,
+`bijvoeglijk naamwoord`, `bijwoord`, `uitdrukking`…), tag keys are Dutch (`huishouden`, `familie`…) and all
+descriptions are Dutch. The API translates types/tags_source to fixed internal codes, so only these
+spellings matter. The text columns (nl, fr, examples) are plain text, so "7:15" stays "7:15".
+
 Row 1 is always the header row (frozen). The API reads columns **by header name**, so columns can be
 reordered, but never rename a header. `setup()` is idempotent: re-running it repairs headers,
 validation and the Dashboard, seeds only empty tabs, and seeds Cards only in DEV.
@@ -16,14 +22,14 @@ validation and the Dashboard, seeds only empty tabs, and seeds Cards only in DEV
 | column | values | notes |
 |---|---|---|
 | id | `c_xxxxxxxxxx` | Leave blank: the script fills it (on edit, and on the next sync). Never change an id once reviewed. |
-| type | `word` \| `sentence` \| `question` | dropdown |
-| nl | text | **word**: the Dutch word. **sentence**: wrap the target word in `{curly braces}` → it becomes the cloze blank. **question**: the expected Dutch answer. |
+| type | `woord` \| `zin` \| `vraag` | dropdown |
+| nl | text | **woord**: the Dutch word. **zin**: wrap the target word in `{curly braces}` → it becomes the cloze blank. **vraag**: the answer (back of the card). |
 | article | `de` \| `het` \| blank | Required for nouns — the app always shows it. |
-| pos | free text | `noun`, `verb`, `verb (separable)`, `adj`, `phrase`… |
-| fr | text | **word/sentence**: French translation. **question**: the French prompt ("Demande…"). |
+| pos | free text | `zelfstandig naamwoord`, `werkwoord`, `scheidbaar werkwoord`, `bijvoeglijk naamwoord`, `uitdrukking`… (not shown to her) |
+| fr | text | **woord/zin**: French translation. **vraag**: the prompt (front of the card, e.g. "7:15" or "Demande…"). |
 | example_nl / example_fr | text | optional example shown after the answer |
-| tags | `household, school` | comma-separated, from the Tags tab; may be empty |
-| tags_source | `manual` \| `auto` \| blank | `manual` = the teacher chose; `/retag` never touches these. `auto` = set by `/retag`. |
+| tags | `huishouden, school` | comma-separated keys from the Tags tab; may be empty |
+| tags_source | `handmatig` \| `automatisch` \| blank | `handmatig` = the teacher chose; `/retag` never touches these. `automatisch` = set by `/retag`. |
 | flags | `false-friend`, `separable` | comma-separated badges shown on the card |
 | added | date | New cards are introduced in `added` order. Filled with today if blank. |
 | active | checkbox | Untick to hide a card without deleting it (progress is kept). |
@@ -31,12 +37,14 @@ validation and the Dashboard, seeds only empty tabs, and seeds Cards only in DEV
 ### Seed data
 
 - DEV only: the 24 sample cards (words, cloze sentences, questions).
+- DEV **and** PROD: the 40 clock cards (`vraag`, ids `L1-01`…`L3-15`, tags `klok-1/2/3`, added 2026-09-29):
+  front = `fr`, back = `nl`, self-rated like every card.
 - DEV **and** PROD: the 50 interface words (tag `app`, `tags_source` manual, `added` 2026-09-27 so they are
   introduced before everything else). `setup()` adds any that are missing and never duplicates.
 
 ## Progress — scheduling state (written by the API; rebuildable from Log)
 
-`card_id, track, state, due, stability, difficulty, reps, lapses, last_review`
+`card_id, track, state, due, stability, difficulty, reps, lapses, last_review, first_review`
 
 - One row per **(card_id, track)**.
 - `track`: `recog` (recognise: NL → FR, listening) or `prod` (produce: FR → typed NL, cloze, questions).
@@ -44,6 +52,8 @@ validation and the Dashboard, seeds only empty tabs, and seeds Cards only in DEV
   - sentence and question cards only have `prod`.
 - `state`: `New` | `Learning` | `Review` | `Relearning` (FSRS).
 - Updated from each review's snapshot when the review is at least as new as `last_review`.
+- `first_review`: the first time she saw that card+track (set by the API; backfilled from Log by setup).
+  The curriculum uses it as "first shown".
 - To rebuild exactly: `npm run admin -- dev rebuildProgress` (latest Log snapshot per card+track).
 
 ## Log — review events (append-only, written by the API)
@@ -67,8 +77,8 @@ validation and the Dashboard, seeds only empty tabs, and seeds Cards only in DEV
 - `label_nl`: what the learner sees in the filter screen ("Kies een onderwerp").
 - `label_fr`, `description`: for the teacher only.
 
-Seed: household=huishouden, school=school, wiskunde=wiskunde, family=familie, travel=reizen, food=eten,
-work=werk, health=gezondheid, shopping=winkelen, time=tijd, app=app.
+Seed keys (= label_nl unless noted): huishouden, school, wiskunde, familie, reizen, eten, werk, gezondheid,
+winkelen, tijd, app, klok-1 ("klok niveau 1"), klok-2 ("klok niveau 2"), klok-3 ("klok niveau 3").
 
 ## Inbox — proposed new cards
 
@@ -85,6 +95,55 @@ to move approved rows into Cards. Nothing is ever written to Cards by `/addwords
 | compliments_enabled | TRUE | Show a compliment every 3rd correct answer |
 | unlock_prod_stability_days | 3 | When a word's `recog` stability reaches this many days, the typing (`prod`) track starts |
 | show_french_help | TRUE | Shows the "Hulp" button (French help) and the one-time rating overlay. Untick when she's ready. |
+| mature_stability_days | 21 | A card counts as "gekend" (mature) for the curriculum at this FSRS stability |
+| session_max_cards | 15 | Cards before "Sessie voltooid! Wil je doorgaan?" |
+| session_max_minutes | 8 | Minutes before the same offer (whichever comes first) |
+| session_extra_cards | 10 | Cards added by "Nog 10 kaarten, graag!" (fewer if fewer are left) |
+| cooldown_minutes | 60 | Pause after a session before "Starten" works again (0 = no pause) |
+| min_reviews_to_count | 3 | A session shorter than this does not start a pause |
+
+All settings are read by the phone on every sync — change them here, no redeploy.
+
+## Curriculum — which new cards come first
+
+`order, tag, unlock_threshold, min_reviews, max_wait_days, active`
+
+| column | default | meaning |
+|---|---|---|
+| order | | 1, 2, 3… (lowest first) |
+| tag | | a key from the Tags tab (dropdown) |
+| unlock_threshold | 0.8 | share of this tag's cards that must be "gekend" before the next row opens |
+| min_reviews | 2 | a card also needs at least this many reviews to count as "gekend" |
+| max_wait_days | 21 | the next row opens anyway this many days after this tag's first card was first shown (blank = never) |
+| active | ☑ | unticked rows are skipped: their cards are free to come, and they don't hold back the next row |
+
+Seed: 1 app · 2 klok-1 · 3 klok-2 · 4 klok-3.
+
+**Algorithm** (phone: `src/curriculum.ts`; the Dashboard mirrors it in `apps-script/Curriculum.gs`):
+
+1. A card is **gekend** (mature) when the stability of its main direction (woord: recognising; zin/vraag:
+   the only direction) is ≥ `mature_stability_days` AND its reps ≥ the row's `min_reviews`.
+2. A tag's **score** = gekend cards / active cards with that tag (a tag without cards scores 1).
+3. The first active row is open. Row N+1 opens when row N is open AND (score(N) ≥ unlock_threshold OR
+   `max_wait_days` have passed since row N's first card was first shown). This is recalculated on every
+   sync/launch; nothing is stored, so reordering or retuning the tab takes effect immediately.
+4. **Eligible new cards**: a card without any curriculum tag is always eligible. A card WITH curriculum tags
+   is eligible if AT LEAST ONE of them is open (inactive rows count as open).
+5. **Filling today's `new_per_day` slots**: first the open curriculum tags by `order` (cards in `added`
+   order), then the next open tag, then all other eligible cards by `added`. A card that matches several
+   open tags is introduced once.
+6. Cards she already started keep coming back for review even if their tag is (again) locked — the
+   curriculum only decides what is *new*.
+
+## Sessions and pause (phone only)
+
+- "Starten" begins a session. A slim bar shows "9 van 15 kaarten".
+- At `session_max_cards` reviews or `session_max_minutes` (checked after each card) she sees ONE offer:
+  "Nog 10 kaarten, graag!" (adds `session_extra_cards`, or fewer if fewer are left) or "Stoppen".
+  After accepting, "Stoppen" is in the header and the session ends when those cards are done.
+- The session also ends when cards run out, on "Terug"/"Stoppen", or when she leaves the app.
+- If it had ≥ `min_reviews_to_count` reviews, its end time is saved on the phone (IndexedDB, survives
+  restarts) and "Starten" becomes "Volgende sessie over 42 minuten" until `cooldown_minutes` have passed.
 
 ## Compliments
 
@@ -94,5 +153,9 @@ to move approved rows into Cards. Nothing is ever written to Cards by `/addwords
 
 ## Dashboard (formulas, read-only)
 
-Cards due (all tracks), success rate over 30 days, reviews this week, active cards,
-last sync (= newest Log `ts`), and the 10 most-lapsed cards.
+Column A–B: te herhalen (all directions), goed onthouden (30 days), herhalingen deze week, actieve
+kaarten, laatst gesynchroniseerd (= newest Log `ts`), and the 10 most-forgotten cards.
+
+Columns D–I: **Curriculum** — one row per active Curriculum tag: gekend / cards, score, open (ja/nee),
+days until it opens automatically (blank if open, no cap, or the previous tag wasn't shown yet), first
+shown. Refreshed after reviews arrive (at most every 10 minutes) and by setup.

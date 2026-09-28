@@ -73,9 +73,25 @@ The repo is **public** and hosted on GitHub Pages.
   ("Opnieuw = je ne savais pas", "Moeilijk = j'ai hésité", "Goed = bien", "Makkelijk = très facile");
   a small `?` reopens it. This is the only place the button labels are translated.
 
+## Sheet values are Dutch
+
+Types `woord|zin|vraag`, tags_source `handmatig|automatisch`, Dutch tag keys, pos and descriptions. The API
+maps them to internal codes (`typeCode_`/`sourceCode_` in `apps-script/Util.gs`); the client only sees
+`word|sentence|question` and `manual|auto`. Text columns are formatted as plain text (times stay text).
+
+## Curriculum and sessions
+
+- Curriculum tab + Settings decide which NEW cards are introduced (`src/curriculum.ts`, pure, recalculated
+  on every render). `apps-script/Curriculum.gs` mirrors the status for the Dashboard only — keep in sync.
+  Full algorithm: docs/SHEET.md › Curriculum.
+- Sessions: `src/sessionRules.ts` (pure). One offer at session_max_cards/minutes ("Nog 10 kaarten,
+  graag!" / "Stoppen"), then session_extra_cards more. A session with ≥ min_reviews_to_count reviews stores
+  `meta.lastSession`; home blocks "Starten" until end + cooldown_minutes.
+
 ## Domain rules
 
-- Card types: `word`, `sentence` (target word in `{braces}` → cloze), `question` (fr = prompt, nl = answer).
+- Card types (internal codes): `word`, `sentence` (target word in `{braces}` → cloze), `question`
+  (fr = prompt/front, nl = answer/back).
 - Two FSRS tracks: word cards have `recog` (NL→FR, listening) and `prod` (FR→typed NL);
   sentence/question cards only `prod`. `prod` unlocks when `recog` stability ≥ `unlock_prod_stability_days`.
 - Scheduling (`src/scheduler.ts`, `src/session.ts`): ts-fsrs, fuzz on, retention from Settings. The four

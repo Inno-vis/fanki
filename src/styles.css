@@ -452,6 +452,53 @@ body {
   color: var(--primary-text);
 }
 
+.btn-stop {
+  appearance: none;
+  border: 0;
+  border-radius: 999px;
+  background: var(--again);
+  color: #fff;
+  font: inherit;
+  font-weight: 700;
+  min-height: 44px;
+  padding: 0 18px;
+}
+
+.btn-cooldown {
+  font-size: 18px;
+}
+
+.session-progress {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  margin-bottom: 8px;
+}
+
+.session-bar {
+  height: 6px;
+  border-radius: 3px;
+  background: var(--surface-2);
+  overflow: hidden;
+}
+
+.session-fill {
+  height: 100%;
+  background: var(--good);
+  border-radius: 3px;
+  transition: width 0.25s ease;
+}
+
+.offer-actions {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.offer-actions .btn {
+  width: 100%;
+}
+
 /* Rating buttons: 4 equal columns, fit an iPhone SE (320 px) */
 .rating-row {
   position: relative;

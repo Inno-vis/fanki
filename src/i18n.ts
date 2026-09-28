@@ -27,10 +27,17 @@ export const UI = {
 
   // Review
   'review.back': { nl: 'Terug', fr: 'Retour' },
-  'review.left': { nl: 'nog {n}', fr: 'encore {n} cartes dans cette séance' },
+  'review.progress': { nl: '{done} van {target} kaarten', fr: '{done} cartes sur {target} dans cette séance' },
   'review.show': { nl: 'Antwoord tonen', fr: 'Montrer la réponse' },
   'review.done': { nl: 'Klaar voor vandaag!', fr: 'Fini pour aujourd’hui !' },
   'review.count': { nl: '{n} kaarten herhaald', fr: '{n} cartes révisées' },
+
+  // Sessions + cooldown
+  'session.offer': { nl: 'Sessie voltooid! Wil je doorgaan?', fr: 'Séance terminée ! Tu veux continuer ?' },
+  'session.more': { nl: 'Nog {n} kaarten, graag!', fr: 'Encore {n} cartes, s’il te plaît !' },
+  'session.stop': { nl: 'Stoppen', fr: 'Arrêter' },
+  'session.cooldown': { nl: 'Volgende sessie over {n} minuten', fr: 'Prochaine séance dans {n} minutes' },
+  'session.cooldown1': { nl: 'Volgende sessie over 1 minuut', fr: 'Prochaine séance dans 1 minute' },
 
   // Card flags (key = value in the Cards.flags column)
   'flag.false-friend': { nl: 'valse vriend', fr: 'faux ami : ressemble à un mot français, mais le sens est différent' },
@@ -80,7 +87,8 @@ export const HELP = {
       'Cet écran montre combien de cartes tu dois revoir aujourd’hui (« te herhalen ») et combien de nouvelles ' +
       'cartes t’attendent (« nieuw vandaag »). Touche « Starten » pour commencer. L’appli fonctionne aussi sans ' +
       'internet : tes réponses sont gardées sur le téléphone et envoyées à la prochaine connexion. ' +
-      '« Synchroniseren » télécharge les nouvelles cartes quand tu as internet.'
+      '« Synchroniseren » télécharge les nouvelles cartes quand tu as internet. Après une séance, une pause est ' +
+      'prévue : « Volgende sessie over 42 minuten » = prochaine séance dans 42 minutes.'
   },
   review: {
     nl: 'Lees de kaart. Tik op Antwoord tonen. Kies dan een knop.',
@@ -89,8 +97,9 @@ export const HELP = {
       'honnêtement comment ça s’est passé : ❌ Opnieuw = je ne savais pas, 😅 Moeilijk = j’ai hésité, ' +
       '✅ Goed = bien, 😎 Makkelijk = très facile. Sous chaque bouton : quand la carte reviendra ' +
       '(min = minutes, u = heures, d = jours, wk = semaines, mnd = mois, jr = ans). Les noms montrent toujours ' +
-      '« de » ou « het ». Badges : « valse vriend » = faux ami, « scheidbaar » = verbe séparable. « nog 5 » = ' +
-      'encore 5 cartes. « Terug » = retour.'
+      '« de » ou « het ». Badges : « valse vriend » = faux ami, « scheidbaar » = verbe séparable. ' +
+      'La barre en haut montre ta séance (« 9 van 15 kaarten » = 9 cartes sur 15). À la fin, ' +
+      '« Nog 10 kaarten, graag! » = encore 10 cartes, « Stoppen » = arrêter. « Terug » = retour.'
   }
 } as const satisfies Record<string, Str>;
 

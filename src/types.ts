@@ -24,7 +24,23 @@ export type Settings = {
   desired_retention: number;
   compliments_enabled: boolean;
   unlock_prod_stability_days: number;
+  mature_stability_days: number;
   show_french_help: boolean;
+  session_max_cards: number;
+  session_max_minutes: number;
+  session_extra_cards: number;
+  cooldown_minutes: number;
+  min_reviews_to_count: number;
+};
+
+/** One row of the Curriculum tab (sorted by order). max_wait_days null = no cap. */
+export type CurriculumRow = {
+  order: number;
+  tag: string;
+  unlock_threshold: number;
+  min_reviews: number;
+  max_wait_days: number | null;
+  active: boolean;
 };
 
 export const DEFAULT_SETTINGS: Settings = {
@@ -32,7 +48,13 @@ export const DEFAULT_SETTINGS: Settings = {
   desired_retention: 0.9,
   compliments_enabled: true,
   unlock_prod_stability_days: 3,
-  show_french_help: true
+  mature_stability_days: 21,
+  show_french_help: true,
+  session_max_cards: 15,
+  session_max_minutes: 8,
+  session_extra_cards: 10,
+  cooldown_minutes: 60,
+  min_reviews_to_count: 3
 };
 
 export type CardsResponse = {
@@ -42,4 +64,5 @@ export type CardsResponse = {
   settings: Partial<Settings>;
   tags: Tag[];
   compliments: string[];
+  curriculum?: CurriculumRow[];
 };

@@ -4,12 +4,21 @@ import { useStore } from '../store';
 import { syncNow } from '../sync';
 import { useOnline } from '../pwa';
 import { InstallHint } from '../components/Banners';
+import { useEffect, useState } from 'preact/hooks';
+import { cooldownUntil, minutesLeft } from '../sessionRules';
 
 export function Home({ due, newToday, onStart }: { due: number; newToday: number; onStart: () => void }) {
   const s = useStore();
   const online = useOnline();
   const empty = s.loaded && s.cards.length === 0;
   const canStart = due + newToday > 0;
+  // Live cooldown countdown (re-rendered every 15 s).
+  const [now, setNow] = useState(Date.now());
+  useEffect(() => {
+    const id = setInterval(() => setNow(Date.now()), 15_000);
+    return () => clearInterval(id);
+  }, []);
+  const wait = minutesLeft(cooldownUntil(s.lastSession, s.settings), now);
 
   return (
     <main class="home">
@@ -30,9 +39,15 @@ export function Home({ due, newToday, onStart }: { due: number; newToday: number
             </div>
           </section>
           {s.loaded && !canStart && <p class="center done-line">{t('home.allDone')}</p>}
-          <button class="btn btn-primary btn-huge" disabled={!canStart} onClick={onStart}>
-            {t('home.start')}
-          </button>
+          {wait > 0 && canStart ? (
+            <button class="btn btn-primary btn-huge btn-cooldown" disabled aria-live="polite">
+              {wait === 1 ? t('session.cooldown1') : t('session.cooldown', { n: wait })}
+            </button>
+          ) : (
+            <button class="btn btn-primary btn-huge" disabled={!canStart} onClick={onStart}>
+              {t('home.start')}
+            </button>
+          )}
         </>
       )}
 

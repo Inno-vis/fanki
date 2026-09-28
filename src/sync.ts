@@ -3,7 +3,7 @@ import { deleteEvents, mergeServerProgress, pendingCount, pendingEvents, saveSna
 import { progressKey, type Progress, type StateName, type Track } from './scheduler';
 import { setUiSettings } from './prefs';
 import { getState, loadFromDb, setState } from './store';
-import { DEFAULT_SETTINGS, type Card, type CardsResponse, type Settings } from './types';
+import { DEFAULT_SETTINGS, type Card, type CardsResponse, type CurriculumRow, type Settings } from './types';
 
 const TYPES = new Set(['word', 'sentence', 'question']);
 
@@ -40,8 +40,33 @@ export function cleanSettings(raw: Partial<Settings> | undefined): Settings {
     desired_retention: num(s.desired_retention, 0.9, 0.7, 0.97),
     compliments_enabled: s.compliments_enabled !== false,
     unlock_prod_stability_days: num(s.unlock_prod_stability_days, 3, 0, 365),
-    show_french_help: s.show_french_help !== false
+    mature_stability_days: num(s.mature_stability_days, 21, 1, 3650),
+    show_french_help: s.show_french_help !== false,
+    session_max_cards: Math.round(num(s.session_max_cards, 15, 1, 500)),
+    session_max_minutes: num(s.session_max_minutes, 8, 1, 240),
+    session_extra_cards: Math.round(num(s.session_extra_cards, 10, 1, 100)),
+    cooldown_minutes: num(s.cooldown_minutes, 60, 0, 24 * 60),
+    min_reviews_to_count: Math.round(num(s.min_reviews_to_count, 3, 0, 100))
   };
+}
+
+export function cleanCurriculum(raw: unknown): CurriculumRow[] {
+  if (!Array.isArray(raw)) return [];
+  return raw
+    .map((r: Record<string, unknown>) => {
+      const n = (v: unknown, d: number) => (v === '' || v === null || v === undefined || isNaN(Number(v)) ? d : Number(v));
+      const wait = r.max_wait_days;
+      return {
+        order: n(r.order, 0),
+        tag: String(r.tag ?? '').trim().toLowerCase(),
+        unlock_threshold: Math.min(1, Math.max(0, n(r.unlock_threshold, 0.8))),
+        min_reviews: Math.max(0, n(r.min_reviews, 2)),
+        max_wait_days: wait === '' || wait === null || wait === undefined || isNaN(Number(wait)) ? null : Math.max(0, Number(wait)),
+        active: r.active !== false
+      };
+    })
+    .filter((r) => r.tag)
+    .sort((a, b) => a.order - b.order);
 }
 
 const PUSH_BATCH = 200;
@@ -83,7 +108,8 @@ export function cleanProgress(raw: Record<string, unknown>): Progress | null {
     lapses: Number(raw.lapses) || 0,
     last_review: raw.last_review ? new Date(String(raw.last_review)).toISOString() : '',
     learning_steps: Number(raw.learning_steps) || 0,
-    scheduled_days: Number(raw.scheduled_days) || 0
+    scheduled_days: Number(raw.scheduled_days) || 0,
+    first_review: raw.first_review ? new Date(String(raw.first_review)).toISOString() : undefined
   };
 }
 
@@ -106,7 +132,8 @@ export function syncNow(): Promise<boolean> {
       await saveSnapshot(cards, {
         settings,
         tags: (res.tags ?? []).filter((t) => t && t.tag),
-        compliments: (res.compliments ?? []).filter(Boolean)
+        compliments: (res.compliments ?? []).filter(Boolean),
+        curriculum: cleanCurriculum(res.curriculum)
       });
       await mergeServerProgress(state.progress.map(cleanProgress).filter((p): p is Progress => !!p));
       await pushQueue(); // anything reviewed while we were pulling

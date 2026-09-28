@@ -23,10 +23,15 @@ She sees **nl**. **fr** is hidden help: shown only in the "Hulp" panel and the o
 | `sync.never` | Nog niet gesynchroniseerd | Pas encore synchronisé |
 | `sync.pending` | {n} antwoorden nog niet gesynchroniseerd | {n} réponses pas encore envoyées (elles partiront à la prochaine connexion) |
 | `review.back` | Terug | Retour |
-| `review.left` | nog {n} | encore {n} cartes dans cette séance |
+| `review.progress` | {done} van {target} kaarten | {done} cartes sur {target} dans cette séance |
 | `review.show` | Antwoord tonen | Montrer la réponse |
 | `review.done` | Klaar voor vandaag! | Fini pour aujourd’hui ! |
 | `review.count` | {n} kaarten herhaald | {n} cartes révisées |
+| `session.offer` | Sessie voltooid! Wil je doorgaan? | Séance terminée ! Tu veux continuer ? |
+| `session.more` | Nog {n} kaarten, graag! | Encore {n} cartes, s’il te plaît ! |
+| `session.stop` | Stoppen | Arrêter |
+| `session.cooldown` | Volgende sessie over {n} minuten | Prochaine séance dans {n} minutes |
+| `session.cooldown1` | Volgende sessie over 1 minuut | Prochaine séance dans 1 minute |
 | `flag.false-friend` | valse vriend | faux ami : ressemble à un mot français, mais le sens est différent |
 | `flag.separable` | scheidbaar | verbe séparable : le préfixe va à la fin de la phrase |
 | `time.justNow` | zojuist | à l’instant |
@@ -74,5 +79,5 @@ She sees **nl**. **fr** is hidden help: shown only in the "Hulp" panel and the o
 
 | screen | fr (shown in the panel) |
 |---|---|
-| home | Cet écran montre combien de cartes tu dois revoir aujourd’hui (« te herhalen ») et combien de nouvelles cartes t’attendent (« nieuw vandaag »). Touche « Starten » pour commencer. L’appli fonctionne aussi sans internet : tes réponses sont gardées sur le téléphone et envoyées à la prochaine connexion. « Synchroniseren » télécharge les nouvelles cartes quand tu as internet. |
-| review | Lis la carte et essaie de te souvenir de la réponse. Touche « Antwoord tonen » pour la voir, puis dis honnêtement comment ça s’est passé : ❌ Opnieuw = je ne savais pas, 😅 Moeilijk = j’ai hésité, ✅ Goed = bien, 😎 Makkelijk = très facile. Sous chaque bouton : quand la carte reviendra (min = minutes, u = heures, d = jours, wk = semaines, mnd = mois, jr = ans). Les noms montrent toujours « de » ou « het ». Badges : « valse vriend » = faux ami, « scheidbaar » = verbe séparable. « nog 5 » = encore 5 cartes. « Terug » = retour. |
+| home | Cet écran montre combien de cartes tu dois revoir aujourd’hui (« te herhalen ») et combien de nouvelles cartes t’attendent (« nieuw vandaag »). Touche « Starten » pour commencer. L’appli fonctionne aussi sans internet : tes réponses sont gardées sur le téléphone et envoyées à la prochaine connexion. « Synchroniseren » télécharge les nouvelles cartes quand tu as internet. Après une séance, une pause est prévue : « Volgende sessie over 42 minuten » = prochaine séance dans 42 minutes. |
+| review | Lis la carte et essaie de te souvenir de la réponse. Touche « Antwoord tonen » pour la voir, puis dis honnêtement comment ça s’est passé : ❌ Opnieuw = je ne savais pas, 😅 Moeilijk = j’ai hésité, ✅ Goed = bien, 😎 Makkelijk = très facile. Sous chaque bouton : quand la carte reviendra (min = minutes, u = heures, d = jours, wk = semaines, mnd = mois, jr = ans). Les noms montrent toujours « de » ou « het ». Badges : « valse vriend » = faux ami, « scheidbaar » = verbe séparable. La barre en haut montre ta séance (« 9 van 15 kaarten » = 9 cartes sur 15). À la fin, « Nog 10 kaarten, graag! » = encore 10 cartes, « Stoppen » = arrêter. « Terug » = retour. |

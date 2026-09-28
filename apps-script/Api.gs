@@ -43,9 +43,11 @@ function doPost(e) {
       case 'promoteInbox': return adminPromoteInbox_();
       case 'rebuildProgress': return adminRebuildProgress_();
       case 'setup': return { sheetUrl: setup() };
+      case 'curriculumStatus': return { status: updateCurriculumDashboard_(true) };
       case 'readTab': return adminReadTab_(body.tab, body.rows);
       case 'reseedDev': return adminReseedDev_();
       case 'purgeSmoke': return adminPurgeSmoke_();
+      case 'migrateToDutch': return { changed: migrateToDutch_(ss_()) };
       case 'state': return getState_();
       case 'cards': return getCards_();
     }
@@ -65,11 +67,19 @@ function handle_(fn) {
 
 // ---------- learner reads ----------
 
+/** Cell → text. A time Sheets auto-converted (e.g. "7:15") comes back as "7:15", not a date. */
+function text_(v) {
+  if (v instanceof Date) {
+    return v.getFullYear() < 1901 ? Utilities.formatDate(v, tz_(), 'H:mm') : Utilities.formatDate(v, tz_(), 'yyyy-MM-dd');
+  }
+  return v == null ? '' : String(v);
+}
+
 function cardToJson_(r) {
   return {
-    id: String(r.id), type: String(r.type || 'word'), nl: String(r.nl || ''), article: String(r.article || ''),
-    pos: String(r.pos || ''), fr: String(r.fr || ''), example_nl: String(r.example_nl || ''),
-    example_fr: String(r.example_fr || ''), tags: splitTags_(r.tags), tags_source: String(r.tags_source || ''),
+    id: String(r.id), type: typeCode_(r.type) || 'word', nl: text_(r.nl), article: String(r.article || ''),
+    pos: String(r.pos || ''), fr: text_(r.fr), example_nl: text_(r.example_nl),
+    example_fr: text_(r.example_fr), tags: splitTags_(r.tags), tags_source: sourceCode_(r.tags_source),
     flags: splitTags_(r.flags), added: isoDate_(r.added), active: bool_(r.active)
   };
 }
@@ -98,7 +108,8 @@ function getCards_() {
       return { tag: String(r.tag).trim().toLowerCase(), label_nl: String(r.label_nl || r.tag || ''), label_fr: String(r.label_fr || '') };
     }).filter(function (x) { return x.tag; }),
     compliments: readTable_(sheet_('Compliments')).rows.map(function (r) { return String(r.text || '').trim(); })
-      .filter(function (s) { return s; })
+      .filter(function (s) { return s; }),
+    curriculum: readCurriculum_()
   };
 }
 
@@ -120,7 +131,8 @@ function progressToJson_(r) {
   return {
     card_id: String(r.card_id), track: String(r.track), state: String(r.state),
     due: isoDateTime_(r.due), stability: Number(r.stability) || 0, difficulty: Number(r.difficulty) || 0,
-    reps: Number(r.reps) || 0, lapses: Number(r.lapses) || 0, last_review: isoDateTime_(r.last_review)
+    reps: Number(r.reps) || 0, lapses: Number(r.lapses) || 0, last_review: isoDateTime_(r.last_review),
+    first_review: isoDateTime_(r.first_review)
   };
 }
 
@@ -150,7 +162,7 @@ function postReviews_(events) {
   if (!Array.isArray(events)) throw apiError_('bad_request', 'events[] required');
   if (events.length > MAX_EVENTS_PER_POST) throw apiError_('too_many', 'Max ' + MAX_EVENTS_PER_POST + ' events per request');
 
-  return withLock_(function () {
+  var result = withLock_(function () {
     var logSh = sheet_('Log');
     var last = logSh.getLastRow();
     var seen = {};
@@ -183,6 +195,10 @@ function postReviews_(events) {
     }
     return { accepted: accepted, duplicate: duplicate, rejected: rejected };
   });
+  if (result.accepted.length) {
+    try { updateCurriculumDashboard_(false); } catch (e) { /* the dashboard must never break a sync */ }
+  }
+  return result;
 }
 
 /** Upserts Progress with each event's snapshot when it is at least as new as last_review. */
@@ -198,7 +214,8 @@ function applyToProgress_(items) {
     var key = it.card_id + '|' + it.track;
     var row = byKey[key];
     if (row && row.last_review instanceof Date && row.last_review > it.ts) return;
-    if (!row) { row = { card_id: it.card_id, track: it.track }; byKey[key] = row; appended.push(row); }
+    if (!row) { row = { card_id: it.card_id, track: it.track, first_review: it.ts }; byKey[key] = row; appended.push(row); }
+    if (!(row.first_review instanceof Date) || row.first_review > it.ts) row.first_review = it.ts;
     var s = it.snapshot;
     row.state = s.state; row.due = new Date(s.due); row.stability = s.stability; row.difficulty = s.difficulty;
     row.reps = s.reps; row.lapses = s.lapses; row.last_review = it.ts;

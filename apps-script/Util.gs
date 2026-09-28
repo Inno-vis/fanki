@@ -122,3 +122,44 @@ function nextRow_(sh, col) {
   }
   return 2;
 }
+
+// ---------- Dutch sheet values ↔ internal codes ----------
+// The sheet is in Dutch; the API speaks fixed codes. Both spellings are accepted when reading.
+var TYPE_NL = { word: 'woord', sentence: 'zin', question: 'vraag' };
+var SOURCE_NL = { manual: 'handmatig', auto: 'automatisch' };
+// Old English tag keys → Dutch keys (used by the one-time migration and to convert seed lines).
+var TAG_RENAME = { household: 'huishouden', family: 'familie', travel: 'reizen', food: 'eten', work: 'werk',
+  health: 'gezondheid', shopping: 'winkelen', time: 'tijd' };
+// Seed/old English part-of-speech values → Dutch.
+var POS_NL = {
+  'noun': 'zelfstandig naamwoord', 'noun (plural)': 'zelfstandig naamwoord (meervoud)', 'verb': 'werkwoord',
+  'verb (separable)': 'scheidbaar werkwoord', 'adj': 'bijvoeglijk naamwoord', 'adv': 'bijwoord',
+  'det': 'voornaamwoord', 'phrase': 'uitdrukking', 'sentence': 'zin', 'question': 'vraag'
+};
+
+function invert_(o) {
+  var r = {};
+  Object.keys(o).forEach(function (k) { r[o[k]] = k; });
+  return r;
+}
+
+/** Sheet value (Dutch or English) → code: 'word' | 'sentence' | 'question' ('' if unknown). */
+function typeCode_(v) {
+  var s = String(v || '').trim().toLowerCase();
+  if (TYPE_NL[s]) return s;
+  return invert_(TYPE_NL)[s] || '';
+}
+
+/** Sheet value → 'manual' | 'auto' | ''. */
+function sourceCode_(v) {
+  var s = String(v || '').trim().toLowerCase();
+  if (SOURCE_NL[s]) return s;
+  return invert_(SOURCE_NL)[s] || '';
+}
+
+function typeNl_(code) { return TYPE_NL[typeCode_(code)] || String(code || ''); }
+function sourceNl_(code) { return SOURCE_NL[sourceCode_(code)] || ''; }
+function posNl_(v) { var s = String(v || '').trim(); return POS_NL[s.toLowerCase()] || s; }
+function tagsNl_(v) {
+  return splitTags_(v).map(function (t) { return TAG_RENAME[t] || t; }).join(', ');
+}

@@ -13,7 +13,7 @@ const ALLOW = new Set(
   `de het een ik je jij jou u hij zij ze we wij is ben bent zijn was en of maar niet wel ook nog nu
    hier daar er dit dat deze die op in aan met van voor naar uit om te tot bij als dan wat wie waar hoe
    mijn jouw jullie ons onze heb hebt heeft kan kun kunt wil moet ja nee al zo heel veel meer tik
-   min u d wk mnd jr fanki dev`.split(/\s+/).filter(Boolean)
+   alle ok min u d wk mnd jr fanki dev`.split(/\s+/).filter(Boolean)
 );
 
 // Taught words from the app seed list (multi-word entries like "nog eens" count per word).
@@ -42,7 +42,8 @@ function known(word) {
       const stem = base.slice(0, -2);
       const long = stem.replace(/([^aeiou])([aeiou])([^aeiou])$/, '$1$2$2$3');
       const short = stem.replace(/([^aeiou])\1$/, '$1'); // zetten → zet
-      for (const s of [stem, long, short]) {
+      const devoiced = long.replace(/z$/, 's').replace(/v$/, 'f'); // kiezen → kies, geven → geef
+      for (const s of [stem, long, short, devoiced]) {
         if (word === s || word === s + 't' || word === 'ge' + s + 'd' || word === 'ge' + s + 't') return true;
         // verbs with an unstressed prefix have no ge-: herhalen → herhaald, betalen → betaald
         if (/^(be|her|ver|ont|er)/.test(base) && (word === s + 'd' || word === s + 't')) return true;

@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { interleave, localDate, planToday, todaysIntro, type Intro } from './session';
+import { interleave, localDate, pickNextIndex, planToday, todaysIntro, type Intro } from './session';
 import { progressKey, type Progress } from './scheduler';
 import type { Card } from './types';
 
@@ -63,5 +63,27 @@ describe('planToday', () => {
     const mk = (id: string, isNew: boolean) => ({ card: card(id), track: 'recog' as const, isNew });
     const order = interleave({ due: ['d1', 'd2', 'd3', 'd4'].map((d) => mk(d, false)), fresh: ['n1', 'n2'].map((n) => mk(n, true)) });
     expect(order.map((i) => i.card.id)).toEqual(['d1', 'd2', 'd3', 'n1', 'd4', 'n2']);
+  });
+});
+
+describe('new cards wait for the learning backlog (option 1)', () => {
+  const mk = (id: string, isNew: boolean, learning = false) => ({ card: card(id), track: 'recog' as const, isNew, learning });
+
+  it('shows the new card while fewer than max cards are in short steps', () => {
+    expect(pickNextIndex([mk('n1', true), mk('l1', false, true), mk('l2', false, true)], 3)).toBe(0);
+  });
+
+  it('holds the new card back once the backlog is full', () => {
+    const q = [mk('n1', true), mk('l1', false, true), mk('l2', false, true), mk('n2', true), mk('l3', false, true)];
+    expect(pickNextIndex(q, 3)).toBe(1);
+  });
+
+  it('due reviews count as "not new" and may go first too', () => {
+    const q = [mk('n1', true), mk('d1', false), mk('l1', false, true), mk('l2', false, true), mk('l3', false, true)];
+    expect(pickNextIndex(q, 3)).toBe(1);
+  });
+
+  it('when only new cards are left, the first one is shown', () => {
+    expect(pickNextIndex([mk('n1', true), mk('n2', true)], 0)).toBe(0);
   });
 });

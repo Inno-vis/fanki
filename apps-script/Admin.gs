@@ -88,7 +88,7 @@ function adminAppendInbox_(rows) {
         id: newId_('c_'), type: typeNl_(typeCode_(r.type) || 'word'), nl: String(r.nl || ''),
         article: r.article === 'de' || r.article === 'het' ? r.article : '', pos: posNl_(r.pos),
         fr: String(r.fr || ''), example_nl: String(r.example_nl || ''), example_fr: String(r.example_fr || ''),
-        tags: tagsNl_(tags), tags_source: tags ? sourceNl_('auto') : '', flags: flags, added: today, active: true, status: 'proposed'
+        tags: tagsNl_(tags), tags_source: tags ? sourceNl_('auto') : '', flags: flags, added: today, active: true, status: STATUS_NL.proposed
       });
     });
     sh.getRange(nextRow_(sh, 3), 1, out.length, headers.length).setValues(out);
@@ -99,7 +99,7 @@ function adminAppendInbox_(rows) {
 function adminListInbox_() {
   return {
     rows: readTable_(sheet_('Inbox')).rows.filter(function (r) { return r.nl; }).map(function (r) {
-      var c = cardToJson_(r); c.status = String(r.status || ''); return c;
+      var c = cardToJson_(r); c.status = statusCode_(r.status) || String(r.status || ''); return c;
     })
   };
 }
@@ -110,7 +110,7 @@ function adminPromoteInbox_() {
     var inbox = sheet_('Inbox');
     var cards = sheet_('Cards');
     var t = readTable_(inbox);
-    var approved = t.rows.filter(function (r) { return String(r.status).trim() === 'approved' && String(r.nl).trim(); });
+    var approved = t.rows.filter(function (r) { return statusCode_(r.status) === 'approved' && String(r.nl).trim(); });
     if (!approved.length) return { promoted: [] };
     var existingIds = {};
     readTable_(cards).rows.forEach(function (r) { existingIds[String(r.id)] = true; });
@@ -188,5 +188,19 @@ function adminPurgeSmoke_() {
         .forEach(function (n) { sh.deleteRow(n); removed++; });
     });
     return { removed: removed };
+  });
+}
+
+/** lines = ['Zoek …', …] → appended to Breaks (never overwrites; exact duplicates skipped). */
+function adminAppendBreaks_(lines) {
+  if (!Array.isArray(lines) || !lines.length) throw apiError_('bad_request', 'lines[] required');
+  return withLock_(function () {
+    var sh = sheet_('Breaks');
+    var have = {};
+    readTable_(sh).rows.forEach(function (r) { have[String(r.text_nl).trim()] = true; });
+    var add = lines.map(function (x) { return String(x || '').trim(); })
+      .filter(function (x) { if (!x || have[x]) return false; have[x] = true; return true; });
+    if (add.length) sh.getRange(nextRow_(sh, 1), 1, add.length, 1).setValues(add.map(function (x) { return [x]; }));
+    return { appended: add.length, skipped: lines.length - add.length };
   });
 }

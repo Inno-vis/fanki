@@ -40,6 +40,7 @@ function doPost(e) {
       case 'setTags': return adminSetTags_(body.updates);
       case 'appendInbox': return adminAppendInbox_(body.rows);
       case 'listInbox': return adminListInbox_();
+      case 'appendBreaks': return adminAppendBreaks_(body.lines);
       case 'promoteInbox': return adminPromoteInbox_();
       case 'rebuildProgress': return adminRebuildProgress_();
       case 'setup': return { sheetUrl: setup() };
@@ -109,7 +110,9 @@ function getCards_() {
     }).filter(function (x) { return x.tag; }),
     compliments: readTable_(sheet_('Compliments')).rows.map(function (r) { return String(r.text || '').trim(); })
       .filter(function (s) { return s; }),
-    curriculum: readCurriculum_()
+    curriculum: readCurriculum_(),
+    breaks: (ss_().getSheetByName('Breaks') ? readTable_(sheet_('Breaks')).rows : []).map(function (r) { return text_(r.text_nl).trim(); })
+      .filter(function (s) { return s; })
   };
 }
 

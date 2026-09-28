@@ -32,6 +32,14 @@ She sees **nl**. **fr** is hidden help: shown only in the "Hulp" panel and the o
 | `session.stop` | Stoppen | Arrêter |
 | `session.cooldown` | Volgende sessie over {n} minuten | Prochaine séance dans {n} minutes |
 | `session.cooldown1` | Volgende sessie over 1 minuut | Prochaine séance dans 1 minute |
+| `tags.title` | Kies een onderwerp | Choisis un ou plusieurs thèmes |
+| `tags.all` | Alle onderwerpen | Tous les thèmes |
+| `tags.done` | Klaar | Terminé |
+| `tags.locked` | nog dicht | pas encore ouvert : il s’ouvre quand le thème précédent est bien su |
+| `home.topicAll` | Onderwerp: alle | Thème : tous |
+| `home.topic` | Onderwerp: {list} | Thème : {list} |
+| `break.title` | Sessie voltooid! | Séance terminée ! |
+| `break.ok` | OK | OK |
 | `flag.false-friend` | valse vriend | faux ami : ressemble à un mot français, mais le sens est différent |
 | `flag.separable` | scheidbaar | verbe séparable : le préfixe va à la fin de la phrase |
 | `time.justNow` | zojuist | à l’instant |
@@ -80,4 +88,6 @@ She sees **nl**. **fr** is hidden help: shown only in the "Hulp" panel and the o
 | screen | fr (shown in the panel) |
 |---|---|
 | home | Cet écran montre combien de cartes tu dois revoir aujourd’hui (« te herhalen ») et combien de nouvelles cartes t’attendent (« nieuw vandaag »). Touche « Starten » pour commencer. L’appli fonctionne aussi sans internet : tes réponses sont gardées sur le téléphone et envoyées à la prochaine connexion. « Synchroniseren » télécharge les nouvelles cartes quand tu as internet. Après une séance, une pause est prévue : « Volgende sessie over 42 minuten » = prochaine séance dans 42 minutes. |
+| topics | Choisis un ou plusieurs thèmes : les prochaines séances ne montrent que les cartes de ces thèmes (révisions et nouvelles cartes). « Alle onderwerpen » = tous les thèmes. 🔒 « nog dicht » = pas encore ouvert : ce thème s’ouvrira quand le précédent sera bien su. Touche « Klaar » pour revenir. |
+| break | C’est la pause ! Fais ce petit exercice en néerlandais, loin de l’écran : pas besoin de répondre dans l’appli. Touche « OK » pour fermer. La prochaine séance sera possible après la pause. |
 | review | Lis la carte et essaie de te souvenir de la réponse. Touche « Antwoord tonen » pour la voir, puis dis honnêtement comment ça s’est passé : ❌ Opnieuw = je ne savais pas, 😅 Moeilijk = j’ai hésité, ✅ Goed = bien, 😎 Makkelijk = très facile. Sous chaque bouton : quand la carte reviendra (min = minutes, u = heures, d = jours, wk = semaines, mnd = mois, jr = ans). Les noms montrent toujours « de » ou « het ». Badges : « valse vriend » = faux ami, « scheidbaar » = verbe séparable. La barre en haut montre ta séance (« 9 van 15 kaarten » = 9 cartes sur 15). À la fin, « Nog 10 kaarten, graag! » = encore 10 cartes, « Stoppen » = arrêter. « Terug » = retour. |

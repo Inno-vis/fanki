@@ -35,9 +35,9 @@ function setup() {
   if (blank && ss.getSheets().length > 1) ss.deleteSheet(blank);
 
   // 3b. One-time conversion of English sheet values to Dutch (before validation is re-applied).
-  if (!p.getProperty('MIGRATED_NL')) {
+  if (p.getProperty('MIGRATED_NL') !== '2') {
     migrateToDutch_(ss);
-    p.setProperty('MIGRATED_NL', '1');
+    p.setProperty('MIGRATED_NL', '2');
   }
 
   // 4. Validation + formats.
@@ -57,6 +57,8 @@ function setup() {
   seedSettings_(ss.getSheetByName('Settings'));
   seedTags_(ss.getSheetByName('Tags'));
   seedCompliments_(ss.getSheetByName('Compliments'));
+  seedIfEmpty_(ss.getSheetByName('Breaks'), BREAKS_SEED.map(function (x) { return [x]; }));
+  ss.getSheetByName('Breaks').setColumnWidth(1, 520);
   if (env === 'DEV') seedCards_(ss.getSheetByName('Cards'));
   seedAppWords_(ss.getSheetByName('Cards'));
   seedKlokCards_(ss.getSheetByName('Cards'));
@@ -87,7 +89,7 @@ function applyCardValidation_(sh, isInbox) {
   sh.getRange('C2:C').setNumberFormat('@');
   sh.getRange('F2:H').setNumberFormat('@');
   sh.getRange('M2:M').setDataValidation(SpreadsheetApp.newDataValidation().requireCheckbox().build());
-  if (isInbox) sh.getRange('N2:N').setDataValidation(list(['proposed', 'approved']));
+  if (isInbox) sh.getRange('N2:N').setDataValidation(list([STATUS_NL.proposed, STATUS_NL.approved]));
 }
 
 function seedSettings_(sh) {
@@ -243,6 +245,11 @@ function migrateToDutch_(ss) {
     var sh = ss.getSheetByName(name);
     var last = nextRow_(sh, 3) - 1;
     if (last < 2) return;
+    if (name === 'Inbox') {
+      sh.getRange('N2:N').clearDataValidations();
+      var st = sh.getRange(2, 14, last - 1, 1);
+      st.setValues(st.getValues().map(function (r) { return [statusCode_(r[0]) ? STATUS_NL[statusCode_(r[0])] : r[0]]; }));
+    }
     sh.getRange('B2:B').clearDataValidations();
     sh.getRange('J2:J').clearDataValidations();
     var range = sh.getRange(2, 1, last - 1, CARD_COLS.length);

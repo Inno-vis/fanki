@@ -30,7 +30,9 @@ export type Meta = {
   lastSync: string; // ISO time of the last successful sync
   intro: Intro; // new cards introduced today
   curriculum: CurriculumRow[];
+  breaks: string[]; // Dutch off-screen prompts shown when a pause starts
   lastSession: SessionRecord; // for the cooldown
+  studyTags: string[]; // tag filter ("Kies een onderwerp"); [] = everything
 };
 
 /** The last session that counted (>= min_reviews_to_count reviews). */

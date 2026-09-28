@@ -3,7 +3,8 @@ import { progressKey, tracksFor, type Progress, type Track } from './scheduler';
 
 export type Mode = 'nl_fr' | 'fr_nl' | 'cloze' | 'question' | 'listen';
 
-export type Item = { card: Card; track: Track; progress?: Progress; isNew: boolean };
+/** learning = came back in this session after a short (re)learning step. */
+export type Item = { card: Card; track: Track; progress?: Progress; isNew: boolean; learning?: boolean };
 
 /** New cards introduced on one local day (so the daily cap survives closing the app). */
 export type Intro = { date: string; main: string[]; prod: string[] };
@@ -93,3 +94,15 @@ export function interleave(plan: Plan): Item[] {
 
 /** A (re)learning step shorter than this comes back in the same session. */
 export const REQUEUE_WITHIN_MS = 20 * 60_000;
+
+/**
+ * Which queue item to show next. A NEW card waits while `maxBacklog` or more cards are still in their
+ * short in-session steps (so new cards arrive once the earlier ones stick); the first non-new item is
+ * shown instead. If only new cards are left, the first one is shown.
+ */
+export function pickNextIndex(queue: Item[], maxBacklog: number): number {
+  const backlog = queue.filter((i) => i.learning).length;
+  if (backlog < maxBacklog) return 0;
+  const i = queue.findIndex((x) => !x.isNew);
+  return i === -1 ? 0 : i;
+}

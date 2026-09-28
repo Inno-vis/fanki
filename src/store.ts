@@ -20,6 +20,8 @@ export type State = {
   pending: number; // reviews not yet sent
   curriculum: CurriculumRow[];
   lastSession: SessionRecord | null;
+  breaks: string[];
+  studyTags: string[];
 };
 
 let state: State = {
@@ -34,7 +36,9 @@ let state: State = {
   intro: todaysIntro(undefined),
   pending: 0,
   curriculum: [],
-  lastSession: null
+  lastSession: null,
+  breaks: [],
+  studyTags: []
 };
 const listeners = new Set<(s: State) => void>();
 
@@ -63,7 +67,7 @@ export function byAdded(a: Card & { order?: number }, b: Card & { order?: number
 }
 
 export async function loadFromDb(): Promise<void> {
-  const [cards, settings, tags, compliments, lastSync, progress, intro, pending, curriculum, lastSession] = await Promise.all([
+  const [cards, settings, tags, compliments, lastSync, progress, intro, pending, curriculum, lastSession, breaks, studyTags] = await Promise.all([
     allCards(),
     getSettings(),
     getMeta('tags'),
@@ -73,7 +77,9 @@ export async function loadFromDb(): Promise<void> {
     getMeta('intro'),
     pendingCount(),
     getMeta('curriculum'),
-    getMeta('lastSession')
+    getMeta('lastSession'),
+    getMeta('breaks'),
+    getMeta('studyTags')
   ]);
   setState({
     loaded: true,
@@ -86,6 +92,8 @@ export async function loadFromDb(): Promise<void> {
     intro: todaysIntro(intro),
     pending,
     curriculum: curriculum ?? [],
-    lastSession: lastSession ?? null
+    lastSession: lastSession ?? null,
+    breaks: breaks ?? [],
+    studyTags: studyTags ?? []
   });
 }

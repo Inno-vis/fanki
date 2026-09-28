@@ -11,8 +11,10 @@ import { Home } from './screens/Home';
 import { Review } from './screens/Review';
 import { interleave, planToday, todaysIntro, type Item } from './session';
 import { curriculumStatus, makePicker } from './curriculum';
+import { Topics } from './screens/Topics';
+import type { Card } from './types';
 
-type Screen = { name: 'home' } | { name: 'review'; items: Item[] };
+type Screen = { name: 'home' } | { name: 'topics' } | { name: 'review'; items: Item[] };
 
 export function App() {
   const online = useOnline();
@@ -49,8 +51,10 @@ export function App() {
     const now = new Date();
     const status = curriculumStatus(s.curriculum, s.cards, s.progress, s.settings.mature_stability_days, now);
     const picker = makePicker(s.curriculum, status);
-    return planToday(s.cards, s.progress, s.settings, todaysIntro(s.intro), now, { pickNew: picker.pickNew });
-  }, [s.cards, s.progress, s.settings, s.intro, s.curriculum, tick, screen.name]);
+    const topics = new Set(s.studyTags);
+    const eligible = topics.size ? (c: Card) => c.tags.some((tg) => topics.has(tg)) : undefined;
+    return planToday(s.cards, s.progress, s.settings, todaysIntro(s.intro), now, { pickNew: picker.pickNew, eligible });
+  }, [s.cards, s.progress, s.settings, s.intro, s.curriculum, s.studyTags, tick, screen.name]);
 
   if (screen.name === 'review') {
     return (
@@ -70,10 +74,14 @@ export function App() {
         </h1>
         <div class="topbar-right">
           {!online && <span class="offline-badge">{t('status.offline')}</span>}
-          <HelpButton screen="home" />
+          <HelpButton screen={screen.name === 'topics' ? 'topics' : 'home'} />
         </div>
       </header>
-      <Home due={plan.due.length} newToday={plan.fresh.length} onStart={() => setScreen({ name: 'review', items: interleave(plan) })} />
+      {screen.name === 'topics' ? (
+        <Topics onDone={() => setScreen({ name: 'home' })} />
+      ) : (
+      <Home onTopics={() => setScreen({ name: 'topics' })} due={plan.due.length} newToday={plan.fresh.length} onStart={() => setScreen({ name: 'review', items: interleave(plan) })} />
+      )}
       <footer class="footer muted">
         {APP_ENV} · {BUILD_ID}
       </footer>

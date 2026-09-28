@@ -39,6 +39,18 @@ export const UI = {
   'session.cooldown': { nl: 'Volgende sessie over {n} minuten', fr: 'Prochaine séance dans {n} minutes' },
   'session.cooldown1': { nl: 'Volgende sessie over 1 minuut', fr: 'Prochaine séance dans 1 minute' },
 
+  // Topics (tag filter)
+  'tags.title': { nl: 'Kies een onderwerp', fr: 'Choisis un ou plusieurs thèmes' },
+  'tags.all': { nl: 'Alle onderwerpen', fr: 'Tous les thèmes' },
+  'tags.done': { nl: 'Klaar', fr: 'Terminé' },
+  'tags.locked': { nl: 'nog dicht', fr: 'pas encore ouvert : il s’ouvre quand le thème précédent est bien su' },
+  'home.topicAll': { nl: 'Onderwerp: alle', fr: 'Thème : tous' },
+  'home.topic': { nl: 'Onderwerp: {list}', fr: 'Thème : {list}' },
+
+  // Break screen (when a pause starts)
+  'break.title': { nl: 'Sessie voltooid!', fr: 'Séance terminée !' },
+  'break.ok': { nl: 'OK', fr: 'OK' },
+
   // Card flags (key = value in the Cards.flags column)
   'flag.false-friend': { nl: 'valse vriend', fr: 'faux ami : ressemble à un mot français, mais le sens est différent' },
   'flag.separable': { nl: 'scheidbaar', fr: 'verbe séparable : le préfixe va à la fin de la phrase' },
@@ -89,6 +101,19 @@ export const HELP = {
       'internet : tes réponses sont gardées sur le téléphone et envoyées à la prochaine connexion. ' +
       '« Synchroniseren » télécharge les nouvelles cartes quand tu as internet. Après une séance, une pause est ' +
       'prévue : « Volgende sessie over 42 minuten » = prochaine séance dans 42 minutes.'
+  },
+  topics: {
+    nl: 'Kies een of meer onderwerpen. Tik dan op Klaar.',
+    fr:
+      'Choisis un ou plusieurs thèmes : les prochaines séances ne montrent que les cartes de ces thèmes ' +
+      '(révisions et nouvelles cartes). « Alle onderwerpen » = tous les thèmes. 🔒 « nog dicht » = pas encore ' +
+      'ouvert : ce thème s’ouvrira quand le précédent sera bien su. Touche « Klaar » pour revenir.'
+  },
+  break: {
+    nl: 'Pauze. Doe dit even zonder de app.',
+    fr:
+      'C’est la pause ! Fais ce petit exercice en néerlandais, loin de l’écran : pas besoin de répondre dans ' +
+      'l’appli. Touche « OK » pour fermer. La prochaine séance sera possible après la pause.'
   },
   review: {
     nl: 'Lees de kaart. Tik op Antwoord tonen. Kies dan een knop.',

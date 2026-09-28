@@ -82,9 +82,9 @@ winkelen, tijd, app, klok-1 ("klok niveau 1"), klok-2 ("klok niveau 2"), klok-3 
 
 ## Inbox — proposed new cards
 
-Same columns as Cards plus `status` (`proposed` | `approved`). `/addwords` writes rows here as
-`proposed`. Review them, set `status` to `approved` (edit anything you like), then run `/promote`
-to move approved rows into Cards. Nothing is ever written to Cards by `/addwords`.
+Same columns as Cards plus `status` (`voorgesteld` | `goedgekeurd`). `/addwords` writes rows here as
+`voorgesteld`. Review them, set `status` to `goedgekeurd` (edit anything you like), then run `/promote`
+to move them into Cards. Nothing is ever written to Cards by `/addwords`.
 
 ## Settings (key | value | description)
 
@@ -101,6 +101,7 @@ to move approved rows into Cards. Nothing is ever written to Cards by `/addwords
 | session_extra_cards | 10 | Cards added by "Nog 10 kaarten, graag!" (fewer if fewer are left) |
 | cooldown_minutes | 60 | Pause after a session before "Starten" works again (0 = no pause) |
 | min_reviews_to_count | 3 | A session shorter than this does not start a pause |
+| max_learning_backlog | 3 | In a session, the next NEW card waits while this many cards are still in their short "again in minutes" steps |
 
 All settings are read by the phone on every sync — change them here, no redeploy.
 
@@ -150,6 +151,15 @@ Seed: 1 app · 2 klok-1 · 3 klok-2 · 4 klok-3.
 `text` — one Dutch line per row (seed: "Goed zo!", "Prima!", "Top!", "Heel goed!", "Mooi gedaan!",
 "Je wordt steeds beter!", "Uitstekend!", "Fantastisch!", "Ga zo door!", "Geweldig!",
 "Ik ben trots op je!", "Perfect!", "Sterk!"). Shown as a small toast every 3rd correct answer.
+
+## Breaks — off-screen Dutch prompts
+
+`text_nl` — one short Dutch task per row ("Zoek een rond voorwerp. Wat is het Nederlandse woord ervoor?").
+When a pause starts (a session with ≥ `min_reviews_to_count` reviews and `cooldown_minutes` > 0), the phone
+shows ONE screen: "Sessie voltooid!", one random line (never the previous one) and "OK". No answer, no
+tracking, not shown again during the pause. Empty tab → no screen. Cached offline with the cards.
+Seeded with 20 lines that vary shape/size, texture, colour, category and household context (no attribute in
+more than ~20 %). Add more with `/addbreaks <n>` (appends only).
 
 ## Dashboard (formulas, read-only)
 

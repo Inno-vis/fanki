@@ -88,6 +88,15 @@ maps them to internal codes (`typeCode_`/`sourceCode_` in `apps-script/Util.gs`)
   graag!" / "Stoppen"), then session_extra_cards more. A session with ≥ min_reviews_to_count reviews stores
   `meta.lastSession`; home blocks "Starten" until end + cooldown_minutes.
 
+## Study by topic, new-card pacing, breaks
+
+- "Kies een onderwerp" (`src/screens/Topics.tsx`): multi-select of tags that have cards (label_nl; 🔒 for
+  locked curriculum tags). Stored in `meta.studyTags`; sessions then use due + new cards with ANY selected
+  tag. Empty = everything.
+- Within a session a new card waits while ≥ `max_learning_backlog` cards are in short in-session steps
+  (`pickNextIndex` in src/session.ts).
+- When a pause starts, one Breaks line is shown once ("Sessie voltooid!" + line + OK), `src/breaks.ts`.
+
 ## Domain rules
 
 - Card types (internal codes): `word`, `sentence` (target word in `{braces}` → cloze), `question`
@@ -134,4 +143,10 @@ npm run ui-strings       # regenerate docs/UI-STRINGS.md
 npm run ui-vocab         # UI words not yet taught (warning)
 ```
 
-Slash commands in `.claude/commands/`: `/retag`, `/addwords`, `/promote` (all go through `scripts/admin.mjs`).
+Slash commands in `.claude/commands/` (all go through `scripts/admin.mjs`, default env dev):
+- `/retag` — propose 0–3 existing tags per untagged card (new tag only if ≥ 3 cards use it), table, wait
+  for OK, `setTags` (tags_source automatisch; handmatig rows are refused by the API).
+- `/addwords <theme, n, level>` — dedupe against Cards + Inbox, table, wait for OK, `appendInbox`
+  (status voorgesteld). Never writes Cards.
+- `/promote` — show `goedgekeurd` Inbox rows, wait for OK, `promoteInbox`.
+- `/addbreaks <n>` — new varied Breaks lines (axes + ≤ ~20 % rule), wait for OK, `appendBreaks`.

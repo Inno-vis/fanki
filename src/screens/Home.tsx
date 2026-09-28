@@ -7,7 +7,7 @@ import { InstallHint } from '../components/Banners';
 import { useEffect, useState } from 'preact/hooks';
 import { cooldownUntil, minutesLeft } from '../sessionRules';
 
-export function Home({ due, newToday, onStart }: { due: number; newToday: number; onStart: () => void }) {
+export function Home({ due, newToday, onStart, onTopics }: { due: number; newToday: number; onStart: () => void; onTopics: () => void }) {
   const s = useStore();
   const online = useOnline();
   const empty = s.loaded && s.cards.length === 0;
@@ -39,6 +39,13 @@ export function Home({ due, newToday, onStart }: { due: number; newToday: number
             </div>
           </section>
           {s.loaded && !canStart && <p class="center done-line">{t('home.allDone')}</p>}
+          <button class="btn btn-secondary topic-btn" onClick={onTopics}>
+            {s.studyTags.length === 0
+              ? t('home.topicAll')
+              : t('home.topic', {
+                  list: s.studyTags.map((tg) => s.tags.find((x) => x.tag === tg)?.label_nl || tg).join(', ')
+                })}
+          </button>
           {wait > 0 && canStart ? (
             <button class="btn btn-primary btn-huge btn-cooldown" disabled aria-live="polite">
               {wait === 1 ? t('session.cooldown1') : t('session.cooldown', { n: wait })}

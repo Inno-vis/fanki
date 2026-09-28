@@ -5,13 +5,13 @@ const API = 'https://mock.fanki.test/exec';
 
 type Event = { event_id: string; card_id: string; rating: number };
 
-function mockServer() {
+function mockServer(settings: Record<string, unknown> = { new_per_day: 5, cooldown_minutes: 0, show_french_help: true }, breaks: string[] = []) {
   const log = new Map<string, Event>();
   let posts = 0;
   let loseNextReply = false;
   const cards = ['huis', 'tafel', 'stoel', 'raam', 'boek'].map((nl, i) => ({
     id: `c_${i}`, type: 'word', nl, article: 'de', pos: 'noun', fr: `fr-${nl}`, example_nl: '', example_fr: '',
-    tags: [], tags_source: 'manual', flags: [], added: '2026-09-27', active: true
+    tags: i < 2 ? ['huishouden'] : ['reizen'], tags_source: 'manual', flags: [], added: '2026-09-27', active: true
   }));
   const json = (route: Route, body: unknown) =>
     route.fulfill({ status: 200, contentType: 'application/json', headers: { 'access-control-allow-origin': '*' }, body: JSON.stringify(body) });
@@ -30,8 +30,9 @@ function mockServer() {
           if (action === 'state') return json(route, { ok: true, progress: [] });
           return json(route, {
             ok: true, env: 'DEV', serverTime: new Date().toISOString(), cards,
-            settings: { new_per_day: 5, cooldown_minutes: 0, show_french_help: true },
-            tags: [], compliments: ['Goed zo!'], curriculum: []
+            settings,
+            tags: [{ tag: 'huishouden', label_nl: 'huishouden', label_fr: 'la maison' }, { tag: 'reizen', label_nl: 'reizen', label_fr: 'voyages' }],
+            compliments: ['Goed zo!'], curriculum: [], breaks
           });
         }
         posts++;
@@ -120,4 +121,35 @@ test('offline: review without internet, reconnect, every review reaches the serv
       })
   );
   expect(stored).toEqual({ progress: 3, queue: 0 });
+});
+
+test('topics, pause and the one-time break prompt', async ({ page }) => {
+  const server = mockServer({ new_per_day: 5, cooldown_minutes: 60, min_reviews_to_count: 3, show_french_help: true }, ['Zoek iets ronds.']);
+  await server.install(page);
+  await page.goto('/fanki/dev/');
+  await expect(page.getByText('Laatst gesynchroniseerd: zojuist')).toBeVisible({ timeout: 20_000 });
+
+  // Kies een onderwerp: only "huishouden" → 2 new cards.
+  await page.getByRole('button', { name: 'Onderwerp: alle' }).click();
+  await page.getByRole('button', { name: /^huishouden/ }).click();
+  await page.getByRole('button', { name: 'Klaar' }).click();
+  await expect(page.getByRole('button', { name: 'Onderwerp: huishouden' })).toBeVisible();
+  await expect(page.locator('.stat').nth(1)).toContainText('2');
+
+  // Back to all topics, do 3 cards, stop → pause starts → break prompt once.
+  await page.getByRole('button', { name: 'Onderwerp: huishouden' }).click();
+  await page.getByRole('button', { name: 'Alle onderwerpen' }).click();
+  await page.getByRole('button', { name: 'Klaar' }).click();
+  await page.getByRole('button', { name: 'Starten' }).click();
+  await reviewCards(page, 3);
+  await page.getByRole('button', { name: /Terug/ }).click();
+  await expect(page.getByText('Sessie voltooid!')).toBeVisible();
+  await expect(page.getByText('Zoek iets ronds.')).toBeVisible();
+  await page.getByRole('button', { name: 'OK' }).click();
+
+  // Home: Starten is replaced by the countdown, and it survives a restart.
+  await expect(page.getByRole('button', { name: /Volgende sessie over (60|59) minuten/ })).toBeDisabled();
+  await page.reload();
+  await expect(page.getByRole('button', { name: /Volgende sessie over (60|59) minuten/ })).toBeDisabled();
+  await expect(page.getByText('Zoek iets ronds.')).toBeHidden();
 });

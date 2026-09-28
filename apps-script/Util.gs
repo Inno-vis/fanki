@@ -127,6 +127,7 @@ function nextRow_(sh, col) {
 // The sheet is in Dutch; the API speaks fixed codes. Both spellings are accepted when reading.
 var TYPE_NL = { word: 'woord', sentence: 'zin', question: 'vraag' };
 var SOURCE_NL = { manual: 'handmatig', auto: 'automatisch' };
+var STATUS_NL = { proposed: 'voorgesteld', approved: 'goedgekeurd' };
 // Old English tag keys → Dutch keys (used by the one-time migration and to convert seed lines).
 var TAG_RENAME = { household: 'huishouden', family: 'familie', travel: 'reizen', food: 'eten', work: 'werk',
   health: 'gezondheid', shopping: 'winkelen', time: 'tijd' };
@@ -156,6 +157,13 @@ function sourceCode_(v) {
   var s = String(v || '').trim().toLowerCase();
   if (SOURCE_NL[s]) return s;
   return invert_(SOURCE_NL)[s] || '';
+}
+
+/** Inbox status (Dutch or English) → 'proposed' | 'approved' | ''. */
+function statusCode_(v) {
+  var s = String(v || '').trim().toLowerCase();
+  if (STATUS_NL[s]) return s;
+  return invert_(STATUS_NL)[s] || '';
 }
 
 function typeNl_(code) { return TYPE_NL[typeCode_(code)] || String(code || ''); }

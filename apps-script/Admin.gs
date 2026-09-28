@@ -21,14 +21,16 @@ function adminTags_(add) {
       add.forEach(function (t) {
         var tag = String(t && t.tag || '').trim().toLowerCase();
         if (!/^[a-z0-9-]{2,30}$/.test(tag) || existing.indexOf(tag) !== -1) return;
-        sh.appendRow([tag, String(t.label_fr || ''), String(t.description || '')]);
+        var row = {}; row.tag = tag; row.label_nl = String(t.label_nl || tag); row.label_fr = String(t.label_fr || '');
+        row.description = String(t.description || '');
+        sh.getRange(nextRow_(sh, 1), 1, 1, SCHEMA.Tags.length).setValues([rowFromObject_(SCHEMA.Tags, row)]);
         existing.push(tag);
         added.push(tag);
       });
     });
   }
   var tags = readTable_(sh).rows.map(function (r) {
-    return { tag: String(r.tag).trim().toLowerCase(), label_fr: String(r.label_fr || ''), description: String(r.description || '') };
+    return { tag: String(r.tag).trim().toLowerCase(), label_nl: String(r.label_nl || ''), label_fr: String(r.label_fr || ''), description: String(r.description || '') };
   }).filter(function (x) { return x.tag; });
   return { tags: tags, added: added };
 }
@@ -168,6 +170,7 @@ function adminReseedDev_() {
     var sh = sheet_('Cards');
     if (sh.getMaxRows() > 1) sh.getRange(2, 1, sh.getMaxRows() - 1, CARD_COLS.length).clearContent();
     seedCards_(sh);
+    seedAppWords_(sh);
     applyCardValidation_(sh, false);
     return { rows: nextRow_(sh, 3) - 2 };
   });

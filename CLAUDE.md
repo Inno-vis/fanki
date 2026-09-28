@@ -7,6 +7,7 @@ The repo is **public** and hosted on GitHub Pages.
 - DEV: https://inno-vis.github.io/fanki/dev/ (branch `main`, sheet "Dutch DEV")
 - PROD: https://inno-vis.github.io/fanki/ (branch `release`, sheet "Dutch PROD")
 - Release process: `docs/RELEASE.md`. Sheet schema: `docs/SHEET.md` (keep in sync with `apps-script/Schema.gs`).
+  UI strings for review: `docs/UI-STRINGS.md`.
 
 ## Stack
 
@@ -16,7 +17,8 @@ The repo is **public** and hosted on GitHub Pages.
   Separate manifest, scope, Workbox `cacheId`, IndexedDB namespace (`NS` in `src/config.ts`).
 - `apps-script/`: one codebase for both Apps Script projects (`.clasp.dev.json`, `.clasp.prod.json`),
   deployment IDs in `deploy.config.json`.
-- UI language: **French**. Large touch targets, one-handed, dark mode, safe-area padding.
+- UI language: **Dutch (A1)** — short sentences, present tense, common words, no idioms. `<html lang="nl">`.
+  Large touch targets, one-handed, dark mode, safe-area padding.
 
 ## Secrets — never commit, never print
 
@@ -44,6 +46,32 @@ The repo is **public** and hosted on GitHub Pages.
 - Deploy with `npm run gas:deploy:<env>` — keeps the same deployment ID so the /exec URL never changes.
 - Verify with `npm run smoke:<env>`.
 
+## UI text (Dutch interface, French only as opt-in help)
+
+- **Every** learner-facing string lives in `src/i18n.ts` as `{ nl, fr }`. Components call `t(key)`;
+  never hard-code UI text in a component. `fr` is hidden help text.
+- French appears only (a) in the "Hulp" panel (`?` button on every screen, `HELP[screen].fr`) when she
+  taps it, and (b) in the one-time rating-buttons overlay. Both are hidden when Settings
+  `show_french_help` is FALSE.
+- Interface vocabulary is course content: the 50 "app" words (`APP_SEED_CARDS` in `apps-script/Schema.gs`,
+  tag `app`, added 2026-09-27) are seeded in DEV **and** PROD. `npm run ui-vocab` warns about UI words
+  that are neither taught nor on its function-word allowlist (CI: warning only).
+- `docs/UI-STRINGS.md` is generated: `npm run ui-strings` after editing `src/i18n.ts`.
+- Relative times in Dutch (`timeAgo` in `src/format.ts`): "zojuist", "5 minuten geleden", "2 dagen geleden".
+- The tag filter ("Kies een onderwerp") shows Tags.`label_nl`; the keys in Cards.tags are unchanged.
+
+## Rating buttons
+
+- Left to right, equal width, all four in one row on an iPhone SE, each ≥ 56 px tall:
+  emoji (large) / Dutch label / interval (smallest). `RATINGS` + `INTERVAL_UNITS` in `src/i18n.ts`:
+  ❌ Opnieuw (1) · 😅 Moeilijk (2) · ✅ Goed (3) · 😎 Makkelijk (4).
+- Intervals from ts-fsrs, formatted by `formatInterval`: "10 min", "2 u", "3 d", "3 wk", "4 mnd", "1 jr".
+- `aria-label` = "<Dutch label>, <interval>".
+- Typed answers: wrong → ❌ pre-selected (one tap confirms); correct → only 😅 ✅ 😎.
+- One-time overlay (first review session) explains the four buttons in French
+  ("Opnieuw = je ne savais pas", "Moeilijk = j'ai hésité", "Goed = bien", "Makkelijk = très facile");
+  a small `?` reopens it. This is the only place the button labels are translated.
+
 ## Domain rules
 
 - Card types: `word`, `sentence` (target word in `{braces}` → cloze), `question` (fr = prompt, nl = answer).
@@ -52,7 +80,8 @@ The repo is **public** and hosted on GitHub Pages.
 - New cards per day capped by Settings.`new_per_day`, ordered by `added`.
 - Nouns always show de/het; show flags (false-friend, separable).
 - Typed answers: tolerant of case and missing accents, show a diff, "J'avais raison" override.
-- Compliments: every 3rd correct answer per session, never the same twice in a row, respects
+- Compliments (Dutch lines from the Compliments tab): every 3rd correct answer per session, counter never
+  resets on a mistake, never the same twice in a row, ~1.5 s non-blocking toast, respects
   `prefers-reduced-motion` and Settings.`compliments_enabled`.
 
 ## Commands
@@ -65,6 +94,8 @@ npm run build            # prod + dev into dist/
 npm run gas:deploy:dev   # push + redeploy Apps Script (same URL)
 npm run smoke:dev        # curl smoke test of the deployed API
 npm run admin -- dev listUntagged
+npm run ui-strings       # regenerate docs/UI-STRINGS.md
+npm run ui-vocab         # UI words not yet taught (warning)
 ```
 
 Slash commands in `.claude/commands/`: `/retag`, `/addwords`, `/promote` (all go through `scripts/admin.mjs`).

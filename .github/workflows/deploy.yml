@@ -61,7 +61,10 @@ jobs:
           LEARNER_TOKEN_DEV: ${{ secrets.LEARNER_TOKEN_DEV }}
         run: |
           npm ci
+          npm run typecheck
           npm test
+          npm run ui-vocab                       # warnings only
+          npm run ui-strings -- --check || echo "::warning::docs/UI-STRINGS.md is stale — run npm run ui-strings"
           npm run build:dev
 
       - name: PROD — install, build

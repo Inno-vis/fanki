@@ -10,20 +10,32 @@ type Json = Record<string, unknown> & { ok?: boolean; error?: string; message?: 
 
 // Google occasionally serves an HTML error page or drops a POST body on its redirect
 // (mostly right after a deploy). Every action is idempotent, so we simply retry.
-const RETRYABLE = new Set(['no_action', 'busy', 'bad_response', 'network']);
+const RETRYABLE = new Set(['no_action', 'busy', 'bad_response', 'network', 'timeout']);
+// Apps Script cold starts can take 10+ s; give up on one attempt after this and retry.
+const TIMEOUT_MS = 25_000;
 
 async function once(init: { method: 'GET'; query: string } | { method: 'POST'; body: string }): Promise<Json> {
+  const ctrl = new AbortController();
+  const timer = setTimeout(() => ctrl.abort(), TIMEOUT_MS);
   let res: Response;
+  let text: string;
   try {
     res =
       init.method === 'GET'
-        ? await fetch(`${API_URL}?${init.query}`, { cache: 'no-store' })
+        ? await fetch(`${API_URL}?${init.query}`, { cache: 'no-store', signal: ctrl.signal })
         : // text/plain + no custom headers = "simple" request, so no CORS preflight.
-          await fetch(API_URL, { method: 'POST', body: init.body, headers: { 'Content-Type': 'text/plain;charset=utf-8' } });
+          await fetch(API_URL, {
+            method: 'POST',
+            body: init.body,
+            headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+            signal: ctrl.signal
+          });
+    text = await res.text();
   } catch (e) {
-    throw new ApiError('network', String(e));
+    throw new ApiError(ctrl.signal.aborted ? 'timeout' : 'network', String(e));
+  } finally {
+    clearTimeout(timer);
   }
-  const text = await res.text();
   let json: Json;
   try {
     json = JSON.parse(text);

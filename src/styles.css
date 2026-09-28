@@ -235,6 +235,70 @@ body {
   padding-top: 8px;
 }
 
+.topbar-right {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.help-btn {
+  appearance: none;
+  border: 0;
+  background: var(--surface-2);
+  color: var(--text);
+  font: inherit;
+  font-size: 15px;
+  font-weight: 600;
+  min-height: 44px;
+  padding: 0 14px 0 8px;
+  border-radius: 999px;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.help-icon {
+  width: 26px;
+  height: 26px;
+  border-radius: 50%;
+  background: var(--primary);
+  color: var(--primary-text);
+  display: inline-grid;
+  place-items: center;
+  font-weight: 700;
+}
+
+.sheet-backdrop {
+  position: fixed;
+  inset: 0;
+  background: rgb(0 0 0 / 0.5);
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  z-index: 20;
+}
+
+.sheet {
+  background: var(--surface);
+  color: var(--text);
+  width: 100%;
+  max-width: 560px;
+  border-radius: 20px 20px 0 0;
+  padding: 20px calc(var(--safe-right) + 20px) calc(var(--safe-bottom) + 16px) calc(var(--safe-left) + 20px);
+  max-height: 85dvh;
+  overflow: auto;
+}
+
+.sheet h2 {
+  margin: 0 0 8px;
+  font-size: 20px;
+}
+
+.btn-block {
+  width: 100%;
+  margin-top: 12px;
+}
+
 @media (prefers-reduced-motion: reduce) {
   * {
     transition: none !important;

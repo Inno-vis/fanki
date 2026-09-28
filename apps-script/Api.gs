@@ -89,7 +89,7 @@ function getCards_() {
     cards: cards,
     settings: readSettings_(),
     tags: readTable_(sheet_('Tags')).rows.map(function (r) {
-      return { tag: String(r.tag).trim().toLowerCase(), label_fr: String(r.label_fr || ''), description: String(r.description || '') };
+      return { tag: String(r.tag).trim().toLowerCase(), label_nl: String(r.label_nl || r.tag || ''), label_fr: String(r.label_fr || '') };
     }).filter(function (x) { return x.tag; }),
     compliments: readTable_(sheet_('Compliments')).rows.map(function (r) { return String(r.text || '').trim(); })
       .filter(function (s) { return s; })

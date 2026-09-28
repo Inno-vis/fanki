@@ -27,8 +27,7 @@ function setup() {
   Object.keys(SCHEMA).forEach(function (name, i) {
     var sh = ss.getSheetByName(name) || ss.insertSheet(name, i);
     var headers = SCHEMA[name];
-    var current = sh.getRange(1, 1, 1, headers.length).getValues()[0];
-    if (current.join('|') !== headers.join('|')) sh.getRange(1, 1, 1, headers.length).setValues([headers]);
+    ensureHeaders_(sh, headers);
     sh.getRange(1, 1, 1, headers.length).setFontWeight('bold').setBackground('#e8eaed');
     sh.setFrozenRows(1);
   });
@@ -50,9 +49,10 @@ function setup() {
 
   // 5. Seeds (only into empty tabs; Settings adds missing keys).
   seedSettings_(ss.getSheetByName('Settings'));
-  seedIfEmpty_(ss.getSheetByName('Tags'), TAGS_SEED);
-  seedIfEmpty_(ss.getSheetByName('Compliments'), COMPLIMENTS_SEED.map(function (t) { return [t]; }));
+  seedTags_(ss.getSheetByName('Tags'));
+  seedCompliments_(ss.getSheetByName('Compliments'));
   if (env === 'DEV') seedCards_(ss.getSheetByName('Cards'));
+  seedAppWords_(ss.getSheetByName('Cards'));
   buildDashboard_(ss.getSheetByName('Dashboard'));
 
   // 6. Trigger: fill blank ids when the teacher edits Cards/Inbox.
@@ -83,10 +83,62 @@ function seedSettings_(sh) {
   });
   var rows = readTable_(sh).rows;
   rows.forEach(function (r) {
-    if (r.key === 'compliments_enabled') {
+    if (r.key === 'compliments_enabled' || r.key === 'show_french_help') {
       sh.getRange(r._row, 2).setDataValidation(SpreadsheetApp.newDataValidation().requireCheckbox().build());
     }
   });
+}
+
+/**
+ * Makes row 1 match `headers`. A missing column is INSERTED at its position (existing data shifts
+ * right with its header), so adding a column to the schema never misaligns data.
+ */
+function ensureHeaders_(sh, headers) {
+  for (var i = 0; i < headers.length; i++) {
+    var width = Math.max(sh.getLastColumn(), 1);
+    var current = sh.getRange(1, 1, 1, width).getValues()[0].map(String);
+    if (current[i] === headers[i]) continue;
+    var hasData = sh.getLastRow() > 1 || current.some(function (h) { return h !== ''; });
+    if (hasData && current.indexOf(headers[i]) === -1 && current[i] !== '' && i < width) {
+      sh.insertColumnBefore(i + 1);
+    }
+    sh.getRange(1, i + 1).setValue(headers[i]);
+  }
+}
+
+/** Seeds missing tags and fills blank label_nl for known tags. */
+function seedTags_(sh) {
+  var t = readTable_(sh);
+  var byTag = {};
+  t.rows.forEach(function (r) { byTag[String(r.tag).trim().toLowerCase()] = r; });
+  var col = t.headers.indexOf('label_nl') + 1;
+  TAGS_SEED.forEach(function (row) {
+    var r = byTag[row[0]];
+    if (!r) sh.getRange(nextRow_(sh, 1), 1, 1, row.length).setValues([row]);
+    else if (!String(r.label_nl || '').trim()) sh.getRange(r._row, col).setValue(row[1]);
+  });
+}
+
+/** Seeds an empty tab; replaces the old French seed if it was never edited. */
+function seedCompliments_(sh) {
+  var current = readTable_(sh).rows.map(function (r) { return String(r.text).trim(); }).filter(String);
+  var untouchedOld = current.length === OLD_COMPLIMENTS_FR.length &&
+    current.every(function (x, i) { return x === OLD_COMPLIMENTS_FR[i]; });
+  if (current.length && !untouchedOld) return;
+  if (sh.getLastRow() > 1) sh.getRange(2, 1, sh.getLastRow() - 1, 1).clearContent();
+  sh.getRange(2, 1, COMPLIMENTS_SEED.length, 1).setValues(COMPLIMENTS_SEED.map(function (x) { return [x]; }));
+}
+
+/** Adds the interface vocabulary (both envs). Skips any (type, nl) already in Cards. */
+function seedAppWords_(sh) {
+  var have = {};
+  readTable_(sh).rows.forEach(function (r) { have[String(r.type) + '|' + String(r.nl).trim().toLowerCase()] = true; });
+  var parts = APP_SEED_ADDED.split('-');
+  var added = new Date(Number(parts[0]), Number(parts[1]) - 1, Number(parts[2]));
+  var rows = APP_SEED_CARDS.map(function (line) { return line.split('|'); })
+    .filter(function (f) { return !have[f[0] + '|' + f[1].toLowerCase()]; })
+    .map(function (f) { return [newId_('c_'), f[0], f[1], f[2], f[3], f[4], f[5], f[6], f[7], f[8], f[9], added, true]; });
+  if (rows.length) sh.getRange(nextRow_(sh, 3), 1, rows.length, rows[0].length).setValues(rows);
 }
 
 function seedIfEmpty_(sh, rows) {

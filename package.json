@@ -24,7 +24,9 @@
     "gas:deploy:prod": "scripts/gas-deploy.sh prod",
     "smoke:dev": "scripts/smoke.sh dev",
     "smoke:prod": "scripts/smoke.sh prod",
-    "admin": "node scripts/admin.mjs"
+    "admin": "node scripts/admin.mjs",
+    "ui-strings": "node scripts/ui-strings.mjs",
+    "ui-vocab": "node scripts/check-ui-vocab.mjs"
   },
   "dependencies": {
     "idb": "^8.0.3",

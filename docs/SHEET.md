@@ -28,6 +28,12 @@ validation and the Dashboard, seeds only empty tabs, and seeds Cards only in DEV
 | added | date | New cards are introduced in `added` order. Filled with today if blank. |
 | active | checkbox | Untick to hide a card without deleting it (progress is kept). |
 
+### Seed data
+
+- DEV only: the 24 sample cards (words, cloze sentences, questions).
+- DEV **and** PROD: the 50 interface words (tag `app`, `tags_source` manual, `added` 2026-09-27 so they are
+  introduced before everything else). `setup()` adds any that are missing and never duplicates.
+
 ## Progress — scheduling state (written by the API; rebuildable from Log)
 
 `card_id, track, state, due, stability, difficulty, reps, lapses, last_review`
@@ -46,15 +52,22 @@ validation and the Dashboard, seeds only empty tabs, and seeds Cards only in DEV
 
 - `event_id`: uuid made on the phone. The API **ignores an event_id it already has**, so a sync
   that is retried or interrupted never creates duplicates.
-- `rating`: 1 = Again, 2 = Hard, 3 = Good, 4 = Easy.
+- `rating`: 1 = Again (❌ Opnieuw), 2 = Hard (😅 Moeilijk), 3 = Good (✅ Goed), 4 = Easy (😎 Makkelijk).
 - `mode`: `nl_fr`, `fr_nl`, `cloze`, `question`, `listen`.
 - `snapshot`: JSON `{state, due, stability, difficulty, reps, lapses}` after the review.
 - Don't edit or sort this tab (it has a warning-only protection).
 
 ## Tags
 
-`tag, label_fr, description` — the tag vocabulary. `tag` is lowercase, no spaces
-(`household`, `wiskunde`…). `label_fr` is what the learner sees in the tag filter.
+`tag, label_nl, label_fr, description` — the tag vocabulary.
+
+- `tag`: the key used in Cards.tags — lowercase, no spaces (`household`, `wiskunde`…). Never rename a key
+  that cards use.
+- `label_nl`: what the learner sees in the filter screen ("Kies een onderwerp").
+- `label_fr`, `description`: for the teacher only.
+
+Seed: household=huishouden, school=school, wiskunde=wiskunde, family=familie, travel=reizen, food=eten,
+work=werk, health=gezondheid, shopping=winkelen, time=tijd, app=app.
 
 ## Inbox — proposed new cards
 
@@ -70,10 +83,13 @@ to move approved rows into Cards. Nothing is ever written to Cards by `/addwords
 | desired_retention | 0.9 | FSRS target recall probability (0.7–0.97) |
 | compliments_enabled | TRUE | Show a compliment every 3rd correct answer |
 | unlock_prod_stability_days | 3 | When a word's `recog` stability reaches this many days, the typing (`prod`) track starts |
+| show_french_help | TRUE | Shows the "Hulp" button (French help) and the one-time rating overlay. Untick when she's ready. |
 
 ## Compliments
 
-`text` — one French line per row. Shown as a small toast every 3rd correct answer.
+`text` — one Dutch line per row (seed: "Goed zo!", "Prima!", "Top!", "Heel goed!", "Mooi gedaan!",
+"Je wordt steeds beter!", "Uitstekend!", "Fantastisch!", "Ga zo door!", "Geweldig!",
+"Ik ben trots op je!", "Perfect!", "Sterk!"). Shown as a small toast every 3rd correct answer.
 
 ## Dashboard (formulas, read-only)
 

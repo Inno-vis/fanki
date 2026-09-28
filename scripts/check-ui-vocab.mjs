@@ -33,6 +33,8 @@ function known(word) {
     // plural / adjective / diminutive endings: kaart→kaarten, nieuw→nieuwe, woord→woorden
     if ([base + 'e', base + 'en', base + 's', base + 'n', base + 'je', base + 'tje'].includes(word)) return true;
     // plural with a long vowel that loses its double letter: minuut → minuten, week → weken
+    // plural with a doubled final consonant: knop → knoppen
+    if (/[aeiou][^aeiou]$/.test(base) && word === base + base.slice(-1) + 'en') return true;
     const open = base.replace(/(aa|ee|oo|uu)([^aeiou])$/, (_, v, c) => v[0] + c);
     if (open !== base && word === open + 'en') return true;
     // verb forms from an infinitive: controleren → controleer/controleert/gecontroleerd
@@ -42,6 +44,8 @@ function known(word) {
       const short = stem.replace(/([^aeiou])\1$/, '$1'); // zetten → zet
       for (const s of [stem, long, short]) {
         if (word === s || word === s + 't' || word === 'ge' + s + 'd' || word === 'ge' + s + 't') return true;
+        // verbs with an unstressed prefix have no ge-: herhalen → herhaald, betalen → betaald
+        if (/^(be|her|ver|ont|er)/.test(base) && (word === s + 'd' || word === s + 't')) return true;
       }
     }
   }

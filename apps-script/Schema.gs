@@ -163,7 +163,23 @@ var APP_SEED_CARDS = [
   'word|vandaag||adv|aujourd\'hui|Vandaag oefen ik tien woorden.|Aujourd\'hui je m\'exerce sur dix mots.|app|manual|',
   'word|geen||det|aucun, pas de|Ik heb geen tijd.|Je n\'ai pas le temps.|app|manual|',
   'word|nog eens||phrase|encore une fois|Zeg het nog eens.|Dis-le encore une fois.|app|manual|',
-  'word|bedankt||phrase|merci|Bedankt voor je hulp.|Merci pour ton aide.|app|manual|'
+  'word|bedankt||phrase|merci|Bedankt voor je hulp.|Merci pour ton aide.|app|manual|',
+  // Added 2026-09-28: words the interface uses (npm run ui-vocab)
+  'word|doorgaan||verb (separable)|continuer|We gaan morgen door.|On continue demain.|app|manual|separable',
+  'word|geleden||adv|il y a (temps)|Twee dagen geleden was ik ziek.|Il y a deux jours, j\'étais malade.|app|manual|',
+  'word|graag||adv|volontiers, avec plaisir|Ik drink graag thee.|J\'aime boire du thé.|app|manual|',
+  'word|knop|de|noun|le bouton|Tik op de knop.|Appuie sur le bouton.|app|manual|',
+  'word|laatst||adv|la dernière fois, dernièrement|Wanneer heb je laatst geoefend?|Quand t\'es-tu exercée la dernière fois ?|app|manual|',
+  'word|over||prep|dans (temps) ; sur, au sujet de|De les begint over tien minuten.|Le cours commence dans dix minutes.|app|manual|',
+  'word|proberen||verb|essayer|Probeer het nog eens.|Essaie encore une fois.|app|manual|',
+  'word|scheidbaar||adj|séparable|Opstaan is een scheidbaar werkwoord.|« Opstaan » est un verbe séparable.|app|manual|',
+  'word|sessie|de|noun|la séance|De sessie duurt tien minuten.|La séance dure dix minutes.|app|manual|',
+  'word|stoppen||verb|arrêter|Ik stop met de les.|J\'arrête la leçon.|app|manual|',
+  'word|uitleg|de|noun|l\'explication|De uitleg is duidelijk.|L\'explication est claire.|app|manual|',
+  'word|valse vriend|de|noun|le faux ami|Gang is een valse vriend.|« Gang » est un faux ami.|app|manual|',
+  'word|vier||num|quatre|Ik heb vier boeken.|J\'ai quatre livres.|app|manual|',
+  'word|voltooid||adj|terminé, achevé|De sessie is voltooid.|La séance est terminée.|app|manual|',
+  'word|zojuist||adv|à l\'instant|Ik ben zojuist thuisgekomen.|Je viens de rentrer.|app|manual|'
 ];
 
 // Clock course, seeded in DEV and PROD with fixed ids. Question cards (self-rated):

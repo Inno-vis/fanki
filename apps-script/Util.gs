@@ -134,7 +134,8 @@ var TAG_RENAME = { household: 'huishouden', family: 'familie', travel: 'reizen',
 var POS_NL = {
   'noun': 'zelfstandig naamwoord', 'noun (plural)': 'zelfstandig naamwoord (meervoud)', 'verb': 'werkwoord',
   'verb (separable)': 'scheidbaar werkwoord', 'adj': 'bijvoeglijk naamwoord', 'adv': 'bijwoord',
-  'det': 'voornaamwoord', 'phrase': 'uitdrukking', 'sentence': 'zin', 'question': 'vraag'
+  'det': 'voornaamwoord', 'phrase': 'uitdrukking', 'sentence': 'zin', 'question': 'vraag',
+  'num': 'telwoord', 'prep': 'voorzetsel'
 };
 
 function invert_(o) {

@@ -106,12 +106,26 @@ maps them to internal codes (`typeCode_`/`sourceCode_` in `apps-script/Util.gs`)
   resets on a mistake, never the same twice in a row, ~1.5 s non-blocking toast, respects
   `prefers-reduced-motion` and Settings.`compliments_enabled`.
 
+## Offline and sync (never lose a review)
+
+- The app shell is precached by the service worker; all active cards, settings, tags, compliments,
+  curriculum and her Progress live in IndexedDB (`fanki-dev` / `fanki-prod`). `navigator.storage.persist()`.
+- A rating writes progress + outbox event in one transaction. The outbox is pushed ~4 s later when online,
+  immediately when the connection returns (also mid-session), and at every sync. Events leave the outbox
+  only when the server lists them as accepted or duplicate; the server de-duplicates on `event_id`.
+- Sync = push → pull cards/settings + Progress → merge (server wins only if newer AND no unsent local
+  review) → push again. Runs at launch, when back online, when the app returns to the foreground (> 2 min
+  since the last sync) and on "Synchroniseren".
+- `useOnline()` is ONE shared flag (src/pwa.ts); don't add per-component online listeners.
+- Tests: `src/queue.test.ts` (idempotent push, lost replies, merge) and `e2e/offline.spec.ts` (Playwright:
+  online load → offline reload → review → reconnect with a lost reply → exactly-once on the mock server).
+
 ## Commands
 
 ```bash
 npm run dev              # local dev server (DEV API)
 npm test                 # vitest
-npm run e2e              # playwright
+npm run e2e              # builds e2e-dist (mock API) + Playwright offline test
 npm run build            # prod + dev into dist/
 npm run gas:deploy:dev   # push + redeploy Apps Script (same URL)
 npm run smoke:dev        # curl smoke test of the deployed API

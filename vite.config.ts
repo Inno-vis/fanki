@@ -68,8 +68,8 @@ export default defineConfig(({ mode, command }) => {
       __BUILD_ID__: JSON.stringify(process.env.GITHUB_SHA?.slice(0, 7) ?? new Date().toISOString().slice(0, 16))
     },
     build: {
-      outDir: isProd ? 'dist' : 'dist/dev',
-      emptyOutDir: isProd,
+      outDir: process.env.FANKI_OUT_DIR ?? (isProd ? 'dist' : 'dist/dev'),
+      emptyOutDir: isProd || !!process.env.FANKI_OUT_DIR,
       target: 'safari15'
     },
     test: {

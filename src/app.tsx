@@ -2,7 +2,8 @@ import { useEffect, useMemo, useState } from 'preact/hooks';
 import { APP_ENV, BUILD_ID } from './config';
 import { useOnline } from './pwa';
 import { t } from './i18n';
-import { loadFromDb, useStore } from './store';
+import { getState, loadFromDb, useStore } from './store';
+import { schedulePush } from './review';
 import { syncNow } from './sync';
 import { UpdateBanner } from './components/Banners';
 import { HelpButton } from './components/Help';
@@ -23,8 +24,20 @@ export function App() {
     loadFromDb().then(() => navigator.onLine && syncNow());
   }, []);
   useEffect(() => {
-    if (online && s.loaded && screen.name === 'home') void syncNow();
+    if (!online || !s.loaded) return;
+    if (screen.name === 'home') void syncNow();
+    else schedulePush(0); // mid-session: just send the queued reviews
   }, [online]);
+  // Coming back to the app (it stays alive in the background on iOS): refresh if the last sync is old.
+  useEffect(() => {
+    const onVisible = () => {
+      if (document.visibilityState !== 'visible' || !navigator.onLine) return;
+      const last = getState().lastSync;
+      if (!last || Date.now() - Date.parse(last) > 2 * 60_000) void syncNow();
+    };
+    document.addEventListener('visibilitychange', onVisible);
+    return () => document.removeEventListener('visibilitychange', onVisible);
+  }, []);
 
   // Recomputed whenever cards/progress change and every minute (learning steps become due).
   const [tick, setTick] = useState(0);

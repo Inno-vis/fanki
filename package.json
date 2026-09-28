@@ -13,7 +13,7 @@
     "preview": "vite preview --mode dev",
     "typecheck": "tsc --noEmit",
     "test": "vitest run --passWithNoTests",
-    "e2e": "playwright test",
+    "e2e": "npm run e2e:build && playwright test",
     "icons": "node scripts/make-icons.mjs",
     "check-secrets": "scripts/check-secrets.sh --tree",
     "gas:secrets:dev": "scripts/push-secrets.sh dev",
@@ -26,7 +26,8 @@
     "smoke:prod": "scripts/smoke.sh prod",
     "admin": "node scripts/admin.mjs",
     "ui-strings": "node scripts/ui-strings.mjs",
-    "ui-vocab": "node scripts/check-ui-vocab.mjs"
+    "ui-vocab": "node scripts/check-ui-vocab.mjs",
+    "e2e:build": "FANKI_OUT_DIR=e2e-dist API_URL_DEV=https://mock.fanki.test/exec LEARNER_TOKEN_DEV=e2e-token vite build --mode dev"
   },
   "dependencies": {
     "idb": "^8.0.3",

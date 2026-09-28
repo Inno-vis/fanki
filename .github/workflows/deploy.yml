@@ -67,6 +67,12 @@ jobs:
           npm run ui-strings -- --check || echo "::warning::docs/UI-STRINGS.md is stale — run npm run ui-strings"
           npm run build:dev
 
+      - name: DEV — end-to-end offline test (Playwright)
+        working-directory: main
+        run: |
+          npx playwright install --with-deps chromium
+          npm run e2e
+
       - name: PROD — install, build
         if: steps.release.outputs.exists == 'true'
         working-directory: release

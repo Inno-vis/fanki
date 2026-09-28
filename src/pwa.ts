@@ -34,19 +34,26 @@ export function useNeedRefresh(): [boolean, () => void] {
   return [v, () => void updateSW?.(true)];
 }
 
+// One shared online flag for the whole app (every component sees the same value).
+let online = typeof navigator === 'undefined' ? true : navigator.onLine;
+const onlineListeners = new Set<(v: boolean) => void>();
+if (typeof window !== 'undefined') {
+  const set = (v: boolean) => {
+    online = v;
+    onlineListeners.forEach((l) => l(v));
+  };
+  window.addEventListener('online', () => set(true));
+  window.addEventListener('offline', () => set(false));
+}
+
 export function useOnline(): boolean {
-  const [online, setOnline] = useState(navigator.onLine);
+  const [v, setV] = useState(online);
   useEffect(() => {
-    const on = () => setOnline(true);
-    const off = () => setOnline(false);
-    addEventListener('online', on);
-    addEventListener('offline', off);
-    return () => {
-      removeEventListener('online', on);
-      removeEventListener('offline', off);
-    };
+    onlineListeners.add(setV);
+    setV(online); // in case it changed between render and subscribe
+    return () => void onlineListeners.delete(setV);
   }, []);
-  return online;
+  return v;
 }
 
 export function isStandalone(): boolean {

@@ -452,6 +452,123 @@ body {
   color: var(--primary-text);
 }
 
+/* Rating buttons: 4 equal columns, fit an iPhone SE (320 px) */
+.rating-row {
+  position: relative;
+}
+
+.rating-bar {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 6px;
+}
+
+.rating {
+  appearance: none;
+  border: 0;
+  border-radius: 14px;
+  min-height: 76px;
+  min-width: 0;
+  padding: 8px 2px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 2px;
+  font: inherit;
+  color: var(--text);
+  background: var(--surface);
+  touch-action: manipulation;
+  border-bottom: 4px solid transparent;
+}
+
+.rating:active:not(:disabled) {
+  transform: scale(0.96);
+}
+
+.rating-again { border-bottom-color: var(--again); }
+.rating-hard { border-bottom-color: var(--hard); }
+.rating-good { border-bottom-color: var(--good); }
+.rating-easy { border-bottom-color: var(--easy); }
+
+.rating-emoji {
+  font-size: 28px;
+  line-height: 1.1;
+}
+
+.rating-label {
+  font-size: clamp(11px, 3.4vw, 14px);
+  font-weight: 700;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 100%;
+}
+
+.rating-interval {
+  font-size: clamp(10px, 3vw, 12px);
+  color: var(--muted);
+}
+
+.rating-help-btn {
+  position: absolute;
+  top: -40px;
+  right: 0;
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  border: 0;
+  background: var(--surface-2);
+  color: var(--muted);
+  font: inherit;
+  font-weight: 700;
+}
+
+.rating-help-list {
+  list-style: none;
+  padding: 0;
+  margin: 8px 0;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  font-size: 18px;
+}
+
+.rating-help-list li {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.card-sentence {
+  font-size: clamp(24px, 7vw, 32px);
+  font-weight: 600;
+  margin: 0;
+}
+
+.cloze-blank {
+  color: var(--primary);
+  letter-spacing: 2px;
+}
+
+.cloze-answer {
+  background: none;
+  color: var(--good);
+  font-weight: 800;
+}
+
+.card-prompt {
+  color: var(--muted);
+  font-size: 18px;
+  margin: 0;
+}
+
+.card-prompt-big {
+  color: var(--text);
+  font-size: clamp(22px, 6.5vw, 30px);
+  font-weight: 600;
+}
+
 @media (prefers-reduced-motion: reduce) {
   * {
     transition: none !important;

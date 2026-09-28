@@ -168,7 +168,8 @@ function postReviews_(events) {
       var s = ev.snapshot;
       var snapshot = {
         state: String(s.state), due: toDate_(s.due).toISOString(), stability: Number(s.stability) || 0,
-        difficulty: Number(s.difficulty) || 0, reps: Number(s.reps) || 0, lapses: Number(s.lapses) || 0
+        difficulty: Number(s.difficulty) || 0, reps: Number(s.reps) || 0, lapses: Number(s.lapses) || 0,
+        learning_steps: Number(s.learning_steps) || 0, scheduled_days: Number(s.scheduled_days) || 0
       };
       rows.push([id, String(ev.card_id), ev.track, toDate_(ev.ts), Number(ev.rating),
         String(ev.mode || ''), Number(ev.duration_ms) || 0, JSON.stringify(snapshot)]);

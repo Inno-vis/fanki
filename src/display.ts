@@ -16,3 +16,9 @@ export function flagLabel(flag: string): string {
   const key = `flag.${flag}` as UIKey;
   return key in UI ? t(key) : flag;
 }
+
+/** Cloze parts of a sentence card: "Ik {woon} hier." → before "Ik ", answer "woon", after " hier." */
+export function clozeParts(nl: string): { before: string; answer: string; after: string } {
+  const m = nl.match(/^(.*?)\{([^}]*)\}(.*)$/s);
+  return m ? { before: m[1], answer: m[2], after: m[3] } : { before: nl, answer: '', after: '' };
+}

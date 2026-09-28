@@ -67,7 +67,8 @@ The repo is **public** and hosted on GitHub Pages.
   ❌ Opnieuw (1) · 😅 Moeilijk (2) · ✅ Goed (3) · 😎 Makkelijk (4).
 - Intervals from ts-fsrs, formatted by `formatInterval`: "10 min", "2 u", "3 d", "3 wk", "4 mnd", "1 jr".
 - `aria-label` = "<Dutch label>, <interval>".
-- Typed answers: wrong → ❌ pre-selected (one tap confirms); correct → only 😅 ✅ 😎.
+- **Every card is self-rated** (the core feature): she reads the front, taps "Antwoord tonen", then
+  rates herself. There are no typed answers anywhere.
 - One-time overlay (first review session) explains the four buttons in French
   ("Opnieuw = je ne savais pas", "Moeilijk = j'ai hésité", "Goed = bien", "Makkelijk = très facile");
   a small `?` reopens it. This is the only place the button labels are translated.
@@ -77,9 +78,14 @@ The repo is **public** and hosted on GitHub Pages.
 - Card types: `word`, `sentence` (target word in `{braces}` → cloze), `question` (fr = prompt, nl = answer).
 - Two FSRS tracks: word cards have `recog` (NL→FR, listening) and `prod` (FR→typed NL);
   sentence/question cards only `prod`. `prod` unlocks when `recog` stability ≥ `unlock_prod_stability_days`.
-- New cards per day capped by Settings.`new_per_day`, ordered by `added`.
+- Scheduling (`src/scheduler.ts`, `src/session.ts`): ts-fsrs, fuzz on, retention from Settings. The four
+  outcomes are computed once when the answer is revealed; the tapped one is applied, so the interval on
+  the button is exactly what is scheduled. Steps under 20 min come back in the same session.
+- New cards per day capped by Settings.`new_per_day`, ordered by `added` (then sheet order). A word's
+  unlocked `prod` track has its own cap of the same size. Today's introductions are stored (`meta.intro`).
+- Each rating = progress + outbox event + intro list in ONE IndexedDB transaction (`recordReview`).
+  Pushed a few seconds later when online, and on every sync; removed only when the server confirms.
 - Nouns always show de/het; show flags (false-friend, separable).
-- Typed answers: tolerant of case and missing accents, show a diff, "J'avais raison" override.
 - Compliments (Dutch lines from the Compliments tab): every 3rd correct answer per session, counter never
   resets on a mistake, never the same twice in a row, ~1.5 s non-blocking toast, respects
   `prefers-reduced-motion` and Settings.`compliments_enabled`.

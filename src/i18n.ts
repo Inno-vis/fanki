@@ -23,13 +23,14 @@ export const UI = {
   'sync.error': { nl: 'Geen verbinding. Probeer het opnieuw.', fr: 'La synchronisation n’a pas marché. Réessaie plus tard.' },
   'sync.last': { nl: 'Laatst gesynchroniseerd: {ago}', fr: 'Dernière synchronisation : {ago}' },
   'sync.never': { nl: 'Nog niet gesynchroniseerd', fr: 'Pas encore synchronisé' },
+  'sync.pending': { nl: '{n} antwoorden nog niet gesynchroniseerd', fr: '{n} réponses pas encore envoyées (elles partiront à la prochaine connexion)' },
 
   // Review
   'review.back': { nl: 'Terug', fr: 'Retour' },
-  'review.progress': { nl: '{i} van {n}', fr: 'carte {i} sur {n}' },
+  'review.left': { nl: 'nog {n}', fr: 'encore {n} cartes dans cette séance' },
   'review.show': { nl: 'Antwoord tonen', fr: 'Montrer la réponse' },
-  'review.next': { nl: 'Volgende kaart', fr: 'Carte suivante' },
   'review.done': { nl: 'Klaar voor vandaag!', fr: 'Fini pour aujourd’hui !' },
+  'review.count': { nl: '{n} kaarten herhaald', fr: '{n} cartes révisées' },
 
   // Card flags (key = value in the Cards.flags column)
   'flag.false-friend': { nl: 'valse vriend', fr: 'faux ami : ressemble à un mot français, mais le sens est différent' },
@@ -82,11 +83,14 @@ export const HELP = {
       '« Synchroniseren » télécharge les nouvelles cartes quand tu as internet.'
   },
   review: {
-    nl: 'Lees de kaart. Tik op Antwoord tonen.',
+    nl: 'Lees de kaart. Tik op Antwoord tonen. Kies dan een knop.',
     fr:
-      'Lis le mot néerlandais et essaie de te souvenir du sens en français. Touche « Antwoord tonen » pour ' +
-      'voir la réponse, puis « Volgende kaart ». Les noms montrent toujours « de » ou « het ». ' +
-      'Badges : « valse vriend » = faux ami, « scheidbaar » = verbe séparable. « Terug » = retour.'
+      'Lis la carte et essaie de te souvenir de la réponse. Touche « Antwoord tonen » pour la voir, puis dis ' +
+      'honnêtement comment ça s’est passé : ❌ Opnieuw = je ne savais pas, 😅 Moeilijk = j’ai hésité, ' +
+      '✅ Goed = bien, 😎 Makkelijk = très facile. Sous chaque bouton : quand la carte reviendra ' +
+      '(min = minutes, u = heures, d = jours, wk = semaines, mnd = mois, jr = ans). Les noms montrent toujours ' +
+      '« de » ou « het ». Badges : « valse vriend » = faux ami, « scheidbaar » = verbe séparable. « nog 5 » = ' +
+      'encore 5 cartes. « Terug » = retour.'
   }
 } as const satisfies Record<string, Str>;
 

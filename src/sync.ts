@@ -1,5 +1,6 @@
-import { apiGet } from './api';
-import { saveSnapshot } from './db';
+import { apiGet, apiPost } from './api';
+import { deleteEvents, mergeServerProgress, pendingCount, pendingEvents, saveSnapshot, setMeta } from './db';
+import { progressKey, type Progress, type StateName, type Track } from './scheduler';
 import { setUiSettings } from './prefs';
 import { getState, loadFromDb, setState } from './store';
 import { DEFAULT_SETTINGS, type Card, type CardsResponse, type Settings } from './types';
@@ -43,32 +44,80 @@ export function cleanSettings(raw: Partial<Settings> | undefined): Settings {
   };
 }
 
+const PUSH_BATCH = 200;
+
+/**
+ * Sends queued reviews. Events leave the queue only after the server confirms them (accepted or
+ * duplicate), so an interrupted push is simply repeated next time; the server ignores event_ids it has.
+ */
+export async function pushQueue(): Promise<number> {
+  let sent = 0;
+  for (;;) {
+    const batch = (await pendingEvents()).slice(0, PUSH_BATCH);
+    if (!batch.length) return sent;
+    const res = await apiPost<{ accepted: string[]; duplicate: string[]; rejected: { event_id: string }[] }>('reviews', { events: batch });
+    const done = [...res.accepted, ...res.duplicate, ...res.rejected.map((r) => r.event_id).filter(Boolean)];
+    if (res.rejected.length) console.warn('rejected review events', res.rejected);
+    await deleteEvents(done);
+    sent += res.accepted.length;
+    if (done.length < batch.length) return sent; // server left some unconfirmed: try again next sync
+  }
+}
+
+export function cleanProgress(raw: Record<string, unknown>): Progress | null {
+  const card_id = String(raw.card_id ?? '');
+  const track = raw.track === 'prod' ? 'prod' : raw.track === 'recog' ? 'recog' : null;
+  const due = String(raw.due ?? '');
+  if (!card_id || !track || isNaN(Date.parse(due))) return null;
+  const states: StateName[] = ['New', 'Learning', 'Review', 'Relearning'];
+  const state = states.includes(raw.state as StateName) ? (raw.state as StateName) : 'Review';
+  return {
+    key: progressKey(card_id, track as Track),
+    card_id,
+    track: track as Track,
+    state,
+    due: new Date(due).toISOString(),
+    stability: Number(raw.stability) || 0,
+    difficulty: Number(raw.difficulty) || 0,
+    reps: Number(raw.reps) || 0,
+    lapses: Number(raw.lapses) || 0,
+    last_review: raw.last_review ? new Date(String(raw.last_review)).toISOString() : '',
+    learning_steps: Number(raw.learning_steps) || 0,
+    scheduled_days: Number(raw.scheduled_days) || 0
+  };
+}
+
 let running: Promise<boolean> | null = null;
 
-/** Downloads cards + settings + tags + compliments. Returns true on success. Never throws. */
+/** Push reviews, then pull cards + settings + her Progress. Returns true on success. Never throws. */
 export function syncNow(): Promise<boolean> {
   if (running) return running;
   running = (async () => {
     if (!navigator.onLine) return false;
     setState({ sync: 'syncing' });
     try {
-      const res = await apiGet<CardsResponse>('cards');
+      await pushQueue();
+      const [res, state] = await Promise.all([
+        apiGet<CardsResponse>('cards'),
+        apiGet<{ progress: Record<string, unknown>[] }>('state')
+      ]);
       const cards = res.cards.map(cleanCard).filter((c): c is Card & { order: number } => !!c && c.active);
       const settings = cleanSettings(res.settings);
-      const lastSync = new Date().toISOString();
       await saveSnapshot(cards, {
         settings,
         tags: (res.tags ?? []).filter((t) => t && t.tag),
-        compliments: (res.compliments ?? []).filter(Boolean),
-        lastSync
+        compliments: (res.compliments ?? []).filter(Boolean)
       });
+      await mergeServerProgress(state.progress.map(cleanProgress).filter((p): p is Progress => !!p));
+      await pushQueue(); // anything reviewed while we were pulling
+      await setMeta('lastSync', new Date().toISOString());
       setUiSettings({ show_french_help: settings.show_french_help, compliments_enabled: settings.compliments_enabled });
       await loadFromDb();
       setState({ sync: 'ok' });
       return true;
     } catch (e) {
       console.warn('sync failed', e);
-      setState({ sync: 'error' });
+      setState({ sync: 'error', pending: await pendingCount().catch(() => 0) });
       return false;
     } finally {
       running = null;

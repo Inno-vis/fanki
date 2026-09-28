@@ -54,7 +54,8 @@ validation and the Dashboard, seeds only empty tabs, and seeds Cards only in DEV
   that is retried or interrupted never creates duplicates.
 - `rating`: 1 = Again (❌ Opnieuw), 2 = Hard (😅 Moeilijk), 3 = Good (✅ Goed), 4 = Easy (😎 Makkelijk).
 - `mode`: `nl_fr`, `fr_nl`, `cloze`, `question`, `listen`.
-- `snapshot`: JSON `{state, due, stability, difficulty, reps, lapses}` after the review.
+- `snapshot`: JSON `{state, due, stability, difficulty, reps, lapses, learning_steps, scheduled_days}`
+  after the review.
 - Don't edit or sort this tab (it has a warning-only protection).
 
 ## Tags

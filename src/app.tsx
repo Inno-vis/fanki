@@ -8,9 +8,9 @@ import { UpdateBanner } from './components/Banners';
 import { HelpButton } from './components/Help';
 import { Home } from './screens/Home';
 import { Review } from './screens/Review';
-import type { Card } from './types';
+import { interleave, planToday, todaysIntro, type Item } from './session';
 
-type Screen = { name: 'home' } | { name: 'review'; cards: Card[] };
+type Screen = { name: 'home' } | { name: 'review'; items: Item[] };
 
 export function App() {
   const online = useOnline();
@@ -25,8 +25,16 @@ export function App() {
     if (online && s.loaded && screen.name === 'home') void syncNow();
   }, [online]);
 
-  // Stage 2: no scheduling yet — everything is "new"; today's set = first new_per_day cards by `added`.
-  const newToday = useMemo(() => s.cards.slice(0, s.settings.new_per_day), [s.cards, s.settings.new_per_day]);
+  // Recomputed whenever cards/progress change and every minute (learning steps become due).
+  const [tick, setTick] = useState(0);
+  useEffect(() => {
+    const id = setInterval(() => setTick((n) => n + 1), 60_000);
+    return () => clearInterval(id);
+  }, []);
+  const plan = useMemo(
+    () => planToday(s.cards, s.progress, s.settings, todaysIntro(s.intro), new Date()),
+    [s.cards, s.progress, s.settings, s.intro, tick, screen.name]
+  );
 
   const helpScreen: HelpScreen = screen.name === 'review' ? 'review' : 'home';
 
@@ -50,9 +58,9 @@ export function App() {
       </header>
 
       {screen.name === 'home' ? (
-        <Home due={0} newToday={newToday.length} onStart={() => setScreen({ name: 'review', cards: newToday })} />
+        <Home due={plan.due.length} newToday={plan.fresh.length} onStart={() => setScreen({ name: 'review', items: interleave(plan) })} />
       ) : (
-        <Review cards={screen.cards} onExit={() => setScreen({ name: 'home' })} />
+        <Review items={screen.items} onExit={() => setScreen({ name: 'home' })} />
       )}
 
       {screen.name === 'home' && (

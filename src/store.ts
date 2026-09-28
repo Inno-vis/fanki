@@ -1,6 +1,8 @@
 import { useEffect, useState } from 'preact/hooks';
-import { allCards, getMeta, getSettings } from './db';
+import { allCards, allProgress, getMeta, getSettings, pendingCount } from './db';
 import { DEFAULT_SETTINGS, type Card, type Settings, type Tag } from './types';
+import type { Progress } from './scheduler';
+import { todaysIntro, type Intro } from './session';
 
 // App-wide state loaded from IndexedDB. Components subscribe with useStore().
 export type SyncStatus = 'idle' | 'syncing' | 'ok' | 'error';
@@ -13,6 +15,9 @@ export type State = {
   compliments: string[];
   lastSync: string | null;
   sync: SyncStatus;
+  progress: Map<string, Progress>;
+  intro: Intro;
+  pending: number; // reviews not yet sent
 };
 
 let state: State = {
@@ -22,7 +27,10 @@ let state: State = {
   tags: [],
   compliments: [],
   lastSync: null,
-  sync: 'idle'
+  sync: 'idle',
+  progress: new Map(),
+  intro: todaysIntro(undefined),
+  pending: 0
 };
 const listeners = new Set<(s: State) => void>();
 
@@ -51,12 +59,15 @@ export function byAdded(a: Card & { order?: number }, b: Card & { order?: number
 }
 
 export async function loadFromDb(): Promise<void> {
-  const [cards, settings, tags, compliments, lastSync] = await Promise.all([
+  const [cards, settings, tags, compliments, lastSync, progress, intro, pending] = await Promise.all([
     allCards(),
     getSettings(),
     getMeta('tags'),
     getMeta('compliments'),
-    getMeta('lastSync')
+    getMeta('lastSync'),
+    allProgress(),
+    getMeta('intro'),
+    pendingCount()
   ]);
   setState({
     loaded: true,
@@ -64,6 +75,9 @@ export async function loadFromDb(): Promise<void> {
     settings,
     tags: tags ?? [],
     compliments: compliments ?? [],
-    lastSync: lastSync ?? null
+    lastSync: lastSync ?? null,
+    progress,
+    intro: todaysIntro(intro),
+    pending
   });
 }

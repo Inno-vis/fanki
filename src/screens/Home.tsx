@@ -47,6 +47,7 @@ export function Home({ due, newToday, onStart }: { due: number; newToday: number
                 : t('sync.never')}
           {s.cards.length > 0 && <span class="muted"> · {t('home.cards', { n: s.cards.length })}</span>}
         </p>
+        {s.pending > 0 && <p class="sync-line">{t('sync.pending', { n: s.pending })}</p>}
         <button class="btn btn-secondary" disabled={!online || s.sync === 'syncing'} onClick={() => void syncNow()}>
           {t('sync.button')}
         </button>

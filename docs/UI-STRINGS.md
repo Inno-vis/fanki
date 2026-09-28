@@ -11,13 +11,23 @@ She sees **nl**. **fr** is hidden help: shown only in the "Hulp" panel and the o
 | `home.due` | te herhalen | cartes à revoir |
 | `home.newToday` | nieuw vandaag | nouvelles cartes aujourd’hui |
 | `home.start` | Starten | Commencer |
-| `home.comingSoon` | De kaarten komen snel. | Les cartes arrivent bientôt. |
+| `home.cards` | {n} kaarten | {n} cartes en tout |
+| `home.empty` | Nog geen kaarten. Tik op Synchroniseren. | Pas encore de cartes. Touche « Synchroniseren ». |
+| `home.emptyOffline` | Nog geen kaarten. Zet het internet aan. | Pas encore de cartes. Connecte-toi à internet. |
+| `home.allDone` | Klaar voor vandaag! | Fini pour aujourd’hui ! |
 | `status.offline` | Geen internet | Pas d’internet |
-| `server.checking` | Verbinding controleren… | Vérification de la connexion… |
-| `server.ok` | De verbinding is goed. | La connexion fonctionne. |
-| `server.error` | Geen verbinding. Probeer het opnieuw. | Pas de connexion. Réessaie plus tard. |
+| `sync.button` | Synchroniseren | Synchroniser (télécharger les cartes et envoyer tes réponses) |
+| `sync.running` | Synchroniseren… | Synchronisation en cours… |
+| `sync.error` | Geen verbinding. Probeer het opnieuw. | La synchronisation n’a pas marché. Réessaie plus tard. |
 | `sync.last` | Laatst gesynchroniseerd: {ago} | Dernière synchronisation : {ago} |
 | `sync.never` | Nog niet gesynchroniseerd | Pas encore synchronisé |
+| `review.back` | Terug | Retour |
+| `review.progress` | {i} van {n} | carte {i} sur {n} |
+| `review.show` | Antwoord tonen | Montrer la réponse |
+| `review.next` | Volgende kaart | Carte suivante |
+| `review.done` | Klaar voor vandaag! | Fini pour aujourd’hui ! |
+| `flag.false-friend` | valse vriend | faux ami : ressemble à un mot français, mais le sens est différent |
+| `flag.separable` | scheidbaar | verbe séparable : le préfixe va à la fin de la phrase |
 | `time.justNow` | zojuist | à l’instant |
 | `time.minuteAgo` | 1 minuut geleden | il y a 1 minute |
 | `time.minutesAgo` | {n} minuten geleden | il y a {n} minutes |
@@ -63,4 +73,5 @@ She sees **nl**. **fr** is hidden help: shown only in the "Hulp" panel and the o
 
 | screen | fr (shown in the panel) |
 |---|---|
-| home | Cet écran montre combien de cartes tu dois revoir aujourd’hui (« te herhalen ») et combien de nouvelles cartes t’attendent (« nieuw vandaag »). Touche « Starten » pour commencer. L’appli fonctionne aussi sans internet : tes réponses sont gardées sur le téléphone et envoyées à la prochaine connexion. |
+| home | Cet écran montre combien de cartes tu dois revoir aujourd’hui (« te herhalen ») et combien de nouvelles cartes t’attendent (« nieuw vandaag »). Touche « Starten » pour commencer. L’appli fonctionne aussi sans internet : tes réponses sont gardées sur le téléphone et envoyées à la prochaine connexion. « Synchroniseren » télécharge les nouvelles cartes quand tu as internet. |
+| review | Lis le mot néerlandais et essaie de te souvenir du sens en français. Touche « Antwoord tonen » pour voir la réponse, puis « Volgende kaart ». Les noms montrent toujours « de » ou « het ». Badges : « valse vriend » = faux ami, « scheidbaar » = verbe séparable. « Terug » = retour. |

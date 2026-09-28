@@ -299,6 +299,159 @@ body {
   margin-top: 12px;
 }
 
+.btn-secondary {
+  background: var(--surface-2);
+  color: var(--text);
+  width: 100%;
+}
+
+.btn-back {
+  appearance: none;
+  border: 0;
+  background: none;
+  color: var(--primary);
+  font: inherit;
+  font-size: 18px;
+  font-weight: 600;
+  min-height: 48px;
+  padding: 0 8px 0 0;
+}
+
+.empty {
+  text-align: center;
+  font-size: 20px;
+  margin: auto 0;
+}
+
+.done-line {
+  font-size: 18px;
+  font-weight: 600;
+}
+
+.sync-box {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-top: 8px;
+}
+
+/* Review */
+.review {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding-bottom: 8px;
+}
+
+.review-progress {
+  text-align: center;
+  margin: 0;
+  font-size: 15px;
+}
+
+.review-actions {
+  margin-top: auto;
+}
+
+.review-actions .btn,
+.review-done .btn {
+  width: 100%;
+}
+
+.review-done {
+  justify-content: flex-end;
+}
+
+.done-big {
+  text-align: center;
+  font-size: 28px;
+  font-weight: 700;
+  margin: auto 0;
+}
+
+.card {
+  background: var(--surface);
+  border-radius: 20px;
+  padding: 24px 20px;
+  min-height: 42dvh;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  text-align: center;
+  gap: 12px;
+}
+
+.card-front {
+  font-size: clamp(30px, 9vw, 44px);
+  font-weight: 700;
+  margin: 0;
+  overflow-wrap: anywhere;
+}
+
+.article {
+  font-weight: 600;
+}
+
+.article-de {
+  color: var(--easy);
+}
+
+.article-het {
+  color: var(--accent);
+}
+
+.card-back {
+  border-top: 1px solid var(--surface-2);
+  padding-top: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.card-answer {
+  font-size: 26px;
+  font-weight: 600;
+  margin: 0;
+}
+
+.card-example {
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  font-size: 17px;
+}
+
+.card-example-fr {
+  color: var(--muted);
+}
+
+.flags {
+  display: flex;
+  justify-content: center;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.flag {
+  font-size: 14px;
+  font-weight: 700;
+  border-radius: 999px;
+  padding: 3px 10px;
+  background: var(--surface-2);
+}
+
+.flag-false-friend {
+  background: var(--warn-bg);
+  color: var(--warn-text);
+}
+
+.flag-separable {
+  background: var(--primary);
+  color: var(--primary-text);
+}
+
 @media (prefers-reduced-motion: reduce) {
   * {
     transition: none !important;

@@ -75,19 +75,25 @@ function cardToJson_(r) {
 }
 
 function getCards_() {
+  var t0 = Date.now(), timing = {};
   var cardsSh = sheet_('Cards');
+  timing.open = Date.now() - t0;
   var t = readTable_(cardsSh);
+  timing.cards = Date.now() - t0;
   if (t.rows.some(function (r) { return String(r.id).trim() === ''; })) {
     withLock_(function () { fillIds_(cardsSh); });
     t = readTable_(cardsSh);
   }
   var cards = t.rows.filter(function (r) { return String(r.id).trim() && bool_(r.active) && String(r.nl).trim(); })
     .map(cardToJson_);
+  var settings = readSettings_();
+  timing.settings = Date.now() - t0;
   return {
     env: env_(),
     serverTime: new Date().toISOString(),
+    timing: timing,
     cards: cards,
-    settings: readSettings_(),
+    settings: settings,
     tags: readTable_(sheet_('Tags')).rows.map(function (r) {
       return { tag: String(r.tag).trim().toLowerCase(), label_nl: String(r.label_nl || r.tag || ''), label_fr: String(r.label_fr || '') };
     }).filter(function (x) { return x.tag; }),

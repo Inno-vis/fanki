@@ -11,15 +11,29 @@ export const UI = {
   'home.due': { nl: 'te herhalen', fr: 'cartes à revoir' },
   'home.newToday': { nl: 'nieuw vandaag', fr: 'nouvelles cartes aujourd’hui' },
   'home.start': { nl: 'Starten', fr: 'Commencer' },
-  'home.comingSoon': { nl: 'De kaarten komen snel.', fr: 'Les cartes arrivent bientôt.' },
+  'home.cards': { nl: '{n} kaarten', fr: '{n} cartes en tout' },
+  'home.empty': { nl: 'Nog geen kaarten. Tik op Synchroniseren.', fr: 'Pas encore de cartes. Touche « Synchroniseren ».' },
+  'home.emptyOffline': { nl: 'Nog geen kaarten. Zet het internet aan.', fr: 'Pas encore de cartes. Connecte-toi à internet.' },
+  'home.allDone': { nl: 'Klaar voor vandaag!', fr: 'Fini pour aujourd’hui !' },
 
-  // Status
+  // Status + sync
   'status.offline': { nl: 'Geen internet', fr: 'Pas d’internet' },
-  'server.checking': { nl: 'Verbinding controleren…', fr: 'Vérification de la connexion…' },
-  'server.ok': { nl: 'De verbinding is goed.', fr: 'La connexion fonctionne.' },
-  'server.error': { nl: 'Geen verbinding. Probeer het opnieuw.', fr: 'Pas de connexion. Réessaie plus tard.' },
+  'sync.button': { nl: 'Synchroniseren', fr: 'Synchroniser (télécharger les cartes et envoyer tes réponses)' },
+  'sync.running': { nl: 'Synchroniseren…', fr: 'Synchronisation en cours…' },
+  'sync.error': { nl: 'Geen verbinding. Probeer het opnieuw.', fr: 'La synchronisation n’a pas marché. Réessaie plus tard.' },
   'sync.last': { nl: 'Laatst gesynchroniseerd: {ago}', fr: 'Dernière synchronisation : {ago}' },
   'sync.never': { nl: 'Nog niet gesynchroniseerd', fr: 'Pas encore synchronisé' },
+
+  // Review
+  'review.back': { nl: 'Terug', fr: 'Retour' },
+  'review.progress': { nl: '{i} van {n}', fr: 'carte {i} sur {n}' },
+  'review.show': { nl: 'Antwoord tonen', fr: 'Montrer la réponse' },
+  'review.next': { nl: 'Volgende kaart', fr: 'Carte suivante' },
+  'review.done': { nl: 'Klaar voor vandaag!', fr: 'Fini pour aujourd’hui !' },
+
+  // Card flags (key = value in the Cards.flags column)
+  'flag.false-friend': { nl: 'valse vriend', fr: 'faux ami : ressemble à un mot français, mais le sens est différent' },
+  'flag.separable': { nl: 'scheidbaar', fr: 'verbe séparable : le préfixe va à la fin de la phrase' },
 
   // Relative time
   'time.justNow': { nl: 'zojuist', fr: 'à l’instant' },
@@ -64,7 +78,15 @@ export const HELP = {
     fr:
       'Cet écran montre combien de cartes tu dois revoir aujourd’hui (« te herhalen ») et combien de nouvelles ' +
       'cartes t’attendent (« nieuw vandaag »). Touche « Starten » pour commencer. L’appli fonctionne aussi sans ' +
-      'internet : tes réponses sont gardées sur le téléphone et envoyées à la prochaine connexion.'
+      'internet : tes réponses sont gardées sur le téléphone et envoyées à la prochaine connexion. ' +
+      '« Synchroniseren » télécharge les nouvelles cartes quand tu as internet.'
+  },
+  review: {
+    nl: 'Lees de kaart. Tik op Antwoord tonen.',
+    fr:
+      'Lis le mot néerlandais et essaie de te souvenir du sens en français. Touche « Antwoord tonen » pour ' +
+      'voir la réponse, puis « Volgende kaart ». Les noms montrent toujours « de » ou « het ». ' +
+      'Badges : « valse vriend » = faux ami, « scheidbaar » = verbe séparable. « Terug » = retour.'
   }
 } as const satisfies Record<string, Str>;
 

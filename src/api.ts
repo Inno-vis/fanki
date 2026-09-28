@@ -11,8 +11,8 @@ type Json = Record<string, unknown> & { ok?: boolean; error?: string; message?: 
 // Google occasionally serves an HTML error page or drops a POST body on its redirect
 // (mostly right after a deploy). Every action is idempotent, so we simply retry.
 const RETRYABLE = new Set(['no_action', 'busy', 'bad_response', 'network', 'timeout']);
-// Apps Script cold starts can take 10+ s; give up on one attempt after this and retry.
-const TIMEOUT_MS = 25_000;
+// Apps Script responses sometimes take 20–30 s (cold starts, slow redirect leg); give up after this and retry.
+const TIMEOUT_MS = 45_000;
 
 async function once(init: { method: 'GET'; query: string } | { method: 'POST'; body: string }): Promise<Json> {
   const ctrl = new AbortController();

@@ -1,0 +1,13 @@
+# secrets — never commit
+.env.local
+.env.*.local
+.clasprc
+.clasprc.json
+apps-script/Secrets.local.gs
+
+# build / deps
+node_modules/
+dist/
+playwright-report/
+test-results/
+.DS_Store

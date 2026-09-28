@@ -1,0 +1,102 @@
+name: Deploy to GitHub Pages
+
+# One Pages artifact, two apps:
+#   release branch → PROD at /fanki/
+#   main branch    → DEV  at /fanki/dev/
+on:
+  push:
+    branches: [main, release]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: pages
+  cancel-in-progress: false
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout main (DEV)
+        uses: actions/checkout@v7
+        with:
+          ref: main
+          path: main
+
+      - name: Does the release branch exist?
+        id: release
+        run: |
+          if git ls-remote --exit-code --heads "https://github.com/${{ github.repository }}" release >/dev/null; then
+            echo "exists=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "exists=false" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Checkout release (PROD)
+        if: steps.release.outputs.exists == 'true'
+        uses: actions/checkout@v7
+        with:
+          ref: release
+          path: release
+
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 24
+          cache: npm
+          cache-dependency-path: main/package-lock.json
+
+      - name: Secret scan (source only, not dist)
+        run: |
+          (cd main && scripts/check-secrets.sh --tree)
+          if [ -d release ]; then (cd release && scripts/check-secrets.sh --tree); fi
+
+      - name: DEV — install, test, build
+        working-directory: main
+        env:
+          API_URL_DEV: ${{ secrets.API_URL_DEV }}
+          LEARNER_TOKEN_DEV: ${{ secrets.LEARNER_TOKEN_DEV }}
+        run: |
+          npm ci
+          npm test
+          npm run build:dev
+
+      - name: PROD — install, build
+        if: steps.release.outputs.exists == 'true'
+        working-directory: release
+        env:
+          API_URL_PROD: ${{ secrets.API_URL_PROD }}
+          LEARNER_TOKEN_PROD: ${{ secrets.LEARNER_TOKEN_PROD }}
+        run: |
+          npm ci
+          npm run build:prod
+
+      - name: Assemble site
+        run: |
+          mkdir -p site
+          if [ -d release/dist ]; then
+            cp -R release/dist/. site/
+          else
+            printf '<!doctype html><meta charset="utf-8"><title>Fanki</title><p>La version PROD arrive bientôt. <a href="dev/">Version DEV</a></p>' > site/index.html
+          fi
+          rm -rf site/dev
+          cp -R main/dist/dev site/dev
+          touch site/.nojekyll
+          find site -maxdepth 2 | sort
+
+      - uses: actions/upload-pages-artifact@v5
+        with:
+          path: site
+
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - id: deployment
+        uses: actions/deploy-pages@v5

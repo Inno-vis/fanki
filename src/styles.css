@@ -1,0 +1,243 @@
+:root {
+  --bg: #f6f4ef;
+  --surface: #ffffff;
+  --surface-2: #ece8df;
+  --text: #16191d;
+  --muted: #5f6670;
+  --primary: #21468b;
+  --primary-text: #ffffff;
+  --again: #b3261e;
+  --hard: #9a6700;
+  --good: #1f7a3a;
+  --easy: #21468b;
+  --accent: #ae1c28;
+  --warn-bg: #f5c518;
+  --warn-text: #16191d;
+  --radius: 16px;
+  --tap: 56px;
+  --safe-top: env(safe-area-inset-top, 0px);
+  --safe-bottom: env(safe-area-inset-bottom, 0px);
+  --safe-left: env(safe-area-inset-left, 0px);
+  --safe-right: env(safe-area-inset-right, 0px);
+  color-scheme: light dark;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --bg: #101418;
+    --surface: #1a2027;
+    --surface-2: #232b34;
+    --text: #eef1f4;
+    --muted: #9aa4af;
+    --primary: #5b8def;
+    --primary-text: #0b1016;
+    --again: #f2766b;
+    --hard: #e6b450;
+    --good: #5cc98a;
+    --easy: #7fa8f5;
+    --accent: #f2766b;
+  }
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html,
+body {
+  margin: 0;
+  height: 100%;
+  background: var(--bg);
+  color: var(--text);
+  font: 17px/1.45 -apple-system, BlinkMacSystemFont, 'SF Pro Text', system-ui, sans-serif;
+  -webkit-text-size-adjust: 100%;
+  -webkit-tap-highlight-color: transparent;
+  overscroll-behavior-y: none;
+}
+
+#app {
+  min-height: 100%;
+}
+
+.app {
+  min-height: 100dvh;
+  display: flex;
+  flex-direction: column;
+  padding: calc(var(--safe-top) + 8px) calc(var(--safe-right) + 16px) calc(var(--safe-bottom) + 12px)
+    calc(var(--safe-left) + 16px);
+  max-width: 560px;
+  margin: 0 auto;
+}
+
+.topbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  min-height: 48px;
+}
+
+.topbar h1 {
+  font-size: 22px;
+  margin: 0;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.env-badge {
+  font-size: 12px;
+  font-weight: 700;
+  background: var(--warn-bg);
+  color: var(--warn-text);
+  border-radius: 6px;
+  padding: 2px 6px;
+}
+
+.offline-badge {
+  font-size: 14px;
+  font-weight: 600;
+  background: var(--surface-2);
+  color: var(--muted);
+  border-radius: 999px;
+  padding: 4px 12px;
+}
+
+.home {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-end;
+  gap: 16px;
+  padding-bottom: 8px;
+}
+
+.stats {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+}
+
+.stat {
+  background: var(--surface);
+  border-radius: var(--radius);
+  padding: 16px;
+  display: flex;
+  flex-direction: column;
+}
+
+.stat-value {
+  font-size: 40px;
+  font-weight: 700;
+  line-height: 1.1;
+}
+
+.stat-label {
+  color: var(--muted);
+  font-size: 15px;
+}
+
+.btn {
+  appearance: none;
+  border: 0;
+  border-radius: var(--radius);
+  min-height: var(--tap);
+  padding: 0 20px;
+  font: inherit;
+  font-weight: 600;
+  background: var(--surface-2);
+  color: var(--text);
+  cursor: pointer;
+  touch-action: manipulation;
+}
+
+.btn:disabled {
+  opacity: 0.45;
+}
+
+.btn:active:not(:disabled) {
+  transform: scale(0.98);
+}
+
+.btn-primary {
+  background: var(--primary);
+  color: var(--primary-text);
+}
+
+.btn-huge {
+  min-height: 72px;
+  font-size: 22px;
+}
+
+.btn-small {
+  min-height: 40px;
+  padding: 0 14px;
+  font-size: 15px;
+}
+
+.btn-link {
+  appearance: none;
+  background: none;
+  border: 0;
+  color: inherit;
+  font: inherit;
+  min-width: 44px;
+  min-height: 44px;
+}
+
+.banner {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  border-radius: var(--radius);
+  padding: 10px 12px 10px 16px;
+  background: var(--surface);
+}
+
+.banner p {
+  margin: 0;
+}
+
+.banner-update {
+  background: var(--primary);
+  color: var(--primary-text);
+  margin-bottom: 8px;
+}
+
+.banner-update .btn {
+  background: var(--primary-text);
+  color: var(--primary);
+}
+
+.inline-icon {
+  vertical-align: -3px;
+}
+
+.sync-line {
+  text-align: center;
+  color: var(--muted);
+  font-size: 15px;
+  margin: 0;
+}
+
+.muted {
+  color: var(--muted);
+}
+
+.center {
+  text-align: center;
+  margin: 0;
+}
+
+.footer {
+  text-align: center;
+  font-size: 12px;
+  padding-top: 8px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  * {
+    transition: none !important;
+    animation: none !important;
+  }
+}

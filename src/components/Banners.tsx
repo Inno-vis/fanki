@@ -1,6 +1,6 @@
 import { useState } from 'preact/hooks';
 import type { JSX } from 'preact';
-import { isIosSafari, isStandalone, useNeedRefresh } from '../pwa';
+import { isIosBrowser, isStandalone, useNeedRefresh } from '../pwa';
 import { NS } from '../config';
 import { t } from '../i18n';
 
@@ -35,7 +35,7 @@ export function InstallHint() {
       return false;
     }
   });
-  if (hidden || isStandalone() || !isIosSafari()) return null;
+  if (hidden || isStandalone() || !isIosBrowser()) return null;
   const dismiss = () => {
     try {
       localStorage.setItem(HINT_KEY, '1');

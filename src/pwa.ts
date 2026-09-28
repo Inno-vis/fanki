@@ -53,8 +53,8 @@ export function isStandalone(): boolean {
   return matchMedia('(display-mode: standalone)').matches || (navigator as { standalone?: boolean }).standalone === true;
 }
 
-export function isIosSafari(): boolean {
+/** iPhone/iPad browser that can "Add to Home Screen" via its Share menu (Safari; Chrome/Edge/Firefox since iOS 16.4). */
+export function isIosBrowser(): boolean {
   const ua = navigator.userAgent;
-  const ios = /iPhone|iPad|iPod/.test(ua) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
-  return ios && /Safari/.test(ua) && !/CriOS|FxiOS|EdgiOS/.test(ua);
+  return /iPhone|iPad|iPod/.test(ua) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
 }

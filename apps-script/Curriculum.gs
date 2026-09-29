@@ -16,7 +16,8 @@ function readCurriculum_() {
       unlock_threshold: r.unlock_threshold === '' ? 0.8 : Number(r.unlock_threshold),
       min_reviews: r.min_reviews === '' ? 2 : Number(r.min_reviews),
       max_wait_days: wait === '' || wait === null ? null : Number(wait),
-      active: r.active === '' ? true : bool_(r.active)
+      active: r.active === '' ? true : bool_(r.active),
+      open: openCode_(r.open)
     };
   }).sort(function (a, b) { return a.order - b.order; });
 }
@@ -44,11 +45,11 @@ function curriculumStatus_(rows, cards, progressByKey, matureDays, now) {
       if (f && (!firstShown || f < firstShown)) firstShown = f;
     });
     var score = tagged.length ? mature / tagged.length : 1;
-    var unlocked = prevOpen;
+    var unlocked = row.open === 'always' ? true : row.open === 'closed' ? false : prevOpen;
     var waitOver = row.max_wait_days !== null && firstShown && (now - firstShown) >= row.max_wait_days * DAY_MS;
     var passes = score >= row.unlock_threshold || !!waitOver;
     out.push({ order: row.order, tag: row.tag, cards: tagged.length, mature: mature, score: score,
-      unlocked: unlocked, passes: passes, firstShown: firstShown, daysLeft: unlocked ? '' : countdown });
+      unlocked: unlocked, passes: passes, firstShown: firstShown, daysLeft: unlocked || row.open === 'closed' ? '' : countdown });
     countdown = '';
     if (unlocked && !passes && row.max_wait_days !== null && firstShown) {
       countdown = Math.max(0, Math.ceil(row.max_wait_days - (now - firstShown) / DAY_MS));
@@ -87,4 +88,12 @@ function updateCurriculumDashboard_(force) {
   dash.getRange(rows.length + 2, 4).setValue('Bijgewerkt: ' + Utilities.formatDate(new Date(), tz_(), 'yyyy-MM-dd HH:mm') +
     ' (na herhalingen, max. elke 10 min)');
   return status;
+}
+
+/** Sheet value of Curriculum.open → 'auto' | 'always' | 'closed' (blank = auto). */
+function openCode_(v) {
+  var s = String(v || '').trim().toLowerCase();
+  if (s === 'always' || s === 'altijd open') return 'always';
+  if (s === 'closed' || s === 'dicht') return 'closed';
+  return 'auto';
 }

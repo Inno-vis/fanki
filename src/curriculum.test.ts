@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { curriculumStatus, makePicker } from './curriculum';
+import { curriculumStatus, isTopicLocked, makePicker } from './curriculum';
 import { progressKey, type Progress } from './scheduler';
 import { planToday, todaysIntro } from './session';
 import type { Card, CurriculumRow } from './types';
@@ -9,7 +9,7 @@ const daysAgo = (d: number) => new Date(now.getTime() - d * 86_400_000).toISOStr
 const card = (id: string, tags: string[], type: Card['type'] = 'question', added = '2026-09-29'): Card =>
   ({ id, type, nl: id, article: '', pos: '', fr: id, example_nl: '', example_fr: '', tags, tags_source: '', flags: [], added, active: true }) as Card;
 const row = (order: number, tag: string, over: Partial<CurriculumRow> = {}): CurriculumRow => ({
-  order, tag, unlock_threshold: 0.8, min_reviews: 2, max_wait_days: 21, active: true, ...over
+  order, tag, unlock_threshold: 0.8, min_reviews: 2, max_wait_days: 21, active: true, open: 'auto', ...over
 });
 const prog = (id: string, stability: number, reps: number, first = daysAgo(3), track: 'recog' | 'prod' = 'prod'): [string, Progress] => [
   progressKey(id, track),
@@ -122,5 +122,34 @@ describe('picking new cards', () => {
     const plan = planToday(cards, progress, { new_per_day: 5, unlock_prod_stability_days: 3 }, todaysIntro(undefined, now), now, { pickNew: picker.pickNew });
     expect(plan.due.map((i) => i.card.id)).toEqual(['b1']);
     expect(plan.fresh.map((i) => i.card.id)).toEqual(['a1']);
+  });
+});
+
+describe('open column and curriculum_only', () => {
+  const cards = [card('a1', ['a']), card('b1', ['b']), card('c1', ['c']), card('h1', ['huishouden']), card('u1', [])];
+
+  it('"altijd open" opens a row regardless of the chain; "dicht" closes it', () => {
+    const r = [row(1, 'a'), row(2, 'b', { open: 'closed' }), row(3, 'c', { open: 'always' })];
+    const s = curriculumStatus(r, cards, new Map(), 21, now);
+    expect(s.map((x) => `${x.tag}:${x.unlocked}`)).toEqual(['a:true', 'b:false', 'c:true']);
+  });
+
+  it('"dicht" on an early row keeps every following automatic row locked', () => {
+    const r = [row(1, 'a', { open: 'closed' }), row(2, 'b', { unlock_threshold: 0 }), row(3, 'c')];
+    const s = curriculumStatus(r, cards, new Map(), 21, now);
+    expect(s.map((x) => x.unlocked)).toEqual([false, false, false]);
+    expect(s[1].daysLeft).toBeNull();
+  });
+
+  it('curriculum_only: other topics and untagged cards stay locked', () => {
+    const r = [row(1, 'a', { unlock_threshold: 0 }), row(2, 'b')];
+    const s = curriculumStatus(r, cards, new Map(), 21, now);
+    const only = makePicker(r, s, true);
+    expect(cards.filter(only.eligible).map((c) => c.id)).toEqual(['a1', 'b1']);
+    const free = makePicker(r, s, false);
+    expect(cards.filter(free.eligible).map((c) => c.id)).toEqual(['a1', 'b1', 'c1', 'h1', 'u1']);
+    expect(isTopicLocked('huishouden', r, s, true)).toBe(true);
+    expect(isTopicLocked('huishouden', r, s, false)).toBe(false);
+    expect(isTopicLocked('b', r, s, true)).toBe(false);
   });
 });

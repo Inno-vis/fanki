@@ -48,7 +48,8 @@ export function cleanSettings(raw: Partial<Settings> | undefined): Settings {
     cooldown_minutes: num(s.cooldown_minutes, 60, 0, 24 * 60),
     min_reviews_to_count: Math.round(num(s.min_reviews_to_count, 3, 0, 100)),
     max_learning_backlog: Math.round(num(s.max_learning_backlog, 3, 1, 100)),
-    session_resume_minutes: num(s.session_resume_minutes, 30, 1, 24 * 60)
+    session_resume_minutes: num(s.session_resume_minutes, 30, 1, 24 * 60),
+    curriculum_only: s.curriculum_only !== false
   };
 }
 
@@ -64,7 +65,8 @@ export function cleanCurriculum(raw: unknown): CurriculumRow[] {
         unlock_threshold: Math.min(1, Math.max(0, n(r.unlock_threshold, 0.8))),
         min_reviews: Math.max(0, n(r.min_reviews, 2)),
         max_wait_days: wait === '' || wait === null || wait === undefined || isNaN(Number(wait)) ? null : Math.max(0, Number(wait)),
-        active: r.active !== false
+        active: r.active !== false,
+        open: (r.open === 'always' || r.open === 'closed' ? r.open : 'auto') as CurriculumRow['open']
       };
     })
     .filter((r) => r.tag)

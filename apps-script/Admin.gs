@@ -207,14 +207,15 @@ function adminAppendBreaks_(lines) {
 
 /** Changes one field of one Curriculum row (by tag). Fields: unlock_threshold, min_reviews, max_wait_days, active, order. */
 function adminSetCurriculum_(tag, field, value) {
-  var allowed = ['order', 'unlock_threshold', 'min_reviews', 'max_wait_days', 'active'];
+  var allowed = ['order', 'unlock_threshold', 'min_reviews', 'max_wait_days', 'active', 'open'];
   if (allowed.indexOf(field) === -1) throw apiError_('bad_request', 'field must be one of ' + allowed.join(', '));
   return withLock_(function () {
     var sh = sheet_('Curriculum');
     var t = readTable_(sh);
     var row = t.rows.filter(function (r) { return String(r.tag).trim().toLowerCase() === String(tag || '').trim().toLowerCase(); })[0];
     if (!row) throw apiError_('not_found', 'No Curriculum row for tag ' + tag);
-    var v = field === 'active' ? bool_(value) : (value === '' || value === null ? '' : Number(value));
+    var v = field === 'active' ? bool_(value) : field === 'open' ? OPEN_NL[openCode_(value)] :
+      (value === '' || value === null ? '' : Number(value));
     if (field === 'unlock_threshold' && v !== '' && !(v >= 0 && v <= 1)) throw apiError_('bad_request', 'unlock_threshold must be 0–1');
     sh.getRange(row._row, t.headers.indexOf(field) + 1).setValue(v);
     updateCurriculumDashboard_(true);

@@ -2,7 +2,7 @@ import { useMemo } from 'preact/hooks';
 import { t } from '../i18n';
 import { setMeta } from '../db';
 import { setState, useStore } from '../store';
-import { curriculumStatus } from '../curriculum';
+import { curriculumStatus, isTopicLocked } from '../curriculum';
 
 /** "Kies een onderwerp": choose one or more tags; the next sessions use only cards with any of them. */
 export function Topics({ onDone }: { onDone: () => void }) {
@@ -13,11 +13,15 @@ export function Topics({ onDone }: { onDone: () => void }) {
     const counts = new Map<string, number>();
     for (const c of s.cards) for (const tag of c.tags) counts.set(tag, (counts.get(tag) ?? 0) + 1);
     const status = curriculumStatus(s.curriculum, s.cards, s.progress, s.settings.mature_stability_days, new Date());
-    const locked = new Set(status.filter((x) => !x.unlocked).map((x) => x.tag));
     return s.tags
       .filter((tg) => counts.has(tg.tag))
-      .map((tg) => ({ tag: tg.tag, label: tg.label_nl || tg.tag, count: counts.get(tg.tag)!, locked: locked.has(tg.tag) }));
-  }, [s.cards, s.tags, s.curriculum, s.progress]);
+      .map((tg) => ({
+        tag: tg.tag,
+        label: tg.label_nl || tg.tag,
+        count: counts.get(tg.tag)!,
+        locked: isTopicLocked(tg.tag, s.curriculum, status, s.settings.curriculum_only)
+      }));
+  }, [s.cards, s.tags, s.curriculum, s.progress, s.settings.curriculum_only]);
 
   const save = async (next: string[]) => {
     setState({ studyTags: next });

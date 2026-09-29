@@ -84,7 +84,8 @@ maps them to internal codes (`typeCode_`/`sourceCode_` in `apps-script/Util.gs`)
 
 - Curriculum tab + Settings decide which NEW cards are introduced (`src/curriculum.ts`, pure, recalculated
   on every render). `apps-script/Curriculum.gs` mirrors the status for the Dashboard only — keep in sync.
-  Full algorithm: docs/SHEET.md › Curriculum.
+  Full algorithm: docs/SHEET.md › Curriculum. Per-row `open` (automatisch|altijd open|dicht → auto|always|
+  closed) overrides the chain; Settings.curriculum_only (default TRUE) locks every non-curriculum topic.
 - Sessions: `src/sessionRules.ts` (pure). One offer at session_max_cards / minutes of reviewing time
   ("Nog 10 kaarten, graag!" / "Stoppen"), then session_extra_cards more. "Terug" or leaving the app only
   pauses (`meta.openSession`, "Doorgaan", expires after session_resume_minutes without a pause). The session

@@ -57,11 +57,13 @@ export function curriculumStatus(
       if (f && (!firstShown || f < firstShown)) firstShown = f;
     }
     const score = tagged.length ? mature / tagged.length : 1;
-    const unlocked: boolean = prevOpen;
+    // The `open` column overrides the chain: altijd open / dicht.
+    const unlocked: boolean = row.open === 'always' ? true : row.open === 'closed' ? false : prevOpen;
     const waitOver =
       row.max_wait_days !== null && firstShown !== null && now.getTime() - Date.parse(firstShown) >= row.max_wait_days * DAY_MS;
     const passes = score >= row.unlock_threshold || waitOver;
-    out.push({ order: row.order, tag: row.tag, cards: tagged.length, mature, score, unlocked, passes, firstShown, daysLeft: unlocked ? null : countdown });
+    const daysLeft = unlocked || row.open === 'closed' ? null : countdown;
+    out.push({ order: row.order, tag: row.tag, cards: tagged.length, mature, score, unlocked, passes, firstShown, daysLeft });
     countdown =
       unlocked && !passes && row.max_wait_days !== null && firstShown !== null
         ? Math.max(0, Math.ceil(row.max_wait_days - (now.getTime() - Date.parse(firstShown)) / DAY_MS))
@@ -79,16 +81,19 @@ export type Picker = {
 };
 
 /**
- * - Cards without any curriculum tag are always eligible.
- * - A card WITH curriculum tags is eligible if AT LEAST ONE of them is unlocked (inactive rows count
- *   as unlocked).
+ * - curriculumOnly (Settings.curriculum_only, default): a card is eligible only if AT LEAST ONE of its
+ *   tags is an open Curriculum topic (inactive rows count as open). Other topics and untagged cards stay
+ *   locked.
+ * - Otherwise: cards without any curriculum tag are always eligible; a card WITH curriculum tags is
+ *   eligible if at least one of them is open.
  * - Slots are filled from the highest-priority unlocked tag first (order ascending), then the next
  *   unlocked tag, then everything else that is eligible, in `added` order. A card is picked at most once.
  */
-export function makePicker(rows: CurriculumRow[], status: TagStatus[]): Picker {
+export function makePicker(rows: CurriculumRow[], status: TagStatus[], curriculumOnly = false): Picker {
   const curriculumTags = new Set(rows.map((r) => r.tag));
-  const unlocked = new Set([...rows.filter((r) => !r.active).map((r) => r.tag), ...status.filter((s) => s.unlocked).map((s) => s.tag)]);
+  const unlocked = openTags(rows, status);
   const eligible = (card: Card) => {
+    if (curriculumOnly) return card.tags.some((t) => unlocked.has(t));
     const ct = card.tags.filter((t) => curriculumTags.has(t));
     return ct.length === 0 || ct.some((t) => unlocked.has(t));
   };
@@ -108,4 +113,16 @@ export function makePicker(rows: CurriculumRow[], status: TagStatus[]): Picker {
     return picked;
   };
   return { eligible, pickNew };
+}
+
+/** Tags whose new cards may come: open curriculum rows + inactive rows. */
+export function openTags(rows: CurriculumRow[], status: TagStatus[]): Set<string> {
+  return new Set([...rows.filter((r) => !r.active).map((r) => r.tag), ...status.filter((s) => s.unlocked).map((s) => s.tag)]);
+}
+
+/** Is this topic locked for new cards? (for the topic screen) */
+export function isTopicLocked(tag: string, rows: CurriculumRow[], status: TagStatus[], curriculumOnly: boolean): boolean {
+  const open = openTags(rows, status);
+  if (open.has(tag)) return false;
+  return curriculumOnly || rows.some((r) => r.tag === tag);
 }

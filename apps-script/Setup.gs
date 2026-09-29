@@ -104,7 +104,7 @@ function seedSettings_(sh) {
     if (desc[r.key] && r.description !== desc[r.key]) sh.getRange(r._row, 3).setValue(desc[r.key]);
   });
   rows.forEach(function (r) {
-    if (r.key === 'compliments_enabled' || r.key === 'show_french_help') {
+    if (r.key === 'compliments_enabled' || r.key === 'show_french_help' || r.key === 'curriculum_only') {
       sh.getRange(r._row, 2).setDataValidation(SpreadsheetApp.newDataValidation().requireCheckbox().build());
     }
   });
@@ -208,6 +208,11 @@ function applyCurriculumValidation_(sh) {
   sh.getRange('E2:E').setDataValidation(SpreadsheetApp.newDataValidation().requireNumberGreaterThanOrEqualTo(0)
     .setAllowInvalid(false).setHelpText('Max. dagen voordat het volgende onderwerp opengaat (leeg = geen limiet)').build());
   sh.getRange('F2:F').setDataValidation(SpreadsheetApp.newDataValidation().requireCheckbox().build());
+  sh.getRange('G2:G').setDataValidation(SpreadsheetApp.newDataValidation()
+    .requireValueInList([OPEN_NL.auto, OPEN_NL.always, OPEN_NL.closed], true).setAllowInvalid(false)
+    .setHelpText('automatisch = volgens de regels · altijd open · dicht').build());
+  var rows = readTable_(sh).rows;
+  rows.forEach(function (r) { if (String(r.tag).trim() && !String(r.open || '').trim()) sh.getRange(r._row, 7).setValue(OPEN_NL.auto); });
   sh.getRange('C2:C').setNumberFormat('0%');
 }
 

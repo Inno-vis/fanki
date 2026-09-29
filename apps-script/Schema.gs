@@ -11,7 +11,7 @@ var SCHEMA = {
   Inbox: CARD_COLS.concat(['status']),
   Settings: ['key', 'value', 'description'],
   Compliments: ['text'],
-  Curriculum: ['order', 'tag', 'unlock_threshold', 'min_reviews', 'max_wait_days', 'active'],
+  Curriculum: ['order', 'tag', 'unlock_threshold', 'min_reviews', 'max_wait_days', 'active', 'open'],
   Breaks: ['text_nl'],
   Dashboard: ['metric', 'value']
 };
@@ -34,6 +34,7 @@ var SETTINGS_DEFAULTS = [
   ['cooldown_minutes', 60, 'Pauze in minuten na een sessie (0 = geen pauze)'],
   ['min_reviews_to_count', 3, 'Een sessie telt (en start de pauze) vanaf dit aantal herhalingen'],
   ['max_learning_backlog', 3, 'Een nieuwe kaart komt pas als minder dan dit aantal kaarten nog in de korte stappen zit'],
+  ['curriculum_only', true, 'Nieuwe kaarten alleen uit open onderwerpen van het tabblad Curriculum; andere onderwerpen en kaarten zonder tag blijven dicht'],
   ['session_resume_minutes', 30, 'Na "Terug" kan ze de sessie zo lang (minuten) voortzetten; daarna vervalt ze zonder pauze']
 ];
 
@@ -81,13 +82,14 @@ var TAGS_SEED = [
   ['klok-3', 'klok niveau 3', 'horloge niveau 3', 'De tijd zeggen in het Nederlands']
 ];
 
-// order | tag | unlock_threshold | min_reviews | max_wait_days | active
+// order | tag | unlock_threshold | min_reviews | max_wait_days | active | open
 var CURRICULUM_SEED = [
-  [1, 'app', 0, 2, 21, true], // threshold 0: klok-1 is open from the start
-  [2, 'klok-1', 0.8, 2, 21, true],
-  [3, 'klok-2', 0.8, 2, 21, true],
-  [4, 'klok-3', 0.8, 2, 21, true]
+  [1, 'app', 0, 2, 21, true, 'automatisch'], // threshold 0: klok-1 is open from the start
+  [2, 'klok-1', 0.8, 2, 21, true, 'automatisch'],
+  [3, 'klok-2', 0.8, 2, 21, true, 'automatisch'],
+  [4, 'klok-3', 0.8, 2, 21, true, 'automatisch']
 ];
+var OPEN_NL = { auto: 'automatisch', always: 'altijd open', closed: 'dicht' };
 
 var COMPLIMENTS_SEED = [
   'Goed zo!',

@@ -51,7 +51,7 @@ export function App() {
   const plan = useMemo(() => {
     const now = new Date();
     const status = curriculumStatus(s.curriculum, s.cards, s.progress, s.settings.mature_stability_days, now);
-    const picker = makePicker(s.curriculum, status);
+    const picker = makePicker(s.curriculum, status, s.settings.curriculum_only);
     const topics = new Set(s.studyTags);
     const eligible = topics.size ? (c: Card) => c.tags.some((tg) => topics.has(tg)) : undefined;
     return planToday(s.cards, s.progress, s.settings, todaysIntro(s.intro), now, { pickNew: picker.pickNew, eligible });

@@ -101,6 +101,7 @@ to move them into Cards. Nothing is ever written to Cards by `/addwords`.
 | session_extra_cards | 10 | Cards added by "Nog 10 kaarten, graag!" (fewer if fewer are left) |
 | cooldown_minutes | 60 | Pause after a session before "Starten" works again (0 = no pause) |
 | min_reviews_to_count | 3 | A session shorter than this does not start a pause |
+| curriculum_only | TRUE | New cards only from open Curriculum topics; other topics and untagged cards stay locked (reviews of started cards continue) |
 | session_resume_minutes | 30 | After "Terug" (or leaving the app) she can continue the same session this long ("Doorgaan"); after that it expires WITHOUT a pause |
 | max_learning_backlog | 3 | In a session, the next NEW card waits while this many cards are still in their short "again in minutes" steps |
 
@@ -108,7 +109,7 @@ All settings are read by the phone on every sync — change them here, no redepl
 
 ## Curriculum — which new cards come first
 
-`order, tag, unlock_threshold, min_reviews, max_wait_days, active`
+`order, tag, unlock_threshold, min_reviews, max_wait_days, active, open`
 
 | column | default | meaning |
 |---|---|---|
@@ -117,7 +118,12 @@ All settings are read by the phone on every sync — change them here, no redepl
 | unlock_threshold | 0.8 | share of this tag's cards that must be "gekend" before the next row opens |
 | min_reviews | 2 | a card also needs at least this many reviews to count as "gekend" |
 | max_wait_days | 21 | the next row opens anyway this many days after this tag's first card was first shown (blank = never) |
-| active | ☑ | unticked rows are skipped: their cards are free to come, and they don't hold back the next row |
+| active | ☑ | unticked rows are skipped: their cards are FREE to come, and they don't hold back the next row (this does NOT lock a topic) |
+| open | automatisch | `automatisch` = the rules below · `altijd open` = open now, whatever the rules say · `dicht` = locked (and every automatic row after it stays locked) |
+
+**Lock / unlock a topic yourself:** set its `open` to `dicht` or `altijd open`; back to `automatisch` to let
+the rules decide again. With Settings `curriculum_only` = TRUE (default), topics that have NO row here
+(huishouden, reizen…) and cards without a tag are locked too — add a row (e.g. `altijd open`) to open one.
 
 Seed: 1 app · 2 klok-1 · 3 klok-2 · 4 klok-3. The app row has `unlock_threshold` 0, so klok-1 is open
 from the start (app keeps priority for new cards); klok-2 and klok-3 open one by one.
@@ -130,8 +136,9 @@ from the start (app keeps priority for new cards); klok-2 and klok-3 open one by
 3. The first active row is open. Row N+1 opens when row N is open AND (score(N) ≥ unlock_threshold OR
    `max_wait_days` have passed since row N's first card was first shown). This is recalculated on every
    sync/launch; nothing is stored, so reordering or retuning the tab takes effect immediately.
-4. **Eligible new cards**: a card without any curriculum tag is always eligible. A card WITH curriculum tags
-   is eligible if AT LEAST ONE of them is open (inactive rows count as open).
+4. **Eligible new cards**: a card is eligible if AT LEAST ONE of its tags is an open Curriculum topic
+   (inactive rows count as open). With `curriculum_only` = FALSE, cards without any curriculum tag are
+   also eligible. The `open` column overrides step 3 per row.
 5. **Filling today's `new_per_day` slots**: first the open curriculum tags by `order` (cards in `added`
    order), then the next open tag, then all other eligible cards by `added`. A card that matches several
    open tags is introduced once.

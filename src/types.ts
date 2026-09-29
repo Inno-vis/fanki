@@ -33,6 +33,7 @@ export type Settings = {
   min_reviews_to_count: number;
   max_learning_backlog: number;
   session_resume_minutes: number;
+  curriculum_only: boolean;
 };
 
 /** One row of the Curriculum tab (sorted by order). max_wait_days null = no cap. */
@@ -43,6 +44,7 @@ export type CurriculumRow = {
   min_reviews: number;
   max_wait_days: number | null;
   active: boolean;
+  open: 'auto' | 'always' | 'closed'; // sheet: automatisch | altijd open | dicht
 };
 
 export const DEFAULT_SETTINGS: Settings = {
@@ -58,7 +60,8 @@ export const DEFAULT_SETTINGS: Settings = {
   cooldown_minutes: 60,
   min_reviews_to_count: 3,
   max_learning_backlog: 3,
-  session_resume_minutes: 30
+  session_resume_minutes: 30,
+  curriculum_only: true
 };
 
 export type CardsResponse = {

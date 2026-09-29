@@ -6,6 +6,7 @@ const API = 'https://mock.fanki.test/exec';
 type Event = { event_id: string; card_id: string; rating: number };
 
 function mockServer(settings: Record<string, unknown> = { new_per_day: 5, cooldown_minutes: 0, show_french_help: true }, breaks: string[] = []) {
+  settings = { curriculum_only: false, ...settings }; // the mock has no Curriculum tab
   const log = new Map<string, Event>();
   let posts = 0;
   let loseNextReply = false;

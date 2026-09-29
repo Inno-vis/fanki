@@ -66,6 +66,7 @@ function setup() {
   applyCurriculumValidation_(ss.getSheetByName('Curriculum'));
   backfillFirstReview_(ss);
   buildDashboard_(ss.getSheetByName('Dashboard'));
+  seedUserInfo_(ss, env);
   updateCurriculumDashboard_(true);
 
   // 6. Trigger: fill blank ids when the teacher edits Cards/Inbox.

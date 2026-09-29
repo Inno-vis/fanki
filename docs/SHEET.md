@@ -17,6 +17,13 @@ Row 1 is always the header row (frozen). The API reads columns **by header name*
 reordered, but never rename a header. `setup()` is idempotent: re-running it repairs headers,
 validation and the Dashboard, seeds only empty tabs, and seeds Cards only in DEV.
 
+## User info — start guide for the learner
+
+First tab. 12 short steps (install from the link, first sync, the four buttons, sessions, pause, offline,
+topics, Hulp, updates, "don't clear Safari data") in Dutch (A1) and French; the PROD sheet has the PROD link,
+the DEV sheet the DEV link. Filled by setup when empty; `node scripts/admin.mjs <env> userInfo` rewrites it
+from `apps-script/UserInfo.gs` (your own edits in the tab are then replaced).
+
 ## Cards — the content (teacher edits this)
 
 | column | values | notes |

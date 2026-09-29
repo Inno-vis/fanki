@@ -41,6 +41,7 @@ function doPost(e) {
       case 'appendInbox': return adminAppendInbox_(body.rows);
       case 'listInbox': return adminListInbox_();
       case 'appendBreaks': return adminAppendBreaks_(body.lines);
+      case 'userInfo': return { rows: writeUserInfo_(ss_(), env_()) };
       case 'setCurriculum': return adminSetCurriculum_(body.tag, body.field, body.value);
       case 'promoteInbox': return adminPromoteInbox_();
       case 'rebuildProgress': return adminRebuildProgress_();

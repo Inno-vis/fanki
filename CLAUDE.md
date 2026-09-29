@@ -40,7 +40,8 @@ The repo is **public** and hosted on GitHub Pages.
   `{action:"reviews", token, events:[{event_id, card_id, track, ts, rating, mode, duration_ms, snapshot}]}`
   → `{accepted, duplicate, rejected}`. Idempotent on `event_id`.
 - Admin-only (ADMIN_TOKEN): `listCards, listUntagged, tags, setTags, appendInbox, listInbox,
-  promoteInbox, rebuildProgress, setup, readTab, reseedDev (DEV only), purgeSmoke`.
+  promoteInbox, rebuildProgress, setup, readTab, reseedDev (DEV only), purgeSmoke, appendBreaks,
+  setCurriculum, curriculumStatus, migrateToDutch`.
 - All writes are inside `LockService`. All actions are idempotent, so clients **retry** on
   `no_action` (POST body lost on Google's redirect), `busy`, or non-JSON responses.
 - Deploy with `npm run gas:deploy:<env>` — keeps the same deployment ID so the /exec URL never changes.
@@ -84,9 +85,11 @@ maps them to internal codes (`typeCode_`/`sourceCode_` in `apps-script/Util.gs`)
 - Curriculum tab + Settings decide which NEW cards are introduced (`src/curriculum.ts`, pure, recalculated
   on every render). `apps-script/Curriculum.gs` mirrors the status for the Dashboard only — keep in sync.
   Full algorithm: docs/SHEET.md › Curriculum.
-- Sessions: `src/sessionRules.ts` (pure). One offer at session_max_cards/minutes ("Nog 10 kaarten,
-  graag!" / "Stoppen"), then session_extra_cards more. A session with ≥ min_reviews_to_count reviews stores
-  `meta.lastSession`; home blocks "Starten" until end + cooldown_minutes.
+- Sessions: `src/sessionRules.ts` (pure). One offer at session_max_cards / minutes of reviewing time
+  ("Nog 10 kaarten, graag!" / "Stoppen"), then session_extra_cards more. "Terug" or leaving the app only
+  pauses (`meta.openSession`, "Doorgaan", expires after session_resume_minutes without a pause). The session
+  ENDS on Stoppen / extension done / no cards left; with ≥ min_reviews_to_count reviews it stores
+  `meta.lastSession` and home blocks "Starten" until end + cooldown_minutes.
 
 ## Study by topic, new-card pacing, breaks
 

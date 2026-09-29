@@ -47,7 +47,8 @@ export function cleanSettings(raw: Partial<Settings> | undefined): Settings {
     session_extra_cards: Math.round(num(s.session_extra_cards, 10, 1, 100)),
     cooldown_minutes: num(s.cooldown_minutes, 60, 0, 24 * 60),
     min_reviews_to_count: Math.round(num(s.min_reviews_to_count, 3, 0, 100)),
-    max_learning_backlog: Math.round(num(s.max_learning_backlog, 3, 1, 100))
+    max_learning_backlog: Math.round(num(s.max_learning_backlog, 3, 1, 100)),
+    session_resume_minutes: num(s.session_resume_minutes, 30, 1, 24 * 60)
   };
 }
 

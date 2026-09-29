@@ -2,13 +2,20 @@ import type { Settings } from './types';
 import { getMeta, setMeta, type SessionRecord } from './db';
 
 // Short sessions with one "continue?" offer and a cooldown between sessions.
-//   - A session starts on "Starten". When session_max_cards reviews OR session_max_minutes are reached,
-//     she is offered ONE extension ("Nog 10 kaarten, graag!" = session_extra_cards) or "Stoppen".
-//   - After the extension the session ends when those extra cards are done (or cards run out, or Stoppen).
-//   - A session with >= min_reviews_to_count reviews stores its end time (IndexedDB meta.lastSession);
-//     the home screen then blocks "Starten" until end + cooldown_minutes.
+//   - A session starts on "Starten". When session_max_cards reviews OR session_max_minutes of REVIEWING
+//     time are reached, she is offered ONE extension ("Nog 10 kaarten, graag!" = session_extra_cards)
+//     or "Stoppen".
+//   - "Terug" or leaving the app only PAUSES the session (saved in IndexedDB meta.openSession). Home then
+//     offers "Doorgaan". A paused session not resumed within session_resume_minutes is dropped without a
+//     pause.
+//   - The session ENDS on Stoppen, when the extension is done, or when cards run out. Only then, if it had
+//     >= min_reviews_to_count reviews, its end time is stored (meta.lastSession) and home blocks
+//     "Starten" until end + cooldown_minutes.
 
-type Rules = Pick<Settings, 'session_max_cards' | 'session_max_minutes' | 'session_extra_cards' | 'cooldown_minutes' | 'min_reviews_to_count'>;
+type Rules = Pick<
+  Settings,
+  'session_max_cards' | 'session_max_minutes' | 'session_extra_cards' | 'cooldown_minutes' | 'min_reviews_to_count' | 'session_resume_minutes'
+>;
 
 export type SessionState = {
   start: number; // ms
@@ -16,10 +23,40 @@ export type SessionState = {
   offered: boolean; // the one offer was shown
   extendedAt: number | null; // `reviewed` when she chose to continue
   extraTarget: number | null; // cards in the extension (min(extra, remaining at that moment))
+  activeMs: number; // reviewing time before the current stretch
+  resumedAt: number | null; // start of the current stretch on the review screen (null = paused)
+  lastActivity: number; // ms of the last rating / pause / resume
 };
 
 export function startSession(now: number): SessionState {
-  return { start: now, reviewed: 0, offered: false, extendedAt: null, extraTarget: null };
+  return { start: now, reviewed: 0, offered: false, extendedAt: null, extraTarget: null, activeMs: 0, resumedAt: now, lastActivity: now };
+}
+
+/** Reviewing time so far (time spent away from the review screen does not count). */
+export function elapsedMs(s: SessionState, now: number): number {
+  return s.activeMs + (s.resumedAt !== null ? Math.max(0, now - s.resumedAt) : 0);
+}
+
+export function pauseSession(s: SessionState, now: number): SessionState {
+  return { ...s, activeMs: elapsedMs(s, now), resumedAt: null, lastActivity: now };
+}
+
+export function resumeSession(s: SessionState, now: number): SessionState {
+  return { ...s, resumedAt: now, lastActivity: now };
+}
+
+/** A paused session she can continue: has reviews and was active within session_resume_minutes. */
+export function resumable(s: SessionState | null | undefined, rules: Rules, now: number): SessionState | null {
+  if (!s || s.reviewed === 0) return null;
+  return now - s.lastActivity <= rules.session_resume_minutes * 60_000 ? s : null;
+}
+
+export async function saveOpenSession(s: SessionState | null): Promise<void> {
+  await setMeta('openSession', s);
+}
+
+export function loadOpenSession(): Promise<SessionState | null | undefined> {
+  return getMeta('openSession');
 }
 
 export type Next = 'card' | 'offer' | 'end';
@@ -29,7 +66,7 @@ export function nextStep(s: SessionState, rules: Rules, now: number, remaining: 
   if (remaining <= 0) return 'end';
   if (s.extendedAt !== null) return s.reviewed - s.extendedAt >= (s.extraTarget ?? 0) ? 'end' : 'card';
   if (s.offered) return 'end'; // offer shown and not accepted → session is over
-  const capHit = s.reviewed >= rules.session_max_cards || now - s.start >= rules.session_max_minutes * 60_000;
+  const capHit = s.reviewed >= rules.session_max_cards || elapsedMs(s, now) >= rules.session_max_minutes * 60_000;
   return capHit ? 'offer' : 'card';
 }
 
@@ -41,8 +78,8 @@ export function extend(s: SessionState, rules: Rules, remaining: number): Sessio
   return { ...s, offered: true, extendedAt: s.reviewed, extraTarget: Math.min(rules.session_extra_cards, remaining) };
 }
 
-export function reviewed(s: SessionState): SessionState {
-  return { ...s, reviewed: s.reviewed + 1 };
+export function reviewed(s: SessionState, now = Date.now()): SessionState {
+  return { ...s, reviewed: s.reviewed + 1, lastActivity: now };
 }
 
 /** "X van Y kaarten": Y = session_max_cards until she extends, then the extended total. */
@@ -51,8 +88,9 @@ export function progressLabel(s: SessionState, rules: Rules): { done: number; ta
   return { done: s.reviewed, target: Math.max(target, s.reviewed) };
 }
 
-/** Records the session end if it counted. Safe to call more than once (later calls overwrite). */
+/** Ends the session: clears the open session and records the end if it counted. */
 export async function endSession(s: SessionState, rules: Rules, now: number): Promise<SessionRecord | null> {
+  await saveOpenSession(null);
   if (s.reviewed < rules.min_reviews_to_count) return null;
   const rec: SessionRecord = { start: new Date(s.start).toISOString(), end: new Date(now).toISOString(), reviews: s.reviewed };
   await setMeta('lastSession', rec);

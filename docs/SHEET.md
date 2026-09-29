@@ -101,6 +101,7 @@ to move them into Cards. Nothing is ever written to Cards by `/addwords`.
 | session_extra_cards | 10 | Cards added by "Nog 10 kaarten, graag!" (fewer if fewer are left) |
 | cooldown_minutes | 60 | Pause after a session before "Starten" works again (0 = no pause) |
 | min_reviews_to_count | 3 | A session shorter than this does not start a pause |
+| session_resume_minutes | 30 | After "Terug" (or leaving the app) she can continue the same session this long ("Doorgaan"); after that it expires WITHOUT a pause |
 | max_learning_backlog | 3 | In a session, the next NEW card waits while this many cards are still in their short "again in minutes" steps |
 
 All settings are read by the phone on every sync — change them here, no redeploy.
@@ -118,7 +119,8 @@ All settings are read by the phone on every sync — change them here, no redepl
 | max_wait_days | 21 | the next row opens anyway this many days after this tag's first card was first shown (blank = never) |
 | active | ☑ | unticked rows are skipped: their cards are free to come, and they don't hold back the next row |
 
-Seed: 1 app · 2 klok-1 · 3 klok-2 · 4 klok-3.
+Seed: 1 app · 2 klok-1 · 3 klok-2 · 4 klok-3. The app row has `unlock_threshold` 0, so klok-1 is open
+from the start (app keeps priority for new cards); klok-2 and klok-3 open one by one.
 
 **Algorithm** (phone: `src/curriculum.ts`; the Dashboard mirrors it in `apps-script/Curriculum.gs`):
 
@@ -142,7 +144,9 @@ Seed: 1 app · 2 klok-1 · 3 klok-2 · 4 klok-3.
 - At `session_max_cards` reviews or `session_max_minutes` (checked after each card) she sees ONE offer:
   "Nog 10 kaarten, graag!" (adds `session_extra_cards`, or fewer if fewer are left) or "Stoppen".
   After accepting, "Stoppen" is in the header and the session ends when those cards are done.
-- The session also ends when cards run out, on "Terug"/"Stoppen", or when she leaves the app.
+- The session also ends when cards run out or on "Stoppen". "Terug" and leaving the app only PAUSE it:
+  home shows "Doorgaan (4 van 15 kaarten)"; only reviewing time counts toward `session_max_minutes`.
+  A paused session not continued within `session_resume_minutes` expires without starting a pause.
 - If it had ≥ `min_reviews_to_count` reviews, its end time is saved on the phone (IndexedDB, survives
   restarts) and "Starten" becomes "Volgende sessie over 42 minuten" until `cooldown_minutes` have passed.
 

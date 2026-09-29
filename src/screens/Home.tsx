@@ -5,7 +5,7 @@ import { syncNow } from '../sync';
 import { useOnline } from '../pwa';
 import { InstallHint } from '../components/Banners';
 import { useEffect, useState } from 'preact/hooks';
-import { cooldownUntil, minutesLeft } from '../sessionRules';
+import { cooldownUntil, minutesLeft, progressLabel, resumable } from '../sessionRules';
 
 export function Home({ due, newToday, onStart, onTopics }: { due: number; newToday: number; onStart: () => void; onTopics: () => void }) {
   const s = useStore();
@@ -18,7 +18,8 @@ export function Home({ due, newToday, onStart, onTopics }: { due: number; newTod
     const id = setInterval(() => setNow(Date.now()), 15_000);
     return () => clearInterval(id);
   }, []);
-  const wait = minutesLeft(cooldownUntil(s.lastSession, s.settings), now);
+  const open = resumable(s.openSession, s.settings, now);
+  const wait = open ? 0 : minutesLeft(cooldownUntil(s.lastSession, s.settings), now);
 
   return (
     <main class="home">
@@ -52,7 +53,7 @@ export function Home({ due, newToday, onStart, onTopics }: { due: number; newTod
             </button>
           ) : (
             <button class="btn btn-primary btn-huge" disabled={!canStart} onClick={onStart}>
-              {t('home.start')}
+              {open && canStart ? t('home.resume', progressLabel(open, s.settings)) : t('home.start')}
             </button>
           )}
         </>

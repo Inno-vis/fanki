@@ -32,6 +32,7 @@ export type Settings = {
   cooldown_minutes: number;
   min_reviews_to_count: number;
   max_learning_backlog: number;
+  session_resume_minutes: number;
 };
 
 /** One row of the Curriculum tab (sorted by order). max_wait_days null = no cap. */
@@ -56,7 +57,8 @@ export const DEFAULT_SETTINGS: Settings = {
   session_extra_cards: 10,
   cooldown_minutes: 60,
   min_reviews_to_count: 3,
-  max_learning_backlog: 3
+  max_learning_backlog: 3,
+  session_resume_minutes: 30
 };
 
 export type CardsResponse = {

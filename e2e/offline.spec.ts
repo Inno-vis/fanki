@@ -124,7 +124,10 @@ test('offline: review without internet, reconnect, every review reaches the serv
 });
 
 test('topics, pause and the one-time break prompt', async ({ page }) => {
-  const server = mockServer({ new_per_day: 5, cooldown_minutes: 60, min_reviews_to_count: 3, show_french_help: true }, ['Zoek iets ronds.']);
+  const server = mockServer(
+    { new_per_day: 5, cooldown_minutes: 60, min_reviews_to_count: 2, session_max_cards: 3, show_french_help: true },
+    ['Zoek iets ronds.']
+  );
   await server.install(page);
   await page.goto('/fanki/dev/');
   await expect(page.getByText('Laatst gesynchroniseerd: zojuist')).toBeVisible({ timeout: 20_000 });
@@ -140,9 +143,20 @@ test('topics, pause and the one-time break prompt', async ({ page }) => {
   await page.getByRole('button', { name: 'Onderwerp: huishouden' }).click();
   await page.getByRole('button', { name: 'Alle onderwerpen' }).click();
   await page.getByRole('button', { name: 'Klaar' }).click();
+  // "Terug" after 2 cards only pauses: no countdown, "Doorgaan" continues the same session.
   await page.getByRole('button', { name: 'Starten' }).click();
-  await reviewCards(page, 3);
+  await reviewCards(page, 2);
   await page.getByRole('button', { name: /Terug/ }).click();
+  await expect(page.getByRole('button', { name: 'Doorgaan (2 van 3 kaarten)' })).toBeEnabled();
+  await expect(page.getByText(/Volgende sessie/)).toBeHidden();
+  await page.reload(); // also after closing the app
+  await page.getByRole('button', { name: 'Doorgaan (2 van 3 kaarten)' }).click();
+  await expect(page.getByText('2 van 3 kaarten')).toBeVisible();
+
+  // Third card reaches the cap → offer → Stoppen ends the session → pause + break prompt.
+  await reviewCards(page, 1);
+  await expect(page.getByText('Sessie voltooid! Wil je doorgaan?')).toBeVisible();
+  await page.getByRole('button', { name: 'Stoppen' }).click();
   await expect(page.getByText('Sessie voltooid!')).toBeVisible();
   await expect(page.getByText('Zoek iets ronds.')).toBeVisible();
   await page.getByRole('button', { name: 'OK' }).click();

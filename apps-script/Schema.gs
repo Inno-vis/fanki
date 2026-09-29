@@ -33,7 +33,8 @@ var SETTINGS_DEFAULTS = [
   ['session_extra_cards', 10, 'Extra kaarten na "Nog 10 kaarten, graag!"'],
   ['cooldown_minutes', 60, 'Pauze in minuten na een sessie (0 = geen pauze)'],
   ['min_reviews_to_count', 3, 'Een sessie telt (en start de pauze) vanaf dit aantal herhalingen'],
-  ['max_learning_backlog', 3, 'Een nieuwe kaart komt pas als minder dan dit aantal kaarten nog in de korte stappen zit']
+  ['max_learning_backlog', 3, 'Een nieuwe kaart komt pas als minder dan dit aantal kaarten nog in de korte stappen zit'],
+  ['session_resume_minutes', 30, 'Na "Terug" kan ze de sessie zo lang (minuten) voortzetten; daarna vervalt ze zonder pauze']
 ];
 
 // Off-screen Dutch prompts shown once when a pause starts. Vary shape/size, texture, colour, category
@@ -82,7 +83,7 @@ var TAGS_SEED = [
 
 // order | tag | unlock_threshold | min_reviews | max_wait_days | active
 var CURRICULUM_SEED = [
-  [1, 'app', 0.8, 2, 21, true],
+  [1, 'app', 0, 2, 21, true], // threshold 0: klok-1 is open from the start
   [2, 'klok-1', 0.8, 2, 21, true],
   [3, 'klok-2', 0.8, 2, 21, true],
   [4, 'klok-3', 0.8, 2, 21, true]

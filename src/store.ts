@@ -2,6 +2,7 @@ import { useEffect, useState } from 'preact/hooks';
 import { allCards, allProgress, getMeta, getSettings, pendingCount, type SessionRecord } from './db';
 import { DEFAULT_SETTINGS, type Card, type CurriculumRow, type Settings, type Tag } from './types';
 import type { Progress } from './scheduler';
+import type { SessionState } from './sessionRules';
 import { todaysIntro, type Intro } from './session';
 
 // App-wide state loaded from IndexedDB. Components subscribe with useStore().
@@ -22,6 +23,7 @@ export type State = {
   lastSession: SessionRecord | null;
   breaks: string[];
   studyTags: string[];
+  openSession: SessionState | null;
 };
 
 let state: State = {
@@ -38,7 +40,8 @@ let state: State = {
   curriculum: [],
   lastSession: null,
   breaks: [],
-  studyTags: []
+  studyTags: [],
+  openSession: null
 };
 const listeners = new Set<(s: State) => void>();
 
@@ -67,7 +70,7 @@ export function byAdded(a: Card & { order?: number }, b: Card & { order?: number
 }
 
 export async function loadFromDb(): Promise<void> {
-  const [cards, settings, tags, compliments, lastSync, progress, intro, pending, curriculum, lastSession, breaks, studyTags] = await Promise.all([
+  const [cards, settings, tags, compliments, lastSync, progress, intro, pending, curriculum, lastSession, breaks, studyTags, openSession] = await Promise.all([
     allCards(),
     getSettings(),
     getMeta('tags'),
@@ -79,7 +82,8 @@ export async function loadFromDb(): Promise<void> {
     getMeta('curriculum'),
     getMeta('lastSession'),
     getMeta('breaks'),
-    getMeta('studyTags')
+    getMeta('studyTags'),
+    getMeta('openSession')
   ]);
   setState({
     loaded: true,
@@ -94,6 +98,7 @@ export async function loadFromDb(): Promise<void> {
     curriculum: curriculum ?? [],
     lastSession: lastSession ?? null,
     breaks: breaks ?? [],
-    studyTags: studyTags ?? []
+    studyTags: studyTags ?? [],
+    openSession: openSession ?? null
   });
 }

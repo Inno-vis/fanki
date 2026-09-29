@@ -11,29 +11,53 @@ import { nextBreak } from '../breaks';
 import { rate } from '../review';
 import { setState, useStore } from '../store';
 import { useOnline } from '../pwa';
-import { endSession, extend, markOffered, nextStep, progressLabel, reviewed, startSession, type SessionState } from '../sessionRules';
+import {
+  endSession, extend, markOffered, nextStep, pauseSession, progressLabel, resumeSession, reviewed, saveOpenSession, startSession,
+  type SessionState
+} from '../sessionRules';
 
 type Phase = 'card' | 'offer' | 'done' | 'break';
 
-export function Review({ items, onExit }: { items: Item[]; onExit: () => void }) {
+export function Review({ items, resume, onExit }: { items: Item[]; resume?: SessionState | null; onExit: () => void }) {
   const s = useStore();
   const online = useOnline();
   const [queue, setQueue] = useState<Item[]>(items);
   const [revealed, setRevealed] = useState(false);
   const [busy, setBusy] = useState(false);
-  const [phase, setPhase] = useState<Phase>(items.length ? 'card' : 'done');
-  const [session, setSession] = useState<SessionState>(() => startSession(Date.now()));
+  // A resumed session that was paused on the offer screen shows the offer again.
+  const [phase, setPhase] = useState<Phase>(() =>
+    !items.length ? 'done' : resume && resume.offered && resume.extendedAt === null ? 'offer' : 'card'
+  );
+  const [session, setSessionState] = useState<SessionState>(() => (resume ? resumeSession(resume, Date.now()) : startSession(Date.now())));
   const [breakLine, setBreakLine] = useState<string | null>(null);
   const sessionRef = useRef(session);
   sessionRef.current = session;
+  const ended = useRef(false);
+  /** Every change is saved, so "Doorgaan" works even after the app was closed. */
+  const setSession = (st: SessionState) => {
+    setSessionState(st);
+    sessionRef.current = st;
+    if (!ended.current) void saveOpenSession(st.reviewed > 0 ? st : null);
+  };
   const shownAt = useRef(Date.now());
   const sched = useMemo(() => makeScheduler(s.settings), [s.settings.desired_retention]);
 
   /** Ends the session; returns true when a pause starts (the session counted). */
   const finish = async (st: SessionState): Promise<boolean> => {
+    ended.current = true;
     const rec = await endSession(st, s.settings, Date.now());
-    if (rec) setState({ lastSession: rec });
+    setState({ openSession: null, ...(rec ? { lastSession: rec } : {}) });
     return !!rec && s.settings.cooldown_minutes > 0;
+  };
+
+  /** "Terug" / leaving the app: pause, keep it for "Doorgaan". */
+  const pause = async () => {
+    if (ended.current) return;
+    const st = pauseSession(sessionRef.current, Date.now());
+    sessionRef.current = st;
+    const open = st.reviewed > 0 ? st : null;
+    await saveOpenSession(open);
+    setState({ openSession: open });
   };
 
   /** One-time off-screen prompt when a pause starts (skipped if the Breaks tab is empty). */
@@ -45,13 +69,25 @@ export function Review({ items, onExit }: { items: Item[]; onExit: () => void })
     return true;
   };
 
-  // Leaving the app mid-session (home button, force-quit) counts as the end of the session.
+  // Leaving the app (home button, app switcher) pauses; coming back resumes. Away time doesn't count.
   useEffect(() => {
-    const onHide = () => document.visibilityState === 'hidden' && void finish(sessionRef.current);
-    document.addEventListener('visibilitychange', onHide);
-    return () => document.removeEventListener('visibilitychange', onHide);
+    const onVis = () => {
+      if (ended.current) return;
+      if (document.visibilityState === 'hidden') void pause();
+      else setSession(resumeSession(sessionRef.current, Date.now()));
+    };
+    document.addEventListener('visibilitychange', onVis);
+    return () => document.removeEventListener('visibilitychange', onVis);
   }, []);
 
+  /** "‹ Terug": back to home, session stays open. */
+  const back = async () => {
+    if (phase === 'break' || phase === 'done') return onExit();
+    await pause();
+    onExit();
+  };
+
+  /** "Stoppen": the session is really over → pause starts (if it counted) with the break prompt. */
   const stop = async () => {
     if (phase === 'break' || phase === 'done') return onExit();
     const paused = await finish(sessionRef.current);
@@ -113,7 +149,7 @@ export function Review({ items, onExit }: { items: Item[]; onExit: () => void })
             {t('session.stop')}
           </button>
         ) : (
-          <button class="btn-back" onClick={stop}>
+          <button class="btn-back" onClick={back}>
             ‹ {t('review.back')}
           </button>
         )}

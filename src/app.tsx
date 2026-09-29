@@ -13,8 +13,9 @@ import { interleave, planToday, todaysIntro, type Item } from './session';
 import { curriculumStatus, makePicker } from './curriculum';
 import { Topics } from './screens/Topics';
 import type { Card } from './types';
+import { resumable, type SessionState } from './sessionRules';
 
-type Screen = { name: 'home' } | { name: 'topics' } | { name: 'review'; items: Item[] };
+type Screen = { name: 'home' } | { name: 'topics' } | { name: 'review'; items: Item[]; resume: SessionState | null };
 
 export function App() {
   const online = useOnline();
@@ -60,7 +61,7 @@ export function App() {
     return (
       <div class="app">
         <UpdateBanner />
-        <Review items={screen.items} onExit={() => setScreen({ name: 'home' })} />
+        <Review items={screen.items} resume={screen.resume} onExit={() => setScreen({ name: 'home' })} />
       </div>
     );
   }
@@ -80,7 +81,7 @@ export function App() {
       {screen.name === 'topics' ? (
         <Topics onDone={() => setScreen({ name: 'home' })} />
       ) : (
-      <Home onTopics={() => setScreen({ name: 'topics' })} due={plan.due.length} newToday={plan.fresh.length} onStart={() => setScreen({ name: 'review', items: interleave(plan) })} />
+      <Home onTopics={() => setScreen({ name: 'topics' })} due={plan.due.length} newToday={plan.fresh.length} onStart={() => setScreen({ name: 'review', items: interleave(plan), resume: resumable(s.openSession, s.settings, Date.now()) })} />
       )}
       <footer class="footer muted">
         {APP_ENV} · {BUILD_ID}

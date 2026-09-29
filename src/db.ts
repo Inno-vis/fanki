@@ -3,6 +3,7 @@ import { NS } from './config';
 import { DEFAULT_SETTINGS, type Card, type CurriculumRow, type Settings, type Tag } from './types';
 import type { Progress, Snapshot, Track } from './scheduler';
 import type { Intro, Mode } from './session';
+import type { SessionState } from './sessionRules';
 
 /** One review, as stored in the outbox and sent to the API (Log row). */
 export type ReviewEvent = {
@@ -33,6 +34,7 @@ export type Meta = {
   breaks: string[]; // Dutch off-screen prompts shown when a pause starts
   lastSession: SessionRecord; // for the cooldown
   studyTags: string[]; // tag filter ("Kies een onderwerp"); [] = everything
+  openSession: SessionState | null; // a paused session she can continue ("Doorgaan")
 };
 
 /** The last session that counted (>= min_reviews_to_count reviews). */

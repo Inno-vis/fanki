@@ -36,6 +36,7 @@ export const UI = {
   'session.offer': { nl: 'Sessie voltooid! Wil je doorgaan?', fr: 'Séance terminée ! Tu veux continuer ?' },
   'session.more': { nl: 'Nog {n} kaarten, graag!', fr: 'Encore {n} cartes, s’il te plaît !' },
   'session.stop': { nl: 'Stoppen', fr: 'Arrêter' },
+  'home.resume': { nl: 'Doorgaan ({done} van {target} kaarten)', fr: 'Continuer ta séance ({done} cartes sur {target})' },
   'session.cooldown': { nl: 'Volgende sessie over {n} minuten', fr: 'Prochaine séance dans {n} minutes' },
   'session.cooldown1': { nl: 'Volgende sessie over 1 minuut', fr: 'Prochaine séance dans 1 minute' },
 
@@ -100,7 +101,8 @@ export const HELP = {
       'cartes t’attendent (« nieuw vandaag »). Touche « Starten » pour commencer. L’appli fonctionne aussi sans ' +
       'internet : tes réponses sont gardées sur le téléphone et envoyées à la prochaine connexion. ' +
       '« Synchroniseren » télécharge les nouvelles cartes quand tu as internet. Après une séance, une pause est ' +
-      'prévue : « Volgende sessie over 42 minuten » = prochaine séance dans 42 minutes.'
+      'prévue : « Volgende sessie over 42 minuten » = prochaine séance dans 42 minutes. Si tu reviens en ' +
+      'arrière pendant une séance, « Doorgaan » te permet de la continuer.'
   },
   topics: {
     nl: 'Kies een of meer onderwerpen. Tik dan op Klaar.',

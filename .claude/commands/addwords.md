@@ -17,9 +17,14 @@ Steps:
    already exists in Cards or Inbox, and near-duplicates (plural/diminutive of an existing word).
 2. Generate the requested number of cards at the requested CEFR level (default A2), useful for daily life
    in Belgium/the Netherlands:
-   - `type`: `word` (default), `sentence` (target word in `{braces}`), or `question` (fr = prompt, nl =
-     answer) — only if the request asks for sentences/questions.
-   - `nl`; `article` `de`/`het` for EVERY noun (never blank for a noun; plural-only nouns get `de`).
+   - `type` (API codes; the sheet shows the Dutch name): `word` = dubbel (default: NL ⇄ FR), `oneway` =
+     enkel (nl = Dutch prompt, `answer` = back; e.g. clock sums), `sentence` = zin (target word in
+     `{braces}`), `question` = vraag (fr = prompt, nl = answer) — only if the request asks for them.
+   - `answer` (enkel only). Durations of exactly 15/30/45/60/90 min are written in both forms: "15 min of
+     een kwartier", "30 min of een half uur", "45 min of drie kwartier", "60 min of een uur", "90 min of
+     anderhalf uur" (not when the prompt already names that unit); other durations plain ("20 min"); clock
+     times "HH:MMu" never.
+   - `nl` (enkel prompts use explicit units: "X min", clock times "HH:MMu"); `article` `de`/`het` for EVERY noun (never blank for a noun; plural-only nouns get `de`).
    - `pos` in Dutch: zelfstandig naamwoord, werkwoord, scheidbaar werkwoord, bijvoeglijk naamwoord, bijwoord,
      uitdrukking, voorzetsel, telwoord.
    - `fr`: natural French translation; `example_nl`: short A1–A2 sentence; `example_fr`: its translation.
@@ -28,7 +33,7 @@ Steps:
      "gang"); `separable` for separable verbs (e.g. "optellen").
 3. Show a table: `# | nl (with article) | pos | fr | example_nl | tags | flags`, plus the list of skipped
    duplicates. STOP and wait for my OK (I may remove or change rows).
-4. After OK: write `{"rows":[{type,nl,article,pos,fr,example_nl,example_fr,tags:[…],flags:[…]}]}` to a
+4. After OK: write `{"rows":[{type,nl,article,pos,fr,example_nl,example_fr,tags:[…],flags:[…],answer}]}` to a
    scratch file and run `node scripts/admin.mjs <env> appendInbox @<file>`. The API gives each row an id,
    status `voorgesteld`, converts to Dutch sheet values, and skips rows already in Cards or Inbox.
 5. Report appended/skipped and remind me: set status to `goedgekeurd` in the Inbox, then run /promote.

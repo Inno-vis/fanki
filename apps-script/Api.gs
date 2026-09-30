@@ -41,6 +41,7 @@ function doPost(e) {
       case 'appendInbox': return adminAppendInbox_(body.rows);
       case 'listInbox': return adminListInbox_();
       case 'appendBreaks': return adminAppendBreaks_(body.lines);
+      case 'replaceKlok': return adminReplaceKlok_(body.dryRun !== false);
       case 'userInfo': return { rows: writeUserInfo_(ss_(), env_()) };
       case 'setCurriculum': return adminSetCurriculum_(body.tag, body.field, body.value);
       case 'promoteInbox': return adminPromoteInbox_();
@@ -82,7 +83,7 @@ function cardToJson_(r) {
   return {
     id: String(r.id), type: typeCode_(r.type) || 'word', nl: text_(r.nl), article: String(r.article || ''),
     pos: String(r.pos || ''), fr: text_(r.fr), example_nl: text_(r.example_nl),
-    example_fr: text_(r.example_fr), tags: splitTags_(r.tags), tags_source: sourceCode_(r.tags_source),
+    example_fr: text_(r.example_fr), answer: text_(r.answer), tags: splitTags_(r.tags), tags_source: sourceCode_(r.tags_source),
     flags: splitTags_(r.flags), added: isoDate_(r.added), active: bool_(r.active)
   };
 }
@@ -108,7 +109,8 @@ function getCards_() {
     cards: cards,
     settings: settings,
     tags: readTable_(sheet_('Tags')).rows.map(function (r) {
-      return { tag: String(r.tag).trim().toLowerCase(), label_nl: String(r.label_nl || r.tag || ''), label_fr: String(r.label_fr || '') };
+      return { tag: String(r.tag).trim().toLowerCase(), label_nl: String(r.label_nl || r.tag || ''), label_fr: String(r.label_fr || ''),
+        subject_nl: String(r.subject_nl || '').trim() };
     }).filter(function (x) { return x.tag; }),
     compliments: readTable_(sheet_('Compliments')).rows.map(function (r) { return String(r.text || '').trim(); })
       .filter(function (s) { return s; }),

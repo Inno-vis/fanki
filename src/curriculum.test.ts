@@ -7,7 +7,7 @@ import type { Card, CurriculumRow } from './types';
 const now = new Date('2026-10-20T12:00:00Z');
 const daysAgo = (d: number) => new Date(now.getTime() - d * 86_400_000).toISOString();
 const card = (id: string, tags: string[], type: Card['type'] = 'question', added = '2026-09-29'): Card =>
-  ({ id, type, nl: id, article: '', pos: '', fr: id, example_nl: '', example_fr: '', tags, tags_source: '', flags: [], added, active: true }) as Card;
+  ({ id, type, nl: id, article: '', pos: '', fr: id, example_nl: '', example_fr: '', tags, tags_source: '', flags: [], answer: '', added, active: true }) as Card;
 const row = (order: number, tag: string, over: Partial<CurriculumRow> = {}): CurriculumRow => ({
   order, tag, unlock_threshold: 0.8, min_reviews: 2, max_wait_days: 21, active: true, open: 'auto', ...over
 });

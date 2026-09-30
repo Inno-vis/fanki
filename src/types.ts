@@ -1,4 +1,5 @@
-export type CardType = 'word' | 'sentence' | 'question';
+/** Sheet: dubbel = word (both directions), enkel = oneway (nl → answer), zin = sentence, vraag = question. */
+export type CardType = 'word' | 'oneway' | 'sentence' | 'question';
 
 export type Card = {
   id: string;
@@ -12,12 +13,13 @@ export type Card = {
   tags: string[];
   tags_source: string;
   flags: string[];
+  answer: string; // back of an enkel (oneway) card; display text only, never checked
   added: string; // yyyy-mm-dd
   active: boolean;
   order?: number; // position in the sheet (tie-break for `added`)
 };
 
-export type Tag = { tag: string; label_nl: string; label_fr: string };
+export type Tag = { tag: string; label_nl: string; label_fr: string; subject_nl?: string };
 
 export type Settings = {
   new_per_day: number;

@@ -8,6 +8,7 @@ import { clozeParts, dutchText, flagLabel } from '../display';
  *   fr_nl     front: French                   back: Dutch (with de/het)
  *   cloze     front: sentence with a blank + French translation    back: the missing word filled in
  *   question  front: French prompt            back: expected Dutch answer
+ *   oneway    front: nl (Dutch prompt)        back: answer
  */
 export function CardFace({ card, mode, revealed }: { card: Card; mode: Mode; revealed: boolean }) {
   const flags =
@@ -38,6 +39,31 @@ export function CardFace({ card, mode, revealed }: { card: Card; mode: Mode; rev
       )}
     </p>
   ) : null;
+
+  // enkel (oneway): the Dutch prompt, then the answer (display text; she rates herself).
+  if (mode === 'oneway') {
+    return (
+      <article class="card" aria-live="polite">
+        {flags}
+        <p class="card-prompt card-prompt-big" lang="nl">
+          {card.nl}
+        </p>
+        {card.fr && (
+          <p class="card-prompt" lang="fr">
+            {card.fr}
+          </p>
+        )}
+        {revealed && (
+          <div class="card-back">
+            <p class="card-answer" lang="nl">
+              {card.answer}
+            </p>
+            {example}
+          </div>
+        )}
+      </article>
+    );
+  }
 
   if (mode === 'cloze') {
     const c = clozeParts(card.nl);

@@ -7,7 +7,7 @@ Two spreadsheets, created by `setup()` in their Apps Script projects:
 | DEV  | "Dutch DEV"  | `.clasp.dev.json`  |
 | PROD | "Dutch PROD" | `.clasp.prod.json` |
 
-**The sheet is in Dutch.** Card types are `woord` | `zin` | `vraag`, tags_source is `handmatig` |
+**The sheet is in Dutch.** Card types are `dubbel` | `enkel` | `zin` | `vraag` (see below), tags_source is `handmatig` |
 `automatisch`, part of speech is Dutch (`zelfstandig naamwoord`, `werkwoord`, `scheidbaar werkwoord`,
 `bijvoeglijk naamwoord`, `bijwoord`, `uitdrukking`…), tag keys are Dutch (`huishouden`, `familie`…) and all
 descriptions are Dutch. The API translates types/tags_source to fixed internal codes, so only these
@@ -29,25 +29,54 @@ from `apps-script/UserInfo.gs` (your own edits in the tab are then replaced).
 | column | values | notes |
 |---|---|---|
 | id | `c_xxxxxxxxxx` | Leave blank: the script fills it (on edit, and on the next sync). Never change an id once reviewed. |
-| type | `woord` \| `zin` \| `vraag` | dropdown |
-| nl | text | **woord**: the Dutch word. **zin**: wrap the target word in `{curly braces}` → it becomes the cloze blank. **vraag**: the answer (back of the card). |
+| type | `dubbel` \| `enkel` \| `zin` \| `vraag` | dropdown — see **Card types** below |
+| nl | text | **dubbel**: the Dutch word. **enkel**: the prompt (front). **zin**: wrap the target word in `{curly braces}` → it becomes the cloze blank. **vraag**: the answer (back of the card). |
 | article | `de` \| `het` \| blank | Required for nouns — the app always shows it. |
 | pos | free text | `zelfstandig naamwoord`, `werkwoord`, `scheidbaar werkwoord`, `bijvoeglijk naamwoord`, `uitdrukking`… (not shown to her) |
-| fr | text | **woord/zin**: French translation. **vraag**: the prompt (front of the card, e.g. "7:15" or "Demande…"). |
+| fr | text | **dubbel/zin**: French translation. **vraag**: the prompt (front, e.g. "Demande…"). **enkel**: optional small French hint under the prompt. |
 | example_nl / example_fr | text | optional example shown after the answer |
 | tags | `huishouden, school` | comma-separated keys from the Tags tab; may be empty |
 | tags_source | `handmatig` \| `automatisch` \| blank | `handmatig` = the teacher chose; `/retag` never touches these. `automatisch` = set by `/retag`. |
 | flags | `false-friend`, `separable` | comma-separated badges shown on the card |
+| answer | text | **enkel only**: the back of the card, shown after "Antwoord tonen". Display text — never checked. |
 | added | date | New cards are introduced in `added` order. Filled with today if blank. |
 | active | checkbox | Untick to hide a card without deleting it (progress is kept). |
 
 ### Seed data
 
 - DEV only: the 24 sample cards (words, cloze sentences, questions).
-- DEV **and** PROD: the 40 clock cards (`vraag`, ids `L1-01`…`L3-15`, tags `klok-1/2/3`, added 2026-09-29):
-  front = `fr`, back = `nl`, self-rated like every card.
+- The clock course (ids `K1-01`…`K3-08`, tags `klok-1/2/3`, added 2026-09-30): 8 `dubbel` words + 21 `enkel`
+  cards, plus the app word *minuut* tagged `klok-3`. Replaced the earlier `L1-`…`L3-` set via
+  `node scripts/admin.mjs <env> replaceKlok '{"dryRun":false}'` (dry run by default).
 - DEV **and** PROD: the 50 interface words (tag `app`, `tags_source` manual, `added` 2026-09-27 so they are
   introduced before everything else). `setup()` adds any that are missing and never duplicates.
+
+### Card types
+
+| type (sheet) | API code | front | back | directions |
+|---|---|---|---|---|
+| `dubbel` | word | nl (with de/het) | fr | both: NL → FR, and FR → NL once recognition is steady |
+| `enkel` | oneway | nl (the prompt) | answer | one |
+| `zin` | sentence | nl with `{blank}` + fr | the missing word | one |
+| `vraag` | question | fr (prompt) | nl | one |
+
+Every card is self-rated (reveal, then ❌ 😅 ✅ 😎). Old values `woord` (= dubbel) and `calc` (= enkel) are
+still read.
+
+### Writing `enkel` clock cards (keep future cards consistent)
+
+- `nl` uses explicit Dutch units only: durations "X min", clock times "HH:MMu" ("11:55u + 15 min = ...",
+  "Het is 4:30u. Hoe laat is het?").
+- **Answer formatting rule.** When a DURATION answer is exactly 15, 30, 45, 60 or 90 minutes, write both forms:
+  "15 min of een kwartier", "30 min of een half uur", "45 min of drie kwartier", "60 min of een uur",
+  "90 min of anderhalf uur". Any other duration: plain minutes ("20 min"). A clock-TIME answer ("12:10u")
+  never gets the second form. Exception: when the prompt itself already names that unit
+  ("Een kwartier = ... min" → "15 min").
+
+### Subject label
+
+Above each card the app shows `subject_nl` of the FIRST tag on the card that has one (Tags tab), e.g.
+"De tijd". No label when none of its tags has a subject.
 
 ## Progress — scheduling state (written by the API; rebuildable from Log)
 
@@ -77,12 +106,13 @@ from `apps-script/UserInfo.gs` (your own edits in the tab are then replaced).
 
 ## Tags
 
-`tag, label_nl, label_fr, description` — the tag vocabulary.
+`tag, label_nl, label_fr, description, subject_nl` — the tag vocabulary.
 
 - `tag`: the key used in Cards.tags — lowercase, no spaces (`household`, `wiskunde`…). Never rename a key
   that cards use.
 - `label_nl`: what the learner sees in the filter screen ("Kies een onderwerp").
 - `label_fr`, `description`: for the teacher only.
+- `subject_nl`: short subject shown above the card during review (e.g. klok-1/2/3 = "De tijd"). Blank = none.
 
 Seed keys (= label_nl unless noted): huishouden, school, wiskunde, familie, reizen, eten, werk, gezondheid,
 winkelen, tijd, app, klok-1 ("klok niveau 1"), klok-2 ("klok niveau 2"), klok-3 ("klok niveau 3").

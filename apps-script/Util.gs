@@ -125,7 +125,8 @@ function nextRow_(sh, col) {
 
 // ---------- Dutch sheet values ↔ internal codes ----------
 // The sheet is in Dutch; the API speaks fixed codes. Both spellings are accepted when reading.
-var TYPE_NL = { word: 'woord', sentence: 'zin', question: 'vraag' };
+var TYPE_NL = { word: 'dubbel', oneway: 'enkel', sentence: 'zin', question: 'vraag' };
+var TYPE_ALIASES = { woord: 'word', calc: 'oneway' }; // older sheet values, still read
 var SOURCE_NL = { manual: 'handmatig', auto: 'automatisch' };
 var STATUS_NL = { proposed: 'voorgesteld', approved: 'goedgekeurd' };
 // Old English tag keys → Dutch keys (used by the one-time migration and to convert seed lines).
@@ -136,7 +137,8 @@ var POS_NL = {
   'noun': 'zelfstandig naamwoord', 'noun (plural)': 'zelfstandig naamwoord (meervoud)', 'verb': 'werkwoord',
   'verb (separable)': 'scheidbaar werkwoord', 'adj': 'bijvoeglijk naamwoord', 'adv': 'bijwoord',
   'det': 'voornaamwoord', 'phrase': 'uitdrukking', 'sentence': 'zin', 'question': 'vraag',
-  'num': 'telwoord', 'prep': 'voorzetsel'
+  'num': 'telwoord', 'prep': 'voorzetsel', 'noun (time)': 'zelfstandig naamwoord', 'adj/time': 'bijvoeglijk naamwoord',
+  'prep (time)': 'voorzetsel', 'calc': 'klok'
 };
 
 function invert_(o) {
@@ -149,7 +151,7 @@ function invert_(o) {
 function typeCode_(v) {
   var s = String(v || '').trim().toLowerCase();
   if (TYPE_NL[s]) return s;
-  return invert_(TYPE_NL)[s] || '';
+  return invert_(TYPE_NL)[s] || TYPE_ALIASES[s] || '';
 }
 
 /** Sheet value → 'manual' | 'auto' | ''. */

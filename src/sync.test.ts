@@ -3,7 +3,7 @@ import { beforeEach, describe, expect, it } from 'vitest';
 import { cleanCard, cleanSettings } from './sync';
 import { _resetDb, allCards, getSettings, saveSnapshot } from './db';
 import { byAdded } from './store';
-import { dutchText } from './display';
+import { dutchText, subjectFor } from './display';
 import type { Card } from './types';
 
 const raw = (over: Partial<Card> = {}): Partial<Card> => ({
@@ -62,5 +62,26 @@ describe('saveSnapshot', () => {
     await saveSnapshot([cleanCard(raw({ id: 'y' }), 0)!], {});
     expect((await allCards()).map((c) => c.id)).toEqual(['y']);
     expect((await getSettings()).new_per_day).toBe(5);
+  });
+});
+
+describe('subject label (first tag with a subject_nl)', () => {
+  const tags = [
+    { tag: 'app', label_nl: 'app', label_fr: '', subject_nl: 'App' },
+    { tag: 'klok-3', label_nl: 'klok niveau 3', label_fr: '', subject_nl: 'De tijd' },
+    { tag: 'wiskunde', label_nl: 'wiskunde', label_fr: '', subject_nl: '' },
+    { tag: 'school', label_nl: 'school', label_fr: '' }
+  ];
+  it('uses the first tag on the card that has a subject', () => {
+    expect(subjectFor({ tags: ['app', 'klok-3'] }, tags)).toBe('App');
+    expect(subjectFor({ tags: ['klok-3', 'app'] }, tags)).toBe('De tijd');
+  });
+  it('skips tags without a subject (blank or missing)', () => {
+    expect(subjectFor({ tags: ['wiskunde', 'school', 'klok-3'] }, tags)).toBe('De tijd');
+  });
+  it('no label when no tag has a subject, or the tag is unknown', () => {
+    expect(subjectFor({ tags: ['wiskunde', 'school'] }, tags)).toBeNull();
+    expect(subjectFor({ tags: ['onbekend'] }, tags)).toBeNull();
+    expect(subjectFor({ tags: [] }, tags)).toBeNull();
   });
 });

@@ -1,7 +1,7 @@
 import type { Card, Settings } from './types';
 import { progressKey, tracksFor, type Progress, type Track } from './scheduler';
 
-export type Mode = 'nl_fr' | 'fr_nl' | 'cloze' | 'question' | 'listen';
+export type Mode = 'nl_fr' | 'fr_nl' | 'cloze' | 'question' | 'oneway' | 'listen';
 
 /** learning = came back in this session after a short (re)learning step. */
 export type Item = { card: Card; track: Track; progress?: Progress; isNew: boolean; learning?: boolean };
@@ -22,6 +22,7 @@ export function todaysIntro(intro: Intro | undefined, now = new Date()): Intro {
 export function modeFor(card: Card, track: Track): Mode {
   if (card.type === 'sentence') return 'cloze';
   if (card.type === 'question') return 'question';
+  if (card.type === 'oneway') return 'oneway';
   return track === 'recog' ? 'nl_fr' : 'fr_nl';
 }
 

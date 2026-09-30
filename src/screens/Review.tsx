@@ -8,6 +8,7 @@ import { HelpButton } from '../components/Help';
 import { makeScheduler, previewOutcomes, type Outcome } from '../scheduler';
 import { modeFor, pickNextIndex, REQUEUE_WITHIN_MS, type Item } from '../session';
 import { nextBreak } from '../breaks';
+import { subjectFor } from '../display';
 import { rate } from '../review';
 import { setState, useStore } from '../store';
 import { useOnline } from '../pwa';
@@ -198,6 +199,7 @@ export function Review({ items, resume, onExit }: { items: Item[]; resume?: Sess
         </main>
       ) : (
         <main class="review">
+          {subjectFor(item.card, s.tags) && <p class="card-subject">{subjectFor(item.card, s.tags)}</p>}
           <CardFace card={item.card} mode={modeFor(item.card, item.track)} revealed={revealed} />
           <div class="review-actions">
             {revealed && outcomes ? (

@@ -41,7 +41,7 @@ The repo is **public** and hosted on GitHub Pages.
   → `{accepted, duplicate, rejected}`. Idempotent on `event_id`.
 - Admin-only (ADMIN_TOKEN): `listCards, listUntagged, tags, setTags, appendInbox, listInbox,
   promoteInbox, rebuildProgress, setup, readTab, reseedDev (DEV only), purgeSmoke, appendBreaks,
-  setCurriculum, curriculumStatus, migrateToDutch, userInfo`.
+  setCurriculum, curriculumStatus, migrateToDutch, userInfo, replaceKlok (dry run unless dryRun:false)`.
 - All writes are inside `LockService`. All actions are idempotent, so clients **retry** on
   `no_action` (POST body lost on Google's redirect), `busy`, or non-JSON responses.
 - Deploy with `npm run gas:deploy:<env>` — keeps the same deployment ID so the /exec URL never changes.
@@ -76,9 +76,14 @@ The repo is **public** and hosted on GitHub Pages.
 
 ## Sheet values are Dutch
 
-Types `woord|zin|vraag`, tags_source `handmatig|automatisch`, Dutch tag keys, pos and descriptions. The API
-maps them to internal codes (`typeCode_`/`sourceCode_` in `apps-script/Util.gs`); the client only sees
-`word|sentence|question` and `manual|auto`. Text columns are formatted as plain text (times stay text).
+Types `dubbel|enkel|zin|vraag` (old `woord`/`calc` still read), tags_source `handmatig|automatisch`, Dutch tag
+keys, pos and descriptions. The API maps them to internal codes (`typeCode_`/`sourceCode_` in
+`apps-script/Util.gs`); the client only sees `word|oneway|sentence|question` and `manual|auto`. Text columns
+(incl. `answer`) are plain text, so times stay text.
+
+- `enkel` (oneway): front `nl`, back `answer`, one direction, self-rated; `answer` is display text only.
+  Clock-card answer rule (durations 15/30/45/60/90 min in both forms, etc.): docs/SHEET.md › Writing enkel.
+- Subject label above the card = `subject_nl` of the first tag that has one (`subjectFor`, src/display.ts).
 
 ## Curriculum and sessions
 
@@ -103,8 +108,8 @@ maps them to internal codes (`typeCode_`/`sourceCode_` in `apps-script/Util.gs`)
 
 ## Domain rules
 
-- Card types (internal codes): `word`, `sentence` (target word in `{braces}` → cloze), `question`
-  (fr = prompt/front, nl = answer/back).
+- Card types (internal codes): `word` (dubbel), `oneway` (enkel: nl → answer), `sentence` (target word in
+  `{braces}` → cloze), `question` (fr = prompt/front, nl = answer/back).
 - Two FSRS tracks: word cards have `recog` (NL→FR, listening) and `prod` (FR→typed NL);
   sentence/question cards only `prod`. `prod` unlocks when `recog` stability ≥ `unlock_prod_stability_days`.
 - Scheduling (`src/scheduler.ts`, `src/session.ts`): ts-fsrs, fuzz on, retention from Settings. The four

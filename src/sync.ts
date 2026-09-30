@@ -5,7 +5,7 @@ import { setUiSettings } from './prefs';
 import { getState, loadFromDb, setState } from './store';
 import { DEFAULT_SETTINGS, type Card, type CardsResponse, type CurriculumRow, type Settings } from './types';
 
-const TYPES = new Set(['word', 'sentence', 'question']);
+const TYPES = new Set(['word', 'oneway', 'sentence', 'question']);
 
 /** Defensive copy of a card from the API (the sheet is hand-edited). */
 export function cleanCard(raw: Partial<Card>, order: number): (Card & { order: number }) | null {
@@ -23,6 +23,7 @@ export function cleanCard(raw: Partial<Card>, order: number): (Card & { order: n
     tags: list(raw.tags).map((t) => t.toLowerCase()),
     tags_source: String(raw.tags_source ?? ''),
     flags: list(raw.flags).map((f) => f.toLowerCase()),
+    answer: String(raw.answer ?? '').trim(),
     added: String(raw.added ?? ''),
     active: raw.active !== false,
     order

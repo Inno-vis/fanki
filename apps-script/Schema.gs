@@ -1,13 +1,13 @@
 // Sheet schema — keep in sync with docs/SHEET.md.
 
 var CARD_COLS = ['id', 'type', 'nl', 'article', 'pos', 'fr', 'example_nl', 'example_fr',
-  'tags', 'tags_source', 'flags', 'added', 'active'];
+  'tags', 'tags_source', 'flags', 'answer', 'added', 'active'];
 
 var SCHEMA = {
   Cards: CARD_COLS,
   Progress: ['card_id', 'track', 'state', 'due', 'stability', 'difficulty', 'reps', 'lapses', 'last_review', 'first_review'],
   Log: ['event_id', 'card_id', 'track', 'ts', 'rating', 'mode', 'duration_ms', 'snapshot'],
-  Tags: ['tag', 'label_nl', 'label_fr', 'description'],
+  Tags: ['tag', 'label_nl', 'label_fr', 'description', 'subject_nl'],
   Inbox: CARD_COLS.concat(['status']),
   Settings: ['key', 'value', 'description'],
   Compliments: ['text'],
@@ -16,7 +16,9 @@ var SCHEMA = {
   Dashboard: ['metric', 'value']
 };
 
-var CARD_TYPES = ['woord', 'zin', 'vraag']; // sheet values (API codes: word, sentence, question)
+// Sheet values → API codes: dubbel = word (both directions), enkel = oneway (nl → answer),
+// zin = sentence (cloze), vraag = question (fr prompt → nl). Old values woord/calc are still read.
+var CARD_TYPES = ['dubbel', 'enkel', 'zin', 'vraag'];
 var TAG_SOURCES = ['handmatig', 'automatisch']; // sheet values (API codes: manual, auto)
 var TRACKS = ['recog', 'prod'];
 var MODES = ['nl_fr', 'fr_nl', 'cloze', 'question', 'listen'];
@@ -64,22 +66,22 @@ var BREAKS_SEED = [
   'Zoek iets wat je aandoet of draagt. Hoe zeg je dat in het Nederlands?'
 ];
 
-// tag | label_nl (shown to the learner) | label_fr (teacher) | description
+// tag | label_nl (shown to the learner) | label_fr (teacher) | description | subject_nl (label above the card)
 var TAGS_SEED = [
-  ['huishouden', 'huishouden', 'la maison', 'Voorwerpen en kamers in huis'],
-  ['school', 'school', 'l\'école', 'School, klas, schoolspullen'],
-  ['wiskunde', 'wiskunde', 'les maths', 'Woorden voor wiskunde'],
-  ['familie', 'familie', 'la famille', 'Familieleden'],
-  ['reizen', 'reizen', 'les voyages', 'Vervoer, station, vakantie'],
-  ['eten', 'eten', 'la nourriture', 'Maaltijden, voedsel, keuken'],
-  ['werk', 'werk', 'le travail', 'Beroepen, kantoor'],
-  ['gezondheid', 'gezondheid', 'la santé', 'Lichaam, dokter, ziek zijn'],
-  ['winkelen', 'winkelen', 'les courses', 'Winkels, geld, kopen'],
-  ['tijd', 'tijd', 'le temps', 'Uren, dagen, kalender'],
-  ['app', 'app', 'l\'appli', 'De woorden van de Fanki-app'],
-  ['klok-1', 'klok niveau 1', 'horloge niveau 1', 'Rekenen met minuten (kwart, half, over het uur)'],
-  ['klok-2', 'klok niveau 2', 'horloge niveau 2', 'Minuten optellen bij en aftrekken van een tijd'],
-  ['klok-3', 'klok niveau 3', 'horloge niveau 3', 'De tijd zeggen in het Nederlands']
+  ['huishouden', 'huishouden', 'la maison', 'Voorwerpen en kamers in huis', 'Thuis'],
+  ['school', 'school', 'l\'école', 'School, klas, schoolspullen', 'School'],
+  ['wiskunde', 'wiskunde', 'les maths', 'Woorden voor wiskunde', 'Wiskunde'],
+  ['familie', 'familie', 'la famille', 'Familieleden', 'Familie'],
+  ['reizen', 'reizen', 'les voyages', 'Vervoer, station, vakantie', 'Reizen'],
+  ['eten', 'eten', 'la nourriture', 'Maaltijden, voedsel, keuken', 'Eten'],
+  ['werk', 'werk', 'le travail', 'Beroepen, kantoor', 'Werk'],
+  ['gezondheid', 'gezondheid', 'la santé', 'Lichaam, dokter, ziek zijn', 'Gezondheid'],
+  ['winkelen', 'winkelen', 'les courses', 'Winkels, geld, kopen', 'Winkelen'],
+  ['tijd', 'tijd', 'le temps', 'Uren, dagen, kalender', 'Tijd'],
+  ['app', 'app', 'l\'appli', 'De woorden van de Fanki-app', 'App'],
+  ['klok-1', 'klok niveau 1', 'horloge niveau 1', 'Hele en halve uren, minuten optellen', 'De tijd'],
+  ['klok-2', 'klok niveau 2', 'horloge niveau 2', 'Kwartier, voor en over, tijden optellen', 'De tijd'],
+  ['klok-3', 'klok niveau 3', 'horloge niveau 3', 'Elke minuut lezen, over middernacht rekenen', 'De tijd']
 ];
 
 // order | tag | unlock_threshold | min_reviews | max_wait_days | active | open
@@ -165,7 +167,7 @@ var APP_SEED_CARDS = [
   'word|maand|de|noun|le mois|Een maand heeft dertig dagen.|Un mois a trente jours.|app|manual|',
   'word|jaar|het|noun|l\'an, l\'année|Een jaar heeft twaalf maanden.|Une année a douze mois.|app|manual|',
   'word|uur|het|noun|l\'heure (durée)|Het duurt een uur.|Ça dure une heure.|app|manual|',
-  'word|minuut|de|noun|la minute|Wacht een minuut.|Attends une minute.|app|manual|',
+  'word|minuut|de|noun|la minute|Wacht een minuut.|Attends une minute.|app, klok-3|manual|',
   'word|starten||verb|commencer, démarrer|Ik start de les.|Je commence la leçon.|app|manual|',
   'word|oefenen||verb|s\'exercer, pratiquer|Ik oefen elke dag.|Je m\'exerce tous les jours.|app|manual|',
   'word|herhalen||verb|répéter, réviser|We herhalen de woorden.|Nous révisons les mots.|app|manual|',
@@ -214,22 +216,41 @@ var APP_SEED_CARDS = [
   'word|dicht||adj|fermé|De deur is dicht.|La porte est fermée.|app|manual|'
 ];
 
-// Clock course, seeded in DEV and PROD with fixed ids. Question cards (self-rated):
-// fr = the prompt shown (front), nl = the answer (back). Format: id|level|front|back
-var KLOK_SEED_ADDED = '2026-09-29';
+// Clock course (replaces the L1-/L2-/L3- set of 2026-09-29). Fixed ids, added 2026-09-30.
+// Format: id|type|nl|article|pos|fr|example_nl|example_fr|tag|flags|answer   (type = API code)
+// ANSWER RULE for durations (docs/SHEET.md): exactly 15/30/45/60/90 min → "15 min of een kwartier",
+// "30 min of een half uur", "45 min of drie kwartier", "60 min of een uur", "90 min of anderhalf uur";
+// other durations plain minutes ("20 min"); clock times (HH:MMu) never; skip when the prompt already
+// names that unit (K2-08).
+var KLOK_SEED_ADDED = '2026-09-30';
 var KLOK_SEED_CARDS = [
-  'L1-01|1|0 + 15|15', 'L1-02|1|15 + 15|30', 'L1-03|1|30 + 15|45', 'L1-04|1|45 + 15|60 -> 0 (+1 uur)',
-  'L1-05|1|50 + 15|65 -> +1 uur, 5', 'L1-06|1|55 + 15|70 -> +1 uur, 10', 'L1-07|1|40 + 20|60 -> +1 uur, 0',
-  'L1-08|1|50 + 20|70 -> +1 uur, 10', 'L1-09|1|35 + 30|65 -> +1 uur, 5', 'L1-10|1|25 - 15|10',
-  'L1-11|1|10 - 15|-5 -> 55 (-1 uur)', 'L1-12|1|5 - 10|55 (-1 uur)', 'L1-13|1|15 = ?|kwart', 'L1-14|1|30 = ?|half',
-  'L1-15|1|45 = ?|driekwart',
-  'L2-01|2|11:55 + 15 min|12:10', 'L2-02|2|10:00 + 50 min|10:50', 'L2-03|2|10:00 + 15 min|10:15',
-  'L2-04|2|9:45 + 30 min|10:15', 'L2-05|2|8:50 + 20 min|9:10', 'L2-06|2|7:30 + 45 min|8:15',
-  'L2-07|2|12:40 + 30 min|13:10', 'L2-08|2|6:20 - 30 min|5:50', 'L2-09|2|3:10 - 15 min|2:55',
-  'L2-10|2|11:50 + 20 min|12:10',
-  'L3-01|3|7:00|zeven uur', 'L3-02|3|7:15|kwart over zeven', 'L3-03|3|7:20|tien voor half acht',
-  'L3-04|3|7:25|vijf voor half acht', 'L3-05|3|7:30|half acht', 'L3-06|3|7:35|vijf over half acht',
-  'L3-07|3|7:40|tien over half acht', 'L3-08|3|7:45|kwart voor acht', 'L3-09|3|2:20|tien voor half drie',
-  'L3-10|3|2:30|half drie', 'L3-11|3|2:40|tien over half drie', 'L3-12|3|10:50|tien voor elf',
-  'L3-13|3|10:05|vijf over tien', 'L3-14|3|12:30|half een', 'L3-15|3|3:45|kwart voor vier'
+  'K1-01|word|klok|de|noun|l\'horloge|De klok hangt aan de muur.|L\'horloge est accrochée au mur.|klok-1||',
+  'K1-02|word|uur|het|noun|l\'heure (l\'heure qu\'il est)|Het is twee uur.|Il est deux heures.|klok-1||',
+  'K1-03|word|half||adj|demi (et demie)|Het is half drie.|Il est deux heures et demie.|klok-1|false-friend|',
+  'K1-04|word|hoe laat is het?||phrase|quelle heure est-il ?|Hoe laat is het?|Quelle heure est-il ?|klok-1||',
+  'K1-05|oneway|Het is 3:00u. Hoe laat is het?||klok||||klok-1||drie uur',
+  'K1-06|oneway|Het is 4:30u. Hoe laat is het?||klok||||klok-1||half vijf',
+  'K1-07|oneway|5 min + 5 min = ...||klok||||klok-1||10 min',
+  'K1-08|oneway|10 min + 10 min = ...||klok||||klok-1||20 min',
+  'K1-09|oneway|15 min + 15 min = ...||klok||||klok-1||30 min of een half uur',
+  'K1-10|oneway|40 min + 20 min = ...||klok||||klok-1||60 min of een uur',
+  'K2-01|word|kwart|het|noun|le quart|Het is kwart voor vijf.|Il est cinq heures moins le quart.|klok-2||',
+  'K2-02|word|voor||prep|moins (avant l\'heure)|Het is tien voor acht.|Il est huit heures moins dix.|klok-2||',
+  'K2-03|word|over||prep|après (l\'heure), et|Het is tien over acht.|Il est huit heures dix.|klok-2||',
+  'K2-04|oneway|Het is 5:45u. Hoe laat is het?||klok||||klok-2||kwart voor zes',
+  'K2-05|oneway|Het is 8:15u. Hoe laat is het?||klok||||klok-2||kwart over acht',
+  'K2-06|oneway|9:40u + 20 min = ...||klok||||klok-2||10:00u',
+  'K2-07|oneway|11:55u + 15 min = ...||klok||||klok-2||12:10u',
+  'K2-08|oneway|Een kwartier = ... min||klok||||klok-2||15 min',
+  'K2-09|oneway|45 min = ... kwartier||klok||||klok-2||3 kwartier',
+  'K2-10|oneway|90 min = ... uur||klok||||klok-2||anderhalf uur',
+  'K2-11|oneway|5 min + 10 min = ...||klok||||klok-2||15 min of een kwartier',
+  'K2-12|oneway|25 min + 20 min = ...||klok||||klok-2||45 min of drie kwartier',
+  'K3-02|oneway|Het is 9:07u. Hoe laat is het?||klok||||klok-3||zeven over negen',
+  'K3-03|oneway|Het is 6:52u. Hoe laat is het?||klok||||klok-3||acht voor zeven',
+  'K3-04|oneway|Het is 11:23u. Hoe laat is het?||klok||||klok-3||zeven voor half twaalf',
+  'K3-05|oneway|14:37u + 38 min = ...||klok||||klok-3||15:15u',
+  'K3-06|oneway|23:50u + 25 min = ...||klok||||klok-3||0:15u',
+  'K3-07|oneway|105 min = ... uur||klok||||klok-3||een uur en drie kwartier',
+  'K3-08|oneway|50 min + 40 min = ...||klok||||klok-3||90 min of anderhalf uur'
 ];

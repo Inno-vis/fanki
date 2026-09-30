@@ -88,6 +88,7 @@ function adminAppendInbox_(rows) {
         id: newId_('c_'), type: typeNl_(typeCode_(r.type) || 'word'), nl: String(r.nl || ''),
         article: r.article === 'de' || r.article === 'het' ? r.article : '', pos: posNl_(r.pos),
         fr: String(r.fr || ''), example_nl: String(r.example_nl || ''), example_fr: String(r.example_fr || ''),
+        answer: String(r.answer || ''),
         tags: tagsNl_(tags), tags_source: tags ? sourceNl_('auto') : '', flags: flags, added: today, active: true, status: STATUS_NL.proposed
       });
     });
@@ -220,5 +221,41 @@ function adminSetCurriculum_(tag, field, value) {
     sh.getRange(row._row, t.headers.indexOf(field) + 1).setValue(v);
     updateCurriculumDashboard_(true);
     return { tag: tag, field: field, value: v };
+  });
+}
+
+/**
+ * Replaces every Cards row tagged klok-1/2/3 with KLOK_SEED_CARDS and adds klok-3 to the app card
+ * "minuut". dryRun (default) only reports what would change.
+ */
+function adminReplaceKlok_(dryRun) {
+  return withLock_(function () {
+    var sh = sheet_('Cards');
+    var t = readTable_(sh);
+    var newIds = {};
+    KLOK_SEED_CARDS.forEach(function (l) { newIds[l.split('|')[0]] = true; });
+    var isKlok = function (r) { return splitTags_(r.tags).some(function (x) { return /^klok-[123]$/.test(x); }); };
+    var remove = t.rows.filter(function (r) { return isKlok(r) && !newIds[String(r.id)] && String(r.nl).trim().toLowerCase() !== 'minuut'; });
+    var minuut = t.rows.filter(function (r) {
+      return String(r.nl).trim().toLowerCase() === 'minuut' && splitTags_(r.tags).indexOf('app') !== -1;
+    })[0];
+    var existing = {};
+    t.rows.forEach(function (r) { existing[String(r.id)] = true; });
+    var add = klokRows_().filter(function (r) { return !existing[r[0]]; });
+    var report = {
+      dryRun: dryRun,
+      remove: remove.map(function (r) { return String(r.id) + ' | ' + text_(r.fr) + ' → ' + text_(r.nl); }),
+      add: add.map(function (r) { return r[0] + ' | ' + r[1] + ' | ' + r[2] + (r[11] ? ' → ' + r[11] : ''); }),
+      minuut: minuut ? String(minuut.id) + ': ' + minuut.tags + ' → ' + (splitTags_(minuut.tags).indexOf('klok-3') === -1 ? minuut.tags + ', klok-3' : '(already)') : 'not found'
+    };
+    if (dryRun) return report;
+    remove.map(function (r) { return r._row; }).sort(function (a, b) { return b - a; })
+      .forEach(function (n) { sh.deleteRow(n); });
+    if (minuut && splitTags_(minuut.tags).indexOf('klok-3') === -1) {
+      var fresh = readTable_(sh).rows.filter(function (r) { return String(r.id) === String(minuut.id); })[0];
+      sh.getRange(fresh._row, CARD_COLS.indexOf('tags') + 1).setValue(splitTags_(minuut.tags).concat(['klok-3']).join(', '));
+    }
+    if (add.length) writeCardRows_(sh, add);
+    return report;
   });
 }

@@ -1,4 +1,4 @@
-import type { Card } from './types';
+import type { Card, Tag } from './types';
 import { UI, t, type UIKey } from './i18n';
 
 export function isNoun(card: Card): boolean {
@@ -15,6 +15,16 @@ export function dutchText(card: Card): string {
 export function flagLabel(flag: string): string {
   const key = `flag.${flag}` as UIKey;
   return key in UI ? t(key) : flag;
+}
+
+/** Subject label above the card: subject_nl of the FIRST tag on the card that has one (or null). */
+export function subjectFor(card: Pick<Card, 'tags'>, tags: Tag[]): string | null {
+  const byTag = new Map(tags.map((t) => [t.tag, (t.subject_nl ?? '').trim()]));
+  for (const tag of card.tags) {
+    const s = byTag.get(tag);
+    if (s) return s;
+  }
+  return null;
 }
 
 /** Cloze parts of a sentence card: "Ik {woon} hier." → before "Ik ", answer "woon", after " hier." */

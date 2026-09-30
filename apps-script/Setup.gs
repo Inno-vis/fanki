@@ -35,9 +35,9 @@ function setup() {
   if (blank && ss.getSheets().length > 1) ss.deleteSheet(blank);
 
   // 3b. One-time conversion of English sheet values to Dutch (before validation is re-applied).
-  if (p.getProperty('MIGRATED_NL') !== '2') {
+  if (p.getProperty('MIGRATED_NL') !== '3') {
     migrateToDutch_(ss);
-    p.setProperty('MIGRATED_NL', '2');
+    p.setProperty('MIGRATED_NL', '3');
   }
 
   // 4. Validation + formats.
@@ -85,12 +85,13 @@ function applyCardValidation_(sh, isInbox) {
   sh.getRange('B2:B').setDataValidation(list(CARD_TYPES));
   sh.getRange('D2:D').setDataValidation(list(['de', 'het']));
   sh.getRange('J2:J').setDataValidation(list(TAG_SOURCES));
-  sh.getRange('L2:L').setNumberFormat('yyyy-mm-dd');
+  sh.getRange('M2:M').setNumberFormat('yyyy-mm-dd');
   // Text columns stay text: otherwise Sheets turns "7:15" into a time and "1/2" into a date.
   sh.getRange('C2:C').setNumberFormat('@');
   sh.getRange('F2:H').setNumberFormat('@');
-  sh.getRange('M2:M').setDataValidation(SpreadsheetApp.newDataValidation().requireCheckbox().build());
-  if (isInbox) sh.getRange('N2:N').setDataValidation(list([STATUS_NL.proposed, STATUS_NL.approved]));
+  sh.getRange('L2:L').setNumberFormat('@').clearDataValidations(); // answer
+  sh.getRange('N2:N').setDataValidation(SpreadsheetApp.newDataValidation().requireCheckbox().build());
+  if (isInbox) sh.getRange('O2:O').setDataValidation(list([STATUS_NL.proposed, STATUS_NL.approved]));
 }
 
 function seedSettings_(sh) {
@@ -134,10 +135,13 @@ function seedTags_(sh) {
   var byTag = {};
   t.rows.forEach(function (r) { byTag[String(r.tag).trim().toLowerCase()] = r; });
   var col = t.headers.indexOf('label_nl') + 1;
+  var subjCol = t.headers.indexOf('subject_nl') + 1;
   TAGS_SEED.forEach(function (row) {
     var r = byTag[row[0]];
-    if (!r) sh.getRange(nextRow_(sh, 1), 1, 1, row.length).setValues([row]);
-    else if (!String(r.label_nl || '').trim()) sh.getRange(r._row, col).setValue(row[1]);
+    if (!r) { sh.getRange(nextRow_(sh, 1), 1, 1, row.length).setValues([row]); return; }
+    if (!String(r.label_nl || '').trim()) sh.getRange(r._row, col).setValue(row[1]);
+    // Fill blank subjects only; never overwrite the teacher's own.
+    if (subjCol && row[4] && !String(r.subject_nl || '').trim()) sh.getRange(r._row, subjCol).setValue(row[4]);
   });
 }
 
@@ -163,32 +167,31 @@ function seedAppWords_(sh) {
   if (rows.length) sh.getRange(nextRow_(sh, 3), 1, rows.length, rows[0].length).setValues(rows);
 }
 
-/** Adds the clock course cards (both envs), keyed by their fixed ids. */
+/** Adds the clock course cards (both envs) that are missing, keyed by their fixed ids. Never deletes. */
 function seedKlokCards_(sh) {
   var have = {};
-  var byId = {};
-  readTable_(sh).rows.forEach(function (r) { have[String(r.id)] = true; byId[String(r.id)] = r; });
-  // Repair: cells Sheets had already converted to times (e.g. "3:45") get their text back.
-  KLOK_SEED_CARDS.forEach(function (line) {
-    var f = line.split('|'), r = byId[f[0]];
-    if (r && (r.nl instanceof Date || r.fr instanceof Date)) {
-      sh.getRange(r._row, 3).setNumberFormat('@').setValue(f[3]);
-      sh.getRange(r._row, 6).setNumberFormat('@').setValue(f[2]);
-    }
-  });
+  readTable_(sh).rows.forEach(function (r) { have[String(r.id)] = true; });
+  var rows = klokRows_().filter(function (r) { return !have[r[0]]; });
+  if (rows.length) writeCardRows_(sh, rows);
+}
+
+/** KLOK_SEED_CARDS → Cards rows with Dutch sheet values. */
+function klokRows_() {
   var parts = KLOK_SEED_ADDED.split('-');
   var added = new Date(Number(parts[0]), Number(parts[1]) - 1, Number(parts[2]));
-  var rows = KLOK_SEED_CARDS.map(function (line) { return line.split('|'); })
-    .filter(function (f) { return !have[f[0]]; })
-    .map(function (f) {
-      return [f[0], typeNl_('question'), f[3], '', posNl_('question'), f[2], '', '', 'klok-' + f[1], sourceNl_('manual'), '', added, true];
-    });
-  if (rows.length) {
-    var start = nextRow_(sh, 3);
-    sh.getRange(start, 3, rows.length, 1).setNumberFormat('@');
-    sh.getRange(start, 6, rows.length, 1).setNumberFormat('@');
-    sh.getRange(start, 1, rows.length, rows[0].length).setValues(rows);
-  }
+  return KLOK_SEED_CARDS.map(function (line) {
+    var f = line.split('|');
+    return [f[0], typeNl_(f[1]), f[2], f[3], posNl_(f[4]), f[5], f[6], f[7], f[8], sourceNl_('manual'), f[9], f[10], added, true];
+  });
+}
+
+/** Appends rows below the last card; text columns stay text (times like 12:10u). */
+function writeCardRows_(sh, rows) {
+  var start = nextRow_(sh, 3);
+  sh.getRange(start, 3, rows.length, 1).setNumberFormat('@');
+  sh.getRange(start, 6, rows.length, 3).setNumberFormat('@');
+  sh.getRange(start, 12, rows.length, 1).setNumberFormat('@');
+  sh.getRange(start, 1, rows.length, rows[0].length).setValues(rows);
 }
 
 function seedCurriculum_(sh) {
@@ -237,7 +240,7 @@ function backfillFirstReview_(ss) {
 
 /** Seed line fields (brief format, English codes) → a Cards row with Dutch sheet values. */
 function toSheetRow_(f, id, added) {
-  return [id, typeNl_(f[0]), f[1], f[2], posNl_(f[3]), f[4], f[5], f[6], tagsNl_(f[7]), sourceNl_(f[8]), f[9], added, true];
+  return [id, typeNl_(f[0]), f[1], f[2], posNl_(f[3]), f[4], f[5], f[6], tagsNl_(f[7]), sourceNl_(f[8]), f[9], '', added, true];
 }
 
 /**
@@ -252,8 +255,9 @@ function migrateToDutch_(ss) {
     var last = nextRow_(sh, 3) - 1;
     if (last < 2) return;
     if (name === 'Inbox') {
-      sh.getRange('N2:N').clearDataValidations();
-      var st = sh.getRange(2, 14, last - 1, 1);
+      var statusCol = CARD_COLS.length + 1;
+      sh.getRange(2, statusCol, last - 1, 1).clearDataValidations();
+      var st = sh.getRange(2, statusCol, last - 1, 1);
       st.setValues(st.getValues().map(function (r) { return [statusCode_(r[0]) ? STATUS_NL[statusCode_(r[0])] : r[0]]; }));
     }
     sh.getRange('B2:B').clearDataValidations();
@@ -314,7 +318,7 @@ function buildDashboard_(sh) {
     ['Te herhalen (alle richtingen)', '=COUNTIFS(Progress!D2:D,"<="&NOW())'],
     ['Goed onthouden (30 dagen)', '=IFERROR(COUNTIFS(Log!E2:E,">1",Log!D2:D,">="&NOW()-30)/COUNTIFS(Log!D2:D,">="&NOW()-30),"—")'],
     ['Herhalingen deze week', '=COUNTIFS(Log!D2:D,">="&(TODAY()-WEEKDAY(TODAY(),3)))'],
-    ['Actieve kaarten', '=COUNTIF(Cards!M2:M,TRUE)'],
+    ['Actieve kaarten', '=COUNTIF(Cards!N2:N,TRUE)'],
     ['Laatst gesynchroniseerd', '=IF(COUNT(Log!D2:D)=0,"—",MAX(Log!D2:D))'],
     ['', ''],
     ['Vaakst vergeten (nl | richting | keer vergeten)', '']
@@ -347,8 +351,9 @@ function fillIds_(sh) {
     var hasContent = String(r[2]).trim() !== '' || String(r[5]).trim() !== '';
     if (!hasContent) return;
     if (String(r[0]).trim() === '') { r[0] = newId_('c_'); changed++; }
-    if (r[11] === '') { r[11] = today; changed++; }
-    if (r[12] === '' && sh.getName() === 'Cards') { r[12] = true; changed++; }
+    var ADDED = CARD_COLS.indexOf('added'), ACTIVE = CARD_COLS.indexOf('active');
+    if (r[ADDED] === '') { r[ADDED] = today; changed++; }
+    if (r[ACTIVE] === '' && sh.getName() === 'Cards') { r[ACTIVE] = true; changed++; }
   });
   if (changed) range.setValues(values);
   return changed;

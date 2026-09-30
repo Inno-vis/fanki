@@ -23,7 +23,8 @@ Steps:
    - `answer` (enkel only). Durations of exactly 15/30/45/60/90 min are written in both forms: "15 min of
      een kwartier", "30 min of een half uur", "45 min of drie kwartier", "60 min of een uur", "90 min of
      anderhalf uur" (not when the prompt already names that unit); other durations plain ("20 min"); clock
-     times "HH:MMu" never.
+     times "HH:MMu" never. Clock times with a TWO-digit hour (10–23, midnight "00:MMu") get
+     " of <spoken form> 's ochtends/middags/avonds/nachts"; one-digit hours don't (docs/SHEET.md › dagdeel rule).
    - `nl` (enkel prompts use explicit units: "X min", clock times "HH:MMu"); `article` `de`/`het` for EVERY noun (never blank for a noun; plural-only nouns get `de`).
    - `pos` in Dutch: zelfstandig naamwoord, werkwoord, scheidbaar werkwoord, bijvoeglijk naamwoord, bijwoord,
      uitdrukking, voorzetsel, telwoord.

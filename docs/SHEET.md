@@ -17,6 +17,14 @@ Row 1 is always the header row (frozen). The API reads columns **by header name*
 reordered, but never rename a header. `setup()` is idempotent: re-running it repairs headers,
 validation and the Dashboard, seeds only empty tabs, and seeds Cards only in DEV.
 
+## Not in the sheet: 🚩 "Gemarkeerd" (student flags)
+
+During review the learner can tap 🚩 on any card (long-press or "+ notitie" adds a short note). These are
+stored **only on her phone** (IndexedDB store `flags`: id, card_id, ts, note, resolved, updated_ts) and are
+never synced to this sheet. She sees them on the "Gemarkeerd" screen (🚩 badge on the home screen), can mark
+them "Opgelost", and sends them to you herself with "Delen" (share sheet) or "Kopieer naar klembord".
+This has nothing to do with the Cards `flags` column (false-friend / separable), which is content you set.
+
 ## User info — start guide for the learner
 
 First tab. 12 short steps (install from the link, first sync, the four buttons, sessions, pause, offline,
@@ -72,6 +80,19 @@ still read.
   "90 min of anderhalf uur". Any other duration: plain minutes ("20 min"). A clock-TIME answer ("12:10u")
   never gets the second form. Exception: when the prompt itself already names that unit
   ("Een kwartier = ... min" → "15 min").
+
+- **Dagdeel rule (clock times).** A clock-time answer is written `HH:MMu`.
+  - Hour with ONE digit (1–9, e.g. "9:07u") → unchanged, no dagdeel.
+  - Hour with TWO digits (10–23, or `00` for midnight — always "00:MMu", never "0:MMu") → append
+    " of <spoken form> 's <dagdeel>": "15:15u of kwart over drie 's middags", "00:45u of kwart voor één 's nachts",
+    "10:00u of tien uur 's ochtends".
+  - Reading cards ("Het is 11:23u. Hoe laat is het?") follow the digit count of the time in the PROMPT; their
+    answer is already spoken, so it only gets " 's <dagdeel>" ("zeven voor half twaalf 's ochtends").
+  - Dagdeel: 06:00–11:59 's ochtends · 12:00–17:59 's middags · 18:00–23:59 's avonds · 00:00–05:59 's nachts.
+  - Spoken form: on or past the hour name the current hour ("tien uur", "tien over twaalf", "kwart over
+    drie"); before the next hour name the next one ("kwart voor één", "zeven voor half twaalf"). Number
+    words, not digits; 0 and 12 are "twaalf".
+  - Durations ("X min", "15 min of een kwartier") are not affected.
 
 ### Subject label
 

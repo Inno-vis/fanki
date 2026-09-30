@@ -24,6 +24,8 @@ export type State = {
   breaks: string[];
   studyTags: string[];
   openSession: SessionState | null;
+  flagsOpen: number; // 🚩 unresolved student flags
+  flagsTotal: number;
 };
 
 let state: State = {
@@ -41,7 +43,9 @@ let state: State = {
   lastSession: null,
   breaks: [],
   studyTags: [],
-  openSession: null
+  openSession: null,
+  flagsOpen: 0,
+  flagsTotal: 0
 };
 const listeners = new Set<(s: State) => void>();
 
@@ -101,4 +105,12 @@ export async function loadFromDb(): Promise<void> {
     studyTags: studyTags ?? [],
     openSession: openSession ?? null
   });
+  await refreshFlagCount();
+}
+
+/** Recounts the 🚩 student flags (home badge). */
+export async function refreshFlagCount(): Promise<void> {
+  const { listFlags } = await import('./studentFlags');
+  const all = await listFlags();
+  setState({ flagsTotal: all.length, flagsOpen: all.filter((f) => !f.resolved).length });
 }

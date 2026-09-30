@@ -82,7 +82,8 @@ keys, pos and descriptions. The API maps them to internal codes (`typeCode_`/`so
 (incl. `answer`) are plain text, so times stay text.
 
 - `enkel` (oneway): front `nl`, back `answer`, one direction, self-rated; `answer` is display text only.
-  Clock-card answer rule (durations 15/30/45/60/90 min in both forms, etc.): docs/SHEET.md › Writing enkel.
+  Clock-card answer rules (durations 15/30/45/60/90 min in both forms; two-digit clock times get
+  " of <spoken> 's <dagdeel>", one-digit hours don't; midnight is "00:MMu"): docs/SHEET.md › Writing enkel.
 - Subject label above the card = `subject_nl` of the first tag that has one (`subjectFor`, src/display.ts).
 
 ## Curriculum and sessions
@@ -105,6 +106,16 @@ keys, pos and descriptions. The API maps them to internal codes (`typeCode_`/`so
 - Within a session a new card waits while ≥ `max_learning_backlog` cards are in short in-session steps
   (`pickNextIndex` in src/session.ts).
 - When a pause starts, one Breaks line is shown once ("Sessie voltooid!" + line + OK), `src/breaks.ts`.
+
+## 🚩 Student flags ("Gemarkeerd") — local only
+
+- `src/studentFlags.ts` + IndexedDB store `flags` (DB version 2): `{id, card_id, ts, note, resolved, updated_ts}`.
+  Every tap is a new entry; resolving never deletes. Stable field names so a future sync could push them,
+  but there is NO sync: they leave the phone only via her "Delen" (Web Share) or "Kopieer naar klembord".
+- UI: 🚩 on every card in review (`FlagButton`: tap = flag + "Gemarkeerd" toast with "+ notitie";
+  long-press = flag + note field), "Gemarkeerd" screen (`screens/Marked.tsx`) via the 🚩 badge on home.
+- Strings use the `mark.*` i18n keys. Never mix up with `Card.flags` / `flag.*` (sheet content markers:
+  false-friend, separable).
 
 ## Domain rules
 

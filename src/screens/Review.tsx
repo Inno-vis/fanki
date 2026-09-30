@@ -9,6 +9,7 @@ import { makeScheduler, previewOutcomes, type Outcome } from '../scheduler';
 import { modeFor, pickNextIndex, REQUEUE_WITHIN_MS, type Item } from '../session';
 import { nextBreak } from '../breaks';
 import { subjectFor } from '../display';
+import { FlagButton } from '../components/FlagButton';
 import { rate } from '../review';
 import { setState, useStore } from '../store';
 import { useOnline } from '../pwa';
@@ -200,7 +201,10 @@ export function Review({ items, resume, onExit }: { items: Item[]; resume?: Sess
       ) : (
         <main class="review">
           {subjectFor(item.card, s.tags) && <p class="card-subject">{subjectFor(item.card, s.tags)}</p>}
-          <CardFace card={item.card} mode={modeFor(item.card, item.track)} revealed={revealed} />
+          <div class="card-wrap">
+            <CardFace card={item.card} mode={modeFor(item.card, item.track)} revealed={revealed} />
+            <FlagButton key={item.card.id} cardId={item.card.id} />
+          </div>
           <div class="review-actions">
             {revealed && outcomes ? (
               <div class="rating-row">

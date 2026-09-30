@@ -52,6 +52,22 @@ export const UI = {
   'break.title': { nl: 'Sessie voltooid!', fr: 'Séance terminée !' },
   'break.ok': { nl: 'OK', fr: 'OK' },
 
+  // 🚩 Student flags ("Gemarkeerd", local only). NOT the sheet's Cards.flags (see 'flag.*' below).
+  'mark.button': { nl: 'Kaart markeren', fr: 'Marquer cette carte (pour en parler plus tard)' },
+  'mark.done': { nl: 'Gemarkeerd', fr: 'Carte marquée' },
+  'mark.addNote': { nl: '+ notitie', fr: '+ ajouter une note' },
+  'mark.notePlaceholder': { nl: 'Notitie (mag leeg)', fr: 'Note (facultative), par ex. « pourquoi pas het ? »' },
+  'mark.save': { nl: 'Opslaan', fr: 'Enregistrer' },
+  'mark.title': { nl: 'Gemarkeerd', fr: 'Cartes marquées' },
+  'mark.badge': { nl: '🚩 {n}', fr: '🚩 {n} cartes marquées' },
+  'mark.empty': { nl: 'Nog niets gemarkeerd.', fr: 'Aucune carte marquée pour l’instant.' },
+  'mark.resolve': { nl: 'Opgelost', fr: 'Résolu' },
+  'mark.resolvedSection': { nl: 'Opgelost ({n})', fr: 'Résolus ({n})' },
+  'mark.share': { nl: 'Delen', fr: 'Partager (Messages, e-mail…)' },
+  'mark.copy': { nl: 'Kopieer naar klembord', fr: 'Copier dans le presse-papiers' },
+  'mark.copied': { nl: 'Gekopieerd', fr: 'Copié' },
+  'mark.shareTitle': { nl: 'Fanki: gemarkeerde kaarten', fr: 'Fanki : cartes marquées' },
+
   // Card flags (key = value in the Cards.flags column)
   'flag.false-friend': { nl: 'valse vriend', fr: 'faux ami : ressemble à un mot français, mais le sens est différent' },
   'flag.separable': { nl: 'scheidbaar', fr: 'verbe séparable : le préfixe va à la fin de la phrase' },
@@ -104,6 +120,14 @@ export const HELP = {
       'prévue : « Volgende sessie over 42 minuten » = prochaine séance dans 42 minutes. Si tu reviens en ' +
       'arrière pendant une séance, « Doorgaan » te permet de la continuer.'
   },
+  marked: {
+    nl: 'Hier zie je je gemarkeerde kaarten.',
+    fr:
+      'Ici, les cartes que tu as marquées avec 🚩 pendant les révisions, les plus récentes en haut. ' +
+      '« Opgelost » = résolu : la carte passe dans la liste « Opgelost » (rien n’est effacé). « Delen » = ' +
+      'partager la liste (Messages, e-mail…) avec ton prof ou quelqu’un d’autre : c’est toi qui l’envoies, ' +
+      'rien ne part tout seul.'
+  },
   topics: {
     nl: 'Kies een of meer onderwerpen. Tik dan op Klaar.',
     fr:
@@ -126,7 +150,9 @@ export const HELP = {
       '(min = minutes, u = heures, d = jours, wk = semaines, mnd = mois, jr = ans). Les noms montrent toujours ' +
       '« de » ou « het ». Badges : « valse vriend » = faux ami, « scheidbaar » = verbe séparable. ' +
       'La barre en haut montre ta séance (« 9 van 15 kaarten » = 9 cartes sur 15). À la fin, ' +
-      '« Nog 10 kaarten, graag! » = encore 10 cartes, « Stoppen » = arrêter. « Terug » = retour.'
+      '« Nog 10 kaarten, graag! » = encore 10 cartes, « Stoppen » = arrêter. « Terug » = retour. ' +
+      '🚩 en haut de la carte = marquer une carte qui te pose question (appui long ou « + notitie » pour ' +
+      'ajouter une note).'
   }
 } as const satisfies Record<string, Str>;
 

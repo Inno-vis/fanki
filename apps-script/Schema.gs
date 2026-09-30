@@ -222,6 +222,10 @@ var APP_SEED_CARDS = [
 // "30 min of een half uur", "45 min of drie kwartier", "60 min of een uur", "90 min of anderhalf uur";
 // other durations plain minutes ("20 min"); clock times (HH:MMu) never; skip when the prompt already
 // names that unit (K2-08).
+// DAGDEEL RULE for clock times: an answer "HH:MMu" with a TWO-digit hour (10–23, or 00 for midnight — never
+// "0:MMu") gets " of <spoken> 's <dagdeel>"; one-digit hours (1–9) stay as they are. A reading card
+// ("Het is 11:23u. …") follows the digit count of the time in the prompt and only gets " 's <dagdeel>".
+// 06–11:59 's ochtends · 12–17:59 's middags · 18–23:59 's avonds · 00–05:59 's nachts.
 var KLOK_SEED_ADDED = '2026-09-30';
 var KLOK_SEED_CARDS = [
   'K1-01|word|klok|de|noun|l\'horloge|De klok hangt aan de muur.|L\'horloge est accrochée au mur.|klok-1||',
@@ -239,8 +243,8 @@ var KLOK_SEED_CARDS = [
   'K2-03|word|over||prep|après (l\'heure), et|Het is tien over acht.|Il est huit heures dix.|klok-2||',
   'K2-04|oneway|Het is 5:45u. Hoe laat is het?||klok||||klok-2||kwart voor zes',
   'K2-05|oneway|Het is 8:15u. Hoe laat is het?||klok||||klok-2||kwart over acht',
-  'K2-06|oneway|9:40u + 20 min = ...||klok||||klok-2||10:00u',
-  'K2-07|oneway|11:55u + 15 min = ...||klok||||klok-2||12:10u',
+  'K2-06|oneway|9:40u + 20 min = ...||klok||||klok-2||10:00u of tien uur \'s ochtends',
+  'K2-07|oneway|11:55u + 15 min = ...||klok||||klok-2||12:10u of tien over twaalf \'s middags',
   'K2-08|oneway|Een kwartier = ... min||klok||||klok-2||15 min',
   'K2-09|oneway|45 min = ... kwartier||klok||||klok-2||3 kwartier',
   'K2-10|oneway|90 min = ... uur||klok||||klok-2||anderhalf uur',
@@ -248,9 +252,9 @@ var KLOK_SEED_CARDS = [
   'K2-12|oneway|25 min + 20 min = ...||klok||||klok-2||45 min of drie kwartier',
   'K3-02|oneway|Het is 9:07u. Hoe laat is het?||klok||||klok-3||zeven over negen',
   'K3-03|oneway|Het is 6:52u. Hoe laat is het?||klok||||klok-3||acht voor zeven',
-  'K3-04|oneway|Het is 11:23u. Hoe laat is het?||klok||||klok-3||zeven voor half twaalf',
-  'K3-05|oneway|14:37u + 38 min = ...||klok||||klok-3||15:15u',
-  'K3-06|oneway|23:50u + 25 min = ...||klok||||klok-3||0:15u',
+  'K3-04|oneway|Het is 11:23u. Hoe laat is het?||klok||||klok-3||zeven voor half twaalf \'s ochtends',
+  'K3-05|oneway|14:37u + 38 min = ...||klok||||klok-3||15:15u of kwart over drie \'s middags',
+  'K3-06|oneway|23:50u + 25 min = ...||klok||||klok-3||00:15u of kwart over twaalf \'s nachts',
   'K3-07|oneway|105 min = ... uur||klok||||klok-3||een uur en drie kwartier',
   'K3-08|oneway|50 min + 40 min = ...||klok||||klok-3||90 min of anderhalf uur'
 ];

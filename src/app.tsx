@@ -12,10 +12,12 @@ import { Review } from './screens/Review';
 import { interleave, planToday, todaysIntro, type Item } from './session';
 import { curriculumStatus, makePicker } from './curriculum';
 import { Topics } from './screens/Topics';
+import { Marked } from './screens/Marked';
+import { Toast } from './components/Toast';
 import type { Card } from './types';
 import { resumable, type SessionState } from './sessionRules';
 
-type Screen = { name: 'home' } | { name: 'topics' } | { name: 'review'; items: Item[]; resume: SessionState | null };
+type Screen = { name: 'home' } | { name: 'topics' } | { name: 'marked' } | { name: 'review'; items: Item[]; resume: SessionState | null };
 
 export function App() {
   const online = useOnline();
@@ -61,6 +63,7 @@ export function App() {
     return (
       <div class="app">
         <UpdateBanner />
+        <Toast />
         <Review items={screen.items} resume={screen.resume} onExit={() => setScreen({ name: 'home' })} />
       </div>
     );
@@ -69,17 +72,25 @@ export function App() {
   return (
     <div class="app">
       <UpdateBanner />
+      <Toast />
       <header class="topbar">
         <h1>
           Fanki {APP_ENV === 'DEV' && <span class="env-badge">DEV</span>}
         </h1>
         <div class="topbar-right">
           {!online && <span class="offline-badge">{t('status.offline')}</span>}
-          <HelpButton screen={screen.name === 'topics' ? 'topics' : 'home'} />
+          {screen.name === 'home' && s.flagsTotal > 0 && (
+            <button class="mark-badge" onClick={() => setScreen({ name: 'marked' })} aria-label={t('mark.title')}>
+              {t('mark.badge', { n: s.flagsOpen })}
+            </button>
+          )}
+          <HelpButton screen={screen.name === 'topics' ? 'topics' : screen.name === 'marked' ? 'marked' : 'home'} />
         </div>
       </header>
       {screen.name === 'topics' ? (
         <Topics onDone={() => setScreen({ name: 'home' })} />
+      ) : screen.name === 'marked' ? (
+        <Marked onDone={() => setScreen({ name: 'home' })} />
       ) : (
       <Home onTopics={() => setScreen({ name: 'topics' })} due={plan.due.length} newToday={plan.fresh.length} onStart={() => setScreen({ name: 'review', items: interleave(plan), resume: resumable(s.openSession, s.settings, Date.now()) })} />
       )}

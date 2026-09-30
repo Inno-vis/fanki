@@ -242,10 +242,17 @@ function adminReplaceKlok_(dryRun) {
     var existing = {};
     t.rows.forEach(function (r) { existing[String(r.id)] = true; });
     var add = klokRows_().filter(function (r) { return !existing[r[0]]; });
+    // Existing K-cards whose answer differs from the seed (e.g. the dagdeel rule) get the new answer.
+    var seedAnswer = {};
+    klokRows_().forEach(function (r) { seedAnswer[r[0]] = r[11]; });
+    var update = t.rows.filter(function (r) {
+      return seedAnswer.hasOwnProperty(String(r.id)) && text_(r.answer) !== seedAnswer[String(r.id)];
+    });
     var report = {
       dryRun: dryRun,
       remove: remove.map(function (r) { return String(r.id) + ' | ' + text_(r.fr) + ' → ' + text_(r.nl); }),
       add: add.map(function (r) { return r[0] + ' | ' + r[1] + ' | ' + r[2] + (r[11] ? ' → ' + r[11] : ''); }),
+      update: update.map(function (r) { return String(r.id) + ' | ' + text_(r.nl) + ' | ' + text_(r.answer) + ' → ' + seedAnswer[String(r.id)]; }),
       minuut: minuut ? String(minuut.id) + ': ' + minuut.tags + ' → ' + (splitTags_(minuut.tags).indexOf('klok-3') === -1 ? minuut.tags + ', klok-3' : '(already)') : 'not found'
     };
     if (dryRun) return report;
@@ -254,6 +261,14 @@ function adminReplaceKlok_(dryRun) {
     if (minuut && splitTags_(minuut.tags).indexOf('klok-3') === -1) {
       var fresh = readTable_(sh).rows.filter(function (r) { return String(r.id) === String(minuut.id); })[0];
       sh.getRange(fresh._row, CARD_COLS.indexOf('tags') + 1).setValue(splitTags_(minuut.tags).concat(['klok-3']).join(', '));
+    }
+    if (update.length) {
+      var ansCol = CARD_COLS.indexOf('answer') + 1;
+      readTable_(sh).rows.forEach(function (r) {
+        if (seedAnswer.hasOwnProperty(String(r.id)) && text_(r.answer) !== seedAnswer[String(r.id)]) {
+          sh.getRange(r._row, ansCol).setNumberFormat('@').setValue(seedAnswer[String(r.id)]);
+        }
+      });
     }
     if (add.length) writeCardRows_(sh, add);
     return report;

@@ -40,23 +40,45 @@ export type Meta = {
 /** The last session that counted (>= min_reviews_to_count reviews). */
 export type SessionRecord = { start: string; end: string; reviews: number };
 
+/**
+ * A card the LEARNER marked with 🚩 (local only, never synced; she shares them herself).
+ * Not the same thing as Card.flags (false-friend/separable content markers set in the sheet).
+ * Field names are stable so a future synced version could push these records as they are.
+ */
+export type StudentFlag = {
+  id: string; // uuid
+  card_id: string;
+  ts: string; // ISO — when she flagged it
+  note: string; // optional, '' when none
+  resolved: boolean;
+  updated_ts: string; // ISO — last change (note / resolved); lets a future sync merge by recency
+};
+
 interface FankiDB extends DBSchema {
   cards: { key: string; value: Card; indexes: { added: string } };
   meta: { key: string; value: { key: keyof Meta; value: unknown } };
   progress: { key: string; value: Progress; indexes: { card_id: string } };
   queue: { key: string; value: ReviewEvent; indexes: { ts: string } };
+  flags: { key: string; value: StudentFlag; indexes: { card_id: string; ts: string } };
 }
 
 let dbPromise: Promise<IDBPDatabase<FankiDB>> | null = null;
 
 export function db(name = NS): Promise<IDBPDatabase<FankiDB>> {
   if (!dbPromise) {
-    dbPromise = openDB<FankiDB>(name, 1, {
-      upgrade(d) {
-        d.createObjectStore('cards', { keyPath: 'id' }).createIndex('added', 'added');
-        d.createObjectStore('meta', { keyPath: 'key' });
-        d.createObjectStore('progress', { keyPath: 'key' }).createIndex('card_id', 'card_id');
-        d.createObjectStore('queue', { keyPath: 'event_id' }).createIndex('ts', 'ts');
+    dbPromise = openDB<FankiDB>(name, 2, {
+      upgrade(d, oldVersion) {
+        if (oldVersion < 1) {
+          d.createObjectStore('cards', { keyPath: 'id' }).createIndex('added', 'added');
+          d.createObjectStore('meta', { keyPath: 'key' });
+          d.createObjectStore('progress', { keyPath: 'key' }).createIndex('card_id', 'card_id');
+          d.createObjectStore('queue', { keyPath: 'event_id' }).createIndex('ts', 'ts');
+        }
+        if (oldVersion < 2) {
+          const flags = d.createObjectStore('flags', { keyPath: 'id' });
+          flags.createIndex('card_id', 'card_id');
+          flags.createIndex('ts', 'ts');
+        }
       }
     });
   }

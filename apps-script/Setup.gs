@@ -62,6 +62,7 @@ function setup() {
   if (env === 'DEV') seedCards_(ss.getSheetByName('Cards'));
   seedAppWords_(ss.getSheetByName('Cards'));
   seedKlokCards_(ss.getSheetByName('Cards'));
+  seedAbbrevCards_(ss.getSheetByName('Cards'));
   seedCurriculum_(ss.getSheetByName('Curriculum'));
   applyCurriculumValidation_(ss.getSheetByName('Curriculum'));
   backfillFirstReview_(ss);
@@ -193,6 +194,17 @@ function writeCardRows_(sh, rows) {
   sh.getRange(start, 6, rows.length, 3).setNumberFormat('@');
   sh.getRange(start, 12, rows.length, 1).setNumberFormat('@');
   sh.getRange(start, 1, rows.length, rows[0].length).setValues(rows);
+}
+
+/** Abbreviation cards (enkel, tag app), keyed by fixed ids. Never deletes. */
+function seedAbbrevCards_(sh) {
+  var have = {};
+  readTable_(sh).rows.forEach(function (r) { have[String(r.id)] = true; });
+  var parts = ABBREV_SEED_ADDED.split('-');
+  var added = new Date(Number(parts[0]), Number(parts[1]) - 1, Number(parts[2]));
+  var rows = ABBREV_SEED_CARDS.map(function (l) { return l.split('|'); }).filter(function (f) { return !have[f[0]]; })
+    .map(function (f) { return [f[0], typeNl_('oneway'), f[1], '', 'afkorting', '', '', '', 'app', sourceNl_('manual'), '', f[2], added, true]; });
+  if (rows.length) writeCardRows_(sh, rows);
 }
 
 function seedCurriculum_(sh) {

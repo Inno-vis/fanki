@@ -1,6 +1,6 @@
 import type { Card } from '../types';
 import type { Mode } from '../session';
-import { clozeParts, dutchText, flagLabel } from '../display';
+import { clozeParts, dutchText, flagLabel, visibleFlags } from '../display';
 
 /**
  * One card in a given direction.
@@ -11,10 +11,11 @@ import { clozeParts, dutchText, flagLabel } from '../display';
  *   oneway    front: nl (Dutch prompt)        back: answer
  */
 export function CardFace({ card, mode, revealed }: { card: Card; mode: Mode; revealed: boolean }) {
+  const shown = visibleFlags(card);
   const flags =
-    card.flags.length > 0 ? (
+    shown.length > 0 ? (
       <div class="flags">
-        {card.flags.map((f) => (
+        {shown.map((f) => (
           <span class={`flag flag-${f}`} key={f}>
             {flagLabel(f)}
           </span>

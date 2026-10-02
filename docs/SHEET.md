@@ -47,7 +47,7 @@ from `apps-script/UserInfo.gs` (your own edits in the tab are then replaced).
 | example_nl / example_fr | text | optional example shown after the answer |
 | tags | `huishouden, school` | comma-separated keys from the Tags tab; may be empty |
 | tags_source | `handmatig` \| `automatisch` \| blank | `handmatig` = the teacher chose; `/retag` never touches these. `automatisch` = set by `/retag`. |
-| flags | `false-friend`, `separable` | comma-separated badges shown on the card |
+| flags | `false-friend`, `separable` | comma-separated content markers. `false-friend` shows the badge "valse vriend"; `separable` is for you only (not shown to her). |
 | answer | text | **enkel only**: the back of the card, shown after "Antwoord tonen". Display text — never checked. |
 | added | date | New cards are introduced in `added` order. Filled with today if blank. |
 | active | checkbox | Untick to hide a card without deleting it (progress is kept). |
@@ -61,6 +61,9 @@ from `apps-script/UserInfo.gs` (your own edits in the tab are then replaced).
 - DEV only (for now): the emoji course — 58 `enkel` cards (ids `E-01`…`E-58`, front = emoji, back = the Dutch word
   with de/het), tag `emoji`, Curriculum order 3, added 2026-10-02. Added with `node scripts/admin.mjs dev seedEmoji
   '{"dryRun":false}'` (dry run by default; refuses PROD unless `allowProd`), not by setup.
+- DEV **and** PROD (setup): 8 abbreviation cards (`enkel`, ids `A-01`…`A-08`, tag `app`, added 2026-09-26 so they come
+  before every other new card): front "min (- afkorting)", "u", "d", "wk", "mnd", "jr", "ev", "mv"; back = the full
+  word(s) + French.
 - DEV **and** PROD: the 50 interface words (tag `app`, `tags_source` manual, `added` 2026-09-27 so they are
   introduced before everything else). `setup()` adds any that are missing and never duplicates.
 

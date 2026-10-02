@@ -3,7 +3,7 @@ import { beforeEach, describe, expect, it } from 'vitest';
 import { cleanCard, cleanSettings } from './sync';
 import { _resetDb, allCards, getSettings, saveSnapshot } from './db';
 import { byAdded } from './store';
-import { dutchText, subjectFor } from './display';
+import { dutchText, subjectFor, visibleFlags } from './display';
 import type { Card } from './types';
 
 const raw = (over: Partial<Card> = {}): Partial<Card> => ({
@@ -83,5 +83,12 @@ describe('subject label (first tag with a subject_nl)', () => {
     expect(subjectFor({ tags: ['wiskunde', 'school'] }, tags)).toBeNull();
     expect(subjectFor({ tags: ['onbekend'] }, tags)).toBeNull();
     expect(subjectFor({ tags: [] }, tags)).toBeNull();
+  });
+});
+
+describe('badges shown to the learner', () => {
+  it('"separable" (scheidbaar) stays in the data but is never shown; false-friend is', () => {
+    expect(visibleFlags({ flags: ['separable'] })).toEqual([]);
+    expect(visibleFlags({ flags: ['false-friend', 'separable'] })).toEqual(['false-friend']);
   });
 });

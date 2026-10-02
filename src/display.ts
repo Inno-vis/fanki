@@ -11,6 +11,17 @@ export function dutchText(card: Card): string {
   return card.type === 'word' && card.article ? `${card.article} ${text}` : text;
 }
 
+/**
+ * Sheet flags that stay in the data but are not shown to the learner as a badge.
+ * `separable` (scheidbaar werkwoord) is content metadata for the teacher only.
+ */
+export const HIDDEN_FLAGS = new Set(['separable']);
+
+/** Badges to show on a card (sheet content flags minus the hidden ones). */
+export function visibleFlags(card: Pick<Card, 'flags'>): string[] {
+  return card.flags.filter((f) => !HIDDEN_FLAGS.has(f));
+}
+
 /** Dutch badge label for a flag from the sheet (unknown flags are shown as written). */
 export function flagLabel(flag: string): string {
   const key = `flag.${flag}` as UIKey;

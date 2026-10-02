@@ -70,7 +70,6 @@ export const UI = {
 
   // Card flags (key = value in the Cards.flags column)
   'flag.false-friend': { nl: 'valse vriend', fr: 'faux ami : ressemble à un mot français, mais le sens est différent' },
-  'flag.separable': { nl: 'scheidbaar', fr: 'verbe séparable : le préfixe va à la fin de la phrase' },
 
   // Relative time
   'time.justNow': { nl: 'zojuist', fr: 'à l’instant' },
@@ -149,7 +148,7 @@ export const HELP = {
       'honnêtement comment ça s’est passé : ❌ Opnieuw = je ne savais pas, 😅 Moeilijk = j’ai hésité, ' +
       '✅ Goed = bien, 😎 Makkelijk = très facile. Sous chaque bouton : quand la carte reviendra ' +
       '(min = minutes, u = heures, d = jours, wk = semaines, mnd = mois, jr = ans). Les noms montrent toujours ' +
-      '« de » ou « het ». Badges : « valse vriend » = faux ami, « scheidbaar » = verbe séparable. ' +
+      '« de » ou « het ». Badge « valse vriend » = faux ami. ' +
       'La barre en haut montre ta séance (« 9 van 15 kaarten » = 9 cartes sur 15). À la fin, ' +
       '« Nog 10 kaarten, graag! » = encore 10 cartes, « Stoppen » = arrêter. « Terug » = retour. ' +
       '🚩 en haut de la carte = marquer une carte qui te pose question (appui long ou « + notitie » pour ' +

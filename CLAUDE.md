@@ -144,7 +144,8 @@ keys, pos and descriptions. The API maps them to internal codes (`typeCode_`/`so
   unlocked `prod` track has its own cap of the same size. Today's introductions are stored (`meta.intro`).
 - Each rating = progress + outbox event + intro list in ONE IndexedDB transaction (`recordReview`).
   Pushed a few seconds later when online, and on every sync; removed only when the server confirms.
-- Nouns always show de/het; show flags (false-friend, separable).
+- Nouns always show de/het. Sheet flag `false-friend` shows the badge "valse vriend"; `separable` is NOT shown
+  (`HIDDEN_FLAGS` in src/display.ts) — it stays in the sheet as teacher metadata.
 - Compliments (Dutch lines from the Compliments tab): every 3rd correct answer per session, counter never
   resets on a mistake, never the same twice in a row, ~1.5 s non-blocking toast, respects
   `prefers-reduced-motion` and Settings.`compliments_enabled`.

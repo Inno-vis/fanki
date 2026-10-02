@@ -221,7 +221,22 @@ var APP_SEED_CARDS = [
   'word|kopiëren||verb|copier|Kopieer de tekst.|Copie le texte.|app|manual|',
   'word|klembord|het|noun|le presse-papiers|De tekst staat op het klembord.|Le texte est dans le presse-papiers.|app|manual|',
   'word|leeg||adj|vide|Het glas is leeg.|Le verre est vide.|app|manual|',
-  'word|oplossen||verb (separable)|résoudre|Ik los het probleem op.|Je résous le problème.|app|manual|separable'
+  'word|oplossen||verb (separable)|résoudre|Ik los het probleem op.|Je résous le problème.|app|manual|separable',
+  'word|installeren||verb|installer|Ik installeer de app.|J\'installe l\'appli.|app|manual|'
+];
+
+// Abbreviations used in the app and the cards (enkel), tag `app`, added 2026-09-26 — older than every other
+// card, so they come first among her new cards. Front = "<afk> (- afkorting)". Format: id|front|answer
+var ABBREV_SEED_ADDED = '2026-09-26';
+var ABBREV_SEED_CARDS = [
+  'A-01|min (- afkorting)|de minuut, de minuten — minute(s)',
+  'A-02|u (- afkorting)|het uur — heure (3:00u = drie uur)',
+  'A-03|d (- afkorting)|de dag, de dagen — jour(s)',
+  'A-04|wk (- afkorting)|de week, de weken — semaine(s)',
+  'A-05|mnd (- afkorting)|de maand, de maanden — mois',
+  'A-06|jr (- afkorting)|het jaar — an(s), année(s)',
+  'A-07|ev (- afkorting)|het enkelvoud — singulier',
+  'A-08|mv (- afkorting)|het meervoud — pluriel'
 ];
 
 // Clock course (replaces the L1-/L2-/L3- set of 2026-09-29). Fixed ids, added 2026-09-30.

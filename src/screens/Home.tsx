@@ -6,6 +6,8 @@ import { useOnline } from '../pwa';
 import { InstallHint } from '../components/Banners';
 import { useEffect, useState } from 'preact/hooks';
 import { cooldownUntil, minutesLeft, progressLabel, resumable } from '../sessionRules';
+import { useInstallPrompt } from '../installPrompt';
+import { isStandalone } from '../pwa';
 
 export function Home({ due, newToday, onStart, onTopics }: { due: number; newToday: number; onStart: () => void; onTopics: () => void }) {
   const s = useStore();
@@ -18,12 +20,18 @@ export function Home({ due, newToday, onStart, onTopics }: { due: number; newTod
     const id = setInterval(() => setNow(Date.now()), 15_000);
     return () => clearInterval(id);
   }, []);
+  const install = useInstallPrompt(isStandalone());
   const open = resumable(s.openSession, s.settings, now);
   const wait = open ? 0 : minutesLeft(cooldownUntil(s.lastSession, s.settings), now);
 
   return (
     <main class="home">
       <InstallHint />
+      {install.show && (
+        <button class="btn btn-secondary install-btn" onClick={() => void install.install()}>
+          ⬇ {t('install.android')}
+        </button>
+      )}
 
       {empty ? (
         <p class="empty">{online ? t('home.empty') : t('home.emptyOffline')}</p>

@@ -68,6 +68,7 @@ She sees **nl**. **fr** is hidden help: shown only in the "Hulp" panel and the o
 | `time.weeksAgo` | {n} weken geleden | il y a {n} semaines |
 | `install.hint` | Zet de app op je scherm: tik op {share} en dan op {add}. | Ajoute l’appli à ton écran d’accueil : touche {share} (Partager), puis {add} (Sur l’écran d’accueil). |
 | `install.close` | Sluiten | Fermer |
+| `install.android` | App installeren | Installer l’appli sur ton téléphone (écran d’accueil) |
 | `update.available` | Er is een nieuwe versie. | Une nouvelle version est disponible. |
 | `update.open` | Openen | Ouvrir la nouvelle version |
 | `help.button` | Hulp | Aide |

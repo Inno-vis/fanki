@@ -29,6 +29,19 @@ Applies to a `release` push, `npm run gas:deploy:prod`, `admin prod setup`, and 
    PROD app and check it shows the new build and syncs.
 6. Never reset, reseed or test-review against PROD.
 
+## Device test pass (every stage, before "go PROD")
+
+On DEV (https://inno-vis.github.io/fanki/dev/):
+
+- **iPhone** (Safari or Chrome): Share → "Zet op beginscherm", open from the icon, review a few cards,
+  Airplane Mode → reopen → review → back online → the "nog niet gesynchroniseerd" line disappears.
+- **Android** (one physical phone, Chrome):
+  1. Open the link, do one full session (≥ 3 cards, then Stoppen). Back on home, "⬇ App installeren" appears
+     → install → the icon (maskable, not cropped) is on the home screen; open it from there.
+  2. Offline: Airplane Mode → reopen from the icon → review → back online → it syncs.
+  3. Audio (once listening mode exists): a Dutch word is spoken; with no nl-NL/nl-BE voice installed
+     (Settings → Text-to-speech) the "no Dutch voice" message appears instead.
+
 ## 1. Promote the web app
 
 ```bash

@@ -62,6 +62,15 @@ The repo is **public** and hosted on GitHub Pages.
 - Relative times in Dutch (`timeAgo` in `src/format.ts`): "zojuist", "5 minuten geleden", "2 dagen geleden".
 - The tag filter ("Kies een onderwerp") shows Tags.`label_nl`; the keys in Cards.tags are unchanged.
 
+## Android (additive; same service worker, caching and IndexedDB)
+
+- Manifest icons: 192/512 `purpose: any` + 512 `maskable` (content inside the inner ~78 %; DEV badge inside
+  the safe circle) — `scripts/make-icons.mjs`.
+- `src/installPrompt.ts`: catches `beforeinstallprompt` (suppresses Chrome's banner); "⬇ App installeren"
+  shows on home only after a first counted session (`markEngaged`) and not when already installed.
+  iOS keeps the Share → "Zet op beginscherm" hint.
+- Device test pass incl. one physical Android phone: docs/RELEASE.md.
+
 ## Rating buttons
 
 - Left to right, equal width, all four in one row on an iPhone SE, each ≥ 56 px tall:

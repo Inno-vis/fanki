@@ -11,6 +11,7 @@ import { afterRating } from '../sessionFlow';
 import { nextBreak } from '../breaks';
 import { subjectFor } from '../display';
 import { FlagButton } from '../components/FlagButton';
+import { markEngaged } from '../installPrompt';
 import { rate } from '../review';
 import { setState, useStore } from '../store';
 import { useOnline } from '../pwa';
@@ -49,6 +50,7 @@ export function Review({ items, resume, onExit }: { items: Item[]; resume?: Sess
     ended.current = true;
     const rec = await endSession(st, s.settings, Date.now());
     setState({ openSession: null, ...(rec ? { lastSession: rec } : {}) });
+    if (rec) markEngaged(); // Android: the install button may appear from now on
     return !!rec && s.settings.cooldown_minutes > 0;
   };
 

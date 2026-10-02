@@ -9,7 +9,12 @@ function svg({ dev, maskable }) {
   const k = maskable ? 0.78 : 1;
   const off = (1024 - 1024 * k) / 2;
   const bandY = dev ? 800 : 1024;
-  const band = dev
+  // Maskable (Android): the DEV marker must sit inside the safe circle (80 %), so it is a badge, not a band.
+  const badge = `<rect x="382" y="700" width="260" height="120" rx="28" fill="#f5c518"/>
+       <text x="512" y="788" font-family="Helvetica, Arial, sans-serif" font-weight="700" font-size="86" text-anchor="middle" fill="#101418">DEV</text>`;
+  const band = dev && maskable
+    ? badge
+    : dev
     ? `<rect x="0" y="${off + bandY * k}" width="1024" height="${1024 - off - bandY * k}" fill="#f5c518"/>
        <text x="512" y="${off + bandY * k + (1024 - off - bandY * k) * 0.74}" font-family="Helvetica, Arial, sans-serif" font-weight="700" font-size="${(1024 - off - bandY * k) * 0.62}" text-anchor="middle" fill="#101418">DEV</text>`
     : '';

@@ -45,8 +45,9 @@ export default defineConfig(({ mode, command }) => {
           background_color: '#101418',
           theme_color: '#101418',
           icons: [
-            { src: `${iconDir}/icon-192.png`, sizes: '192x192', type: 'image/png' },
-            { src: `${iconDir}/icon-512.png`, sizes: '512x512', type: 'image/png' },
+            { src: `${iconDir}/icon-192.png`, sizes: '192x192', type: 'image/png', purpose: 'any' },
+            { src: `${iconDir}/icon-512.png`, sizes: '512x512', type: 'image/png', purpose: 'any' },
+            // Android: content inside the inner ~78 % so circle/squircle masks never cut it (scripts/make-icons.mjs)
             { src: `${iconDir}/icon-maskable-512.png`, sizes: '512x512', type: 'image/png', purpose: 'maskable' }
           ]
         },

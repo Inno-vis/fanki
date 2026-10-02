@@ -89,6 +89,7 @@ export const UI = {
     fr: 'Ajoute l’appli à ton écran d’accueil : touche {share} (Partager), puis {add} (Sur l’écran d’accueil).'
   },
   'install.close': { nl: 'Sluiten', fr: 'Fermer' },
+  'install.android': { nl: 'App installeren', fr: 'Installer l’appli sur ton téléphone (écran d’accueil)' },
 
   // Update banner
   'update.available': { nl: 'Er is een nieuwe versie.', fr: 'Une nouvelle version est disponible.' },

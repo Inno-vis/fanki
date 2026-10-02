@@ -4,6 +4,12 @@
 var MAX_EVENTS_PER_POST = 500;
 
 function doGet(e) {
+  var p = (e && e.parameter) || {};
+  // Teacher review page: only served by the login-required teacher deployment, to an allowed teacher.
+  if (p.page === 'review') {
+    var page = serveReview_();
+    return page || json_({ ok: false, error: 'forbidden', message: 'Open de leraren-link en log in met een toegestaan Google-account.' });
+  }
   return handle_(function () {
     var q = (e && e.parameter) || {};
     var action = q.action || '';
@@ -43,6 +49,7 @@ function doPost(e) {
       case 'appendBreaks': return adminAppendBreaks_(body.lines);
       case 'seedEmoji': return adminSeedEmoji_(body.dryRun !== false, body.allowProd === true);
       case 'replaceKlok': return adminReplaceKlok_(body.dryRun !== false);
+      case 'setTeachers': return adminSetTeachers_(body.emails, body.domain);
       case 'userInfo': return { rows: writeUserInfo_(ss_(), env_()) };
       case 'setCurriculum': return adminSetCurriculum_(body.tag, body.field, body.value);
       case 'promoteInbox': return adminPromoteInbox_();

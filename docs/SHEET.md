@@ -148,6 +148,27 @@ Above each card the app shows `subject_nl` of the FIRST tag on the card that has
 Seed keys (= label_nl unless noted): huishouden, school, wiskunde, familie, reizen, eten, werk, gezondheid,
 winkelen, tijd, app, klok-1 ("klok niveau 1"), klok-2 ("klok niveau 2"), klok-3 ("klok niveau 3").
 
+## Teacher review page ("Fanki – controleren")
+
+A web page in your browser, no tools needed: review the Inbox and edit Cards.
+
+- **DEV link:** https://script.google.com/macros/s/AKfycbzVIZa0_jQFiWZLehSn1ZPIrCTRn041Kto218MK-QMVklJclsyTATwae96EP77e__4d/exec?page=review
+  (PROD gets its own link when it is released; it is printed by `npm run gas:deploy:prod` and saved in
+  `deploy.config.json` → `teacherDeploymentId`).
+- **Who can open it:** a Google login is required. The page runs **as the teacher who opens it**, so the teacher
+  needs edit access to this spreadsheet (Share it with them), AND their address must be on the allowlist:
+  `node scripts/admin.mjs <env> setTeachers '{"emails":"a@x.be, b@y.be"}'` (or `{"domain":"school.be"}` for a
+  whole Workspace domain). The first time, Google asks the teacher to allow the script.
+- **Inbox** (default): rows with status `voorgesteld`, oldest first. Per row you can edit type, nl, lidwoord, pos,
+  fr, answer (enkel), examples, tags (from the Tags tab) and flags.
+  - **Goedkeuren** (A): checks the required fields, then moves the row into Cards (added = today, active).
+  - **Afwijzen** (R): deletes the Inbox row. **Opslaan** (S): saves, stays `voorgesteld`.
+- **Kaarten**: search / filter by tag, 50 per page; **Opslaan** writes back to Cards; **Terug naar Inbox** moves a
+  card back (it disappears from the app until approved again; same id, so her progress returns).
+- **Eén voor één** (full form, keys A/R/S, J next, K previous, ⌘/Ctrl+Enter save & next) or **Lijst (5)** to
+  scan quickly, with "Detail" to open a row. The header shows "12 van 47" and the session's approved/rejected.
+- The public card API never serves this page and the browser never gets a token.
+
 ## Inbox — proposed new cards
 
 Same columns as Cards plus `status` (`voorgesteld` | `goedgekeurd`). `/addwords` writes rows here as

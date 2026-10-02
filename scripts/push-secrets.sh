@@ -15,7 +15,7 @@ learner_var="LEARNER_TOKEN_$ENV_UP"; admin_var="ADMIN_TOKEN_$ENV_UP"
 
 tmp="$(cd "$(mktemp -d "${TMPDIR:-/tmp}/fanki-secrets.XXXXXX")" && pwd -P)"
 trap 'rm -rf "$tmp"' EXIT
-cp apps-script/*.gs apps-script/appsscript.json "$tmp/"
+cp apps-script/*.gs apps-script/*.html apps-script/appsscript.json "$tmp/"
 cat > "$tmp/Secrets.gs" <<GS
 var SECRETS = { ENV: '$ENV_UP', LEARNER_TOKEN: '${!learner_var}', ADMIN_TOKEN: '${!admin_var}' };
 GS

@@ -1,6 +1,7 @@
 {
   "dev": {
-    "deploymentId": "AKfycbxpyIZ1lLXY7OwJ5NqbyKt5c7sRoQgpfUbYQ5BMo7M0hBO64ZqQUAzAKFlzo_lb57Tv"
+    "deploymentId": "AKfycbxpyIZ1lLXY7OwJ5NqbyKt5c7sRoQgpfUbYQ5BMo7M0hBO64ZqQUAzAKFlzo_lb57Tv",
+    "teacherDeploymentId": "AKfycbzVIZa0_jQFiWZLehSn1ZPIrCTRn041Kto218MK-QMVklJclsyTATwae96EP77e__4d"
   },
   "prod": {
     "deploymentId": "AKfycbwDFyDTCSRAlbRMT1cdJMPBwVbHxWBJbEzyXd6dOz6vakkeKxWIfhpJ5kWVzXTNz-Qw"

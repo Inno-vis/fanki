@@ -41,7 +41,7 @@ The repo is **public** and hosted on GitHub Pages.
   → `{accepted, duplicate, rejected}`. Idempotent on `event_id`.
 - Admin-only (ADMIN_TOKEN): `listCards, listUntagged, tags, setTags, appendInbox, listInbox,
   promoteInbox, rebuildProgress, setup, readTab, reseedDev (DEV only), purgeSmoke, appendBreaks,
-  setCurriculum, curriculumStatus, migrateToDutch, userInfo, replaceKlok, seedEmoji (both dry run unless
+  setCurriculum, curriculumStatus, migrateToDutch, userInfo, setTeachers, replaceKlok, seedEmoji (both dry run unless
   dryRun:false; seedEmoji is DEV only)`. Open items: docs/todo.md.
 - All writes are inside `LockService`. All actions are idempotent, so clients **retry** on
   `no_action` (POST body lost on Google's redirect), `busy`, or non-JSON responses.
@@ -61,6 +61,16 @@ The repo is **public** and hosted on GitHub Pages.
 - `docs/UI-STRINGS.md` is generated: `npm run ui-strings` after editing `src/i18n.ts`.
 - Relative times in Dutch (`timeAgo` in `src/format.ts`): "zojuist", "5 minuten geleden", "2 dagen geleden".
 - The tag filter ("Kies een onderwerp") shows Tags.`label_nl`; the keys in Cards.tags are unchanged.
+
+## Teacher review UI (Apps Script HtmlService)
+
+- `apps-script/Teacher.gs` + `Review.html` (vanilla JS, no build). Served by a SECOND web-app deployment of the
+  same project: `scripts/gas-deploy.sh` pushes a temporary manifest variant (executeAs USER_ACCESSING, access
+  ANYONE or `teacherAccess` from deploy.config.json, + userinfo.email scope), versions it, redeploys
+  `teacherDeploymentId`, then pushes the repo manifest and redeploys the anonymous API (HEAD = repo).
+- `doGet ?page=review` serves the page only when the visitor's email is in Script Properties TEACHER_EMAILS /
+  TEACHER_DOMAIN (`admin <env> setTeachers`). The anonymous API deployment has no userinfo scope → never
+  serves it. Page ↔ server via google.script.run (`review*` functions, each `requireTeacher_()`); no token.
 
 ## Android (additive; same service worker, caching and IndexedDB)
 

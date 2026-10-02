@@ -59,7 +59,7 @@ app clears `meta.lastSession`), so you can test immediately.
 
 ## 2. Promote the Apps Script (only if `apps-script/` changed)
 
-From the same commit that is on `release`:
+From the same commit that is on `release` (deploys BOTH the card API and the teacher review page, same URLs):
 
 ```bash
 npm run gas:deploy:prod

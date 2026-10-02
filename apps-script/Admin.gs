@@ -324,3 +324,15 @@ function adminSeedEmoji_(dryRun, allowProd) {
     return report;
   });
 }
+
+/** Teacher review UI allowlist: emails (comma/space separated) and/or a Workspace domain. Returns the result. */
+function adminSetTeachers_(emails, domain) {
+  var p = props_();
+  if (emails !== undefined) {
+    var list = (Array.isArray(emails) ? emails : String(emails || '').split(/[\s,;]+/))
+      .map(function (x) { return String(x).trim().toLowerCase(); }).filter(function (x) { return /@/.test(x); });
+    p.setProperty('TEACHER_EMAILS', list.join(','));
+  }
+  if (domain !== undefined) p.setProperty('TEACHER_DOMAIN', String(domain || '').trim().toLowerCase().replace(/^@/, ''));
+  return { teacher_emails: p.getProperty('TEACHER_EMAILS') || '', teacher_domain: p.getProperty('TEACHER_DOMAIN') || '' };
+}

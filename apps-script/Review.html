@@ -1,0 +1,249 @@
+<!doctype html>
+<html lang="nl">
+<head>
+<base target="_top">
+<meta charset="utf-8">
+<style>
+  :root { --bg:#f6f4ef; --card:#fff; --line:#e3ded3; --text:#16191d; --muted:#5f6670; --primary:#21468b; --good:#1f7a3a; --bad:#b3261e; --warn:#9a6700; }
+  * { box-sizing: border-box; }
+  body { margin:0; font:15px/1.4 -apple-system, BlinkMacSystemFont, "Segoe UI", system-ui, sans-serif; background:var(--bg); color:var(--text); }
+  header { position:sticky; top:0; z-index:5; background:var(--card); border-bottom:1px solid var(--line); padding:10px 16px; display:flex; flex-wrap:wrap; gap:10px 16px; align-items:center; }
+  h1 { font-size:17px; margin:0 8px 0 0; }
+  .env { background:#f5c518; border-radius:6px; padding:1px 6px; font-size:12px; font-weight:700; }
+  .seg { display:inline-flex; border:1px solid var(--line); border-radius:999px; overflow:hidden; }
+  .seg button { border:0; background:none; padding:6px 12px; font:inherit; cursor:pointer; }
+  .seg button.on { background:var(--primary); color:#fff; }
+  .stats { color:var(--muted); font-size:14px; margin-left:auto; }
+  .stats b { color:var(--text); }
+  main { max-width:900px; margin:0 auto; padding:16px; }
+  .bar { display:flex; flex-wrap:wrap; gap:8px; align-items:center; margin-bottom:12px; }
+  .bar input, .bar select { font:inherit; padding:6px 8px; border:1px solid var(--line); border-radius:8px; background:#fff; }
+  .panel { background:var(--card); border:1px solid var(--line); border-radius:14px; padding:16px; }
+  .grid { display:grid; grid-template-columns: 140px 1fr; gap:8px 12px; align-items:center; }
+  .grid label { color:var(--muted); font-size:13px; text-align:right; }
+  .grid input, .grid select, .grid textarea { font:inherit; padding:7px 9px; border:1px solid var(--line); border-radius:8px; width:100%; background:#fff; }
+  .grid textarea { min-height:40px; resize:vertical; }
+  .chips { display:flex; flex-wrap:wrap; gap:6px; }
+  .chip { border:1px solid var(--line); border-radius:999px; padding:3px 10px; cursor:pointer; user-select:none; font-size:13px; background:#fff; }
+  .chip.on { background:var(--primary); border-color:var(--primary); color:#fff; }
+  .actions { display:flex; flex-wrap:wrap; gap:8px; margin-top:14px; }
+  .btn { border:0; border-radius:10px; padding:9px 14px; font:inherit; font-weight:600; cursor:pointer; background:#ece8df; color:var(--text); }
+  .btn kbd { font:11px ui-monospace, monospace; opacity:.7; margin-left:6px; border:1px solid currentColor; border-radius:4px; padding:0 4px; }
+  .btn.good { background:var(--good); color:#fff; } .btn.bad { background:var(--bad); color:#fff; } .btn.primary { background:var(--primary); color:#fff; }
+  .btn:disabled { opacity:.5; cursor:default; }
+  .errors { color:var(--bad); font-weight:600; margin-top:8px; }
+  .meta { color:var(--muted); font-size:13px; margin-bottom:10px; }
+  table { width:100%; border-collapse:collapse; background:var(--card); border:1px solid var(--line); border-radius:14px; overflow:hidden; }
+  th, td { text-align:left; padding:8px 10px; border-bottom:1px solid var(--line); vertical-align:top; }
+  th { font-size:12px; color:var(--muted); font-weight:600; }
+  td .btn { padding:5px 9px; font-size:13px; }
+  .empty { text-align:center; color:var(--muted); padding:40px; }
+  .toast { position:fixed; bottom:16px; left:50%; transform:translateX(-50%); background:#16191d; color:#fff; padding:8px 14px; border-radius:999px; font-weight:600; display:none; }
+  .help { color:var(--muted); font-size:12px; margin-top:10px; }
+</style>
+</head>
+<body>
+<header>
+  <h1>Fanki – controleren <span class="env" id="env"></span></h1>
+  <div class="seg" id="source"><button data-v="inbox" class="on">Inbox</button><button data-v="cards">Kaarten</button></div>
+  <div class="seg" id="mode"><button data-v="one" class="on">Eén voor één</button><button data-v="list">Lijst (5)</button></div>
+  <div class="stats"><span id="progress"></span> · goedgekeurd <b id="nApproved">0</b> · afgewezen <b id="nRejected">0</b> · <span id="who"></span></div>
+</header>
+<main>
+  <div class="bar" id="cardsBar" hidden>
+    <input id="q" placeholder="Zoek (nl, fr, antwoord)…">
+    <select id="tagFilter"><option value="">Alle tags</option></select>
+    <button class="btn" id="search">Zoeken</button>
+    <span class="meta" id="pageInfo"></span>
+    <button class="btn" id="pagePrev">‹ 50</button><button class="btn" id="pageNext">50 ›</button>
+  </div>
+  <div id="view"><p class="empty">Laden…</p></div>
+</main>
+<div class="toast" id="toast"></div>
+
+<script>
+var S = { source: 'inbox', mode: 'one', items: [], idx: 0, listStart: 0, boot: null, approved: 0, rejected: 0,
+          cards: { offset: 0, total: 0, q: '', tag: '' }, busy: false };
+var $ = function (id) { return document.getElementById(id); };
+
+function run(fn) {
+  var args = [].slice.call(arguments, 1);
+  return new Promise(function (resolve, reject) {
+    google.script.run.withSuccessHandler(resolve).withFailureHandler(function (e) { reject(e); })[fn].apply(null, args);
+  });
+}
+function toast(text) { var t = $('toast'); t.textContent = text; t.style.display = 'block'; clearTimeout(toast.t); toast.t = setTimeout(function () { t.style.display = 'none'; }, 1600); }
+function fail(e) { S.busy = false; render(); alert((e && e.message) || String(e)); }
+function el(tag, attrs, kids) {
+  var n = document.createElement(tag);
+  Object.keys(attrs || {}).forEach(function (k) { if (k === 'text') n.textContent = attrs[k]; else if (k.slice(0, 2) === 'on') n.addEventListener(k.slice(2), attrs[k]); else n.setAttribute(k, attrs[k]); });
+  (kids || []).forEach(function (c) { if (c) n.appendChild(c); });
+  return n;
+}
+function typeNl(code) { var t = (S.boot.types.filter(function (x) { return x.code === code; })[0]); return t ? t.nl : code; }
+
+// ---------- loading ----------
+function load() {
+  S.busy = true; render();
+  var p = S.source === 'inbox' ? run('reviewListInbox').then(function (rows) { S.items = rows; })
+    : run('reviewListCards', S.cards.offset, 50, S.cards.q, S.cards.tag).then(function (res) { S.items = res.rows; S.cards.total = res.total; });
+  return p.then(function () { S.idx = Math.min(S.idx, Math.max(0, S.items.length - 1)); S.listStart = 0; S.busy = false; render(); }, fail);
+}
+
+// ---------- form ----------
+function formFor(item) {
+  var f = { type: item.type, nl: item.nl, article: item.article, pos: item.pos, fr: item.fr, example_nl: item.example_nl,
+            example_fr: item.example_fr, answer: item.answer, tags: item.tags.slice(), flags: item.flags.slice() };
+  var row = function (label, input) { return [el('label', { text: label }), input]; };
+  var inp = function (k, ph) { var i = el('input', { type: 'text', placeholder: ph || '' }); i.value = f[k] || ''; i.addEventListener('input', function () { f[k] = i.value; }); return i; };
+  var typeSel = el('select'); S.boot.types.forEach(function (t) { var o = el('option', { value: t.code, text: t.nl }); if (t.code === f.type) o.selected = true; typeSel.appendChild(o); });
+  var artSel = el('select'); ['', 'de', 'het'].forEach(function (a) { var o = el('option', { value: a, text: a || '—' }); if (a === f.article) o.selected = true; artSel.appendChild(o); });
+  artSel.addEventListener('change', function () { f.article = artSel.value; });
+  var chips = function (list, key, labelOf) {
+    var box = el('div', { 'class': 'chips' });
+    list.forEach(function (v) {
+      var c = el('span', { 'class': 'chip' + (f[key].indexOf(v) !== -1 ? ' on' : ''), text: labelOf ? labelOf(v) : v });
+      c.addEventListener('click', function () { var i = f[key].indexOf(v); if (i === -1) f[key].push(v); else f[key].splice(i, 1); c.classList.toggle('on'); });
+      box.appendChild(c);
+    });
+    return box;
+  };
+  var answerRow = row('answer (enkel)', inp('answer', 'achterkant van een enkel-kaart'));
+  var setAnswerVisible = function () { answerRow.forEach(function (n) { n.style.display = f.type === 'oneway' ? '' : 'none'; }); };
+  typeSel.addEventListener('change', function () { f.type = typeSel.value; setAnswerVisible(); });
+  var tagLabels = {}; S.boot.tags.forEach(function (t) { tagLabels[t.tag] = t.label === t.tag ? t.tag : t.tag + ' (' + t.label + ')'; });
+  var grid = el('div', { 'class': 'grid' }, [].concat(
+    row('type', typeSel), row('nl', inp('nl', 'Nederlands (enkel: de vraag/emoji)')), row('lidwoord', artSel), row('pos', inp('pos', 'zelfstandig naamwoord…')),
+    row('fr', inp('fr', 'Frans')), answerRow, row('example_nl', inp('example_nl')), row('example_fr', inp('example_fr')),
+    row('tags', chips(S.boot.tags.map(function (t) { return t.tag; }), 'tags', function (v) { return tagLabels[v]; })),
+    row('flags', chips(S.boot.flags, 'flags'))
+  ));
+  setAnswerVisible();
+  return { node: grid, values: f };
+}
+
+// ---------- actions ----------
+function act(kind, item, values) {
+  if (S.busy) return;
+  S.busy = true; render();
+  var id = item.id, p;
+  if (kind === 'approve') p = run('reviewApprove', id, values || null).then(function (r) {
+    if (!r.ok) { S.busy = false; render(); showErrors(r.errors); return; }
+    S.approved++; removeItem(id); toast('Goedgekeurd');
+  });
+  else if (kind === 'reject') {
+    if (!confirm('"' + item.nl + '" afwijzen? De rij wordt uit de Inbox verwijderd.')) { S.busy = false; render(); return; }
+    p = run('reviewReject', id).then(function () { S.rejected++; removeItem(id); toast('Afgewezen'); });
+  } else if (kind === 'toInbox') {
+    if (!confirm('"' + item.nl + '" terug naar de Inbox? De kaart verdwijnt uit de app tot ze weer goedgekeurd is.')) { S.busy = false; render(); return; }
+    p = run('reviewCardToInbox', id).then(function () { removeItem(id); toast('Terug naar Inbox'); });
+  } else {
+    p = run('reviewSave', S.source, id, values).then(function (fresh) {
+      S.items = S.items.map(function (x) { return x.id === id ? fresh : x; });
+      toast('Opgeslagen');
+      if (kind === 'saveNext') S.idx = Math.min(S.idx + 1, S.items.length - 1);
+    });
+  }
+  p.then(function () { S.busy = false; render(); }, fail);
+}
+function removeItem(id) { S.items = S.items.filter(function (x) { return x.id !== id; }); S.idx = Math.min(S.idx, Math.max(0, S.items.length - 1)); }
+function showErrors(errs) { var e = document.querySelector('.errors'); if (e) e.textContent = 'Niet goedgekeurd: ' + errs.join(' · '); }
+
+// ---------- render ----------
+var current = null;
+function render() {
+  $('cardsBar').hidden = S.source !== 'cards';
+  var total = S.source === 'cards' ? S.cards.total : S.items.length;
+  $('progress').textContent = S.items.length ? (S.mode === 'one'
+    ? (S.idx + 1 + (S.source === 'cards' ? S.cards.offset : 0)) + ' van ' + total
+    : (S.listStart + 1) + '–' + Math.min(S.listStart + 5, S.items.length) + ' van ' + total) : '0 van 0';
+  $('nApproved').textContent = S.approved; $('nRejected').textContent = S.rejected;
+  if (S.source === 'cards') $('pageInfo').textContent = 'kaarten ' + (S.cards.offset + 1) + '–' + Math.min(S.cards.offset + 50, S.cards.total) + ' van ' + S.cards.total;
+  var view = $('view'); view.innerHTML = '';
+  if (!S.boot) return;
+  if (!S.items.length) { view.appendChild(el('p', { 'class': 'empty', text: S.busy ? 'Laden…' : (S.source === 'inbox' ? 'De Inbox is leeg. 🎉' : 'Geen kaarten gevonden.') })); return; }
+  if (S.mode === 'one') renderOne(view); else renderList(view);
+}
+
+function renderOne(view) {
+  var item = S.items[S.idx]; var form = formFor(item); current = { item: item, form: form };
+  var inbox = S.source === 'inbox';
+  var btn = function (label, cls, key, fn) { var b = el('button', { 'class': 'btn ' + cls }, [document.createTextNode(label), key ? el('kbd', { text: key }) : null]); b.disabled = S.busy; b.addEventListener('click', fn); return b; };
+  var actions = el('div', { 'class': 'actions' }, inbox ? [
+    btn('Goedkeuren', 'good', 'A', function () { act('approve', item, form.values); }),
+    btn('Afwijzen', 'bad', 'R', function () { act('reject', item); }),
+    btn('Opslaan', 'primary', 'S', function () { act('save', item, form.values); }),
+    btn('Opslaan & volgende', '', '⌘↵', function () { act('saveNext', item, form.values); }),
+    btn('‹ Vorige', '', 'K', function () { step(-1); }), btn('Volgende ›', '', 'J', function () { step(1); })
+  ] : [
+    btn('Opslaan', 'primary', 'S', function () { act('save', item, form.values); }),
+    btn('Opslaan & volgende', '', '⌘↵', function () { act('saveNext', item, form.values); }),
+    btn('Terug naar Inbox', 'bad', '', function () { act('toInbox', item); }),
+    btn('‹ Vorige', '', 'K', function () { step(-1); }), btn('Volgende ›', '', 'J', function () { step(1); })
+  ]);
+  view.appendChild(el('div', { 'class': 'panel' }, [
+    el('div', { 'class': 'meta', text: (inbox ? 'Inbox · ' : 'Kaart · ') + item.id + ' · ' + typeNl(item.type) + ' · toegevoegd ' + item.added + (item.active === false ? ' · niet actief' : '') }),
+    form.node, el('div', { 'class': 'errors' }), actions,
+    el('div', { 'class': 'help', text: 'Sneltoetsen (buiten een invoerveld): ' + (inbox ? 'A goedkeuren · R afwijzen · ' : '') + 'S opslaan · J volgende · K vorige · ⌘/Ctrl+Enter opslaan & volgende (ook in een veld).' })
+  ]));
+}
+
+function renderList(view) {
+  var inbox = S.source === 'inbox';
+  var rows = S.items.slice(S.listStart, S.listStart + 5);
+  var tbl = el('table', {}, [el('thead', {}, [el('tr', {}, ['type', 'nl', 'fr / answer', 'tags', ''].map(function (h) { return el('th', { text: h }); }))])]);
+  var tb = el('tbody'); tbl.appendChild(tb);
+  rows.forEach(function (item, i) {
+    var b = function (label, cls, fn) { var x = el('button', { 'class': 'btn ' + cls, text: label }); x.disabled = S.busy; x.addEventListener('click', fn); return x; };
+    tb.appendChild(el('tr', {}, [
+      el('td', { text: typeNl(item.type) }),
+      el('td', { text: (item.article ? item.article + ' ' : '') + item.nl }),
+      el('td', { text: item.type === 'oneway' ? item.answer : item.fr }),
+      el('td', { text: item.tags.join(', ') }),
+      el('td', {}, [
+        b('Detail', '', function () { S.mode = 'one'; S.idx = S.listStart + i; syncSeg(); render(); }), document.createTextNode(' '),
+        inbox ? b('Goedkeuren', 'good', function () { act('approve', item, null); }) : null, document.createTextNode(' '),
+        inbox ? b('Afwijzen', 'bad', function () { act('reject', item); }) : null
+      ])
+    ]));
+  });
+  var nav = el('div', { 'class': 'actions' }, [
+    (function () { var x = el('button', { 'class': 'btn', text: '‹ Vorige 5' }); x.disabled = S.listStart === 0; x.onclick = function () { S.listStart = Math.max(0, S.listStart - 5); render(); }; return x; })(),
+    (function () { var x = el('button', { 'class': 'btn', text: 'Volgende 5 ›' }); x.disabled = S.listStart + 5 >= S.items.length; x.onclick = function () { S.listStart += 5; render(); }; return x; })()
+  ]);
+  view.appendChild(tbl); view.appendChild(nav);
+}
+
+function step(d) { S.idx = Math.max(0, Math.min(S.items.length - 1, S.idx + d)); render(); }
+function syncSeg() {
+  [['source', S.source], ['mode', S.mode]].forEach(function (p) { [].forEach.call($(p[0]).children, function (b) { b.classList.toggle('on', b.dataset.v === p[1]); }); });
+}
+
+// ---------- events ----------
+$('source').addEventListener('click', function (e) { var v = e.target.dataset.v; if (!v || v === S.source) return; S.source = v; S.idx = 0; syncSeg(); load(); });
+$('mode').addEventListener('click', function (e) { var v = e.target.dataset.v; if (!v) return; S.mode = v; if (v === 'list') S.listStart = Math.floor(S.idx / 5) * 5; syncSeg(); render(); });
+$('search').addEventListener('click', function () { S.cards.q = $('q').value; S.cards.tag = $('tagFilter').value; S.cards.offset = 0; S.idx = 0; load(); });
+$('q').addEventListener('keydown', function (e) { if (e.key === 'Enter') $('search').click(); });
+$('pagePrev').addEventListener('click', function () { S.cards.offset = Math.max(0, S.cards.offset - 50); S.idx = 0; load(); });
+$('pageNext').addEventListener('click', function () { if (S.cards.offset + 50 < S.cards.total) { S.cards.offset += 50; S.idx = 0; load(); } });
+document.addEventListener('keydown', function (e) {
+  if (S.mode !== 'one' || !current || S.busy) return;
+  var typing = /INPUT|SELECT|TEXTAREA/.test(e.target.tagName);
+  if ((e.metaKey || e.ctrlKey) && e.key === 'Enter') { e.preventDefault(); act('saveNext', current.item, current.form.values); return; }
+  if (typing || e.metaKey || e.ctrlKey || e.altKey) return;
+  var k = e.key.toLowerCase(), inbox = S.source === 'inbox';
+  if (k === 'a' && inbox) act('approve', current.item, current.form.values);
+  else if (k === 'r' && inbox) act('reject', current.item);
+  else if (k === 's') act('save', current.item, current.form.values);
+  else if (k === 'j' || e.key === 'ArrowRight') step(1);
+  else if (k === 'k' || e.key === 'ArrowLeft') step(-1);
+});
+
+run('reviewBootstrap').then(function (b) {
+  S.boot = b; $('env').textContent = b.env; $('who').textContent = b.email;
+  b.tags.forEach(function (t) { $('tagFilter').appendChild(el('option', { value: t.tag, text: t.label })); });
+  load();
+}, function (e) { $('view').innerHTML = ''; $('view').appendChild(el('p', { 'class': 'empty', text: (e && e.message) || String(e) })); });
+</script>
+</body>
+</html>

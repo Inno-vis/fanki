@@ -37,9 +37,10 @@ r="$(get action=ping)"
 
 r="$(get "action=cards&token=$LT")"
 n="$(q "$r" 'j.ok ? j.cards.length : -1')"
-min=1; [[ "$E" == "PROD" ]] && min=0   # PROD starts empty
+gate="$(q "$r" 'j.ok && j.settings.require_approval === true')"
+min=1; [[ "$E" == "PROD" || "$gate" == "true" ]] && min=0   # PROD starts empty; with require_approval only approved cards
 [[ "$n" -ge "$min" ]] && ok "cards → $n active cards, $(q "$r" 'j.tags.length') tags, $(q "$r" 'j.compliments.length') compliments" || bad "cards: $(q "$r" 'j.error')"
-if [[ "$E" == "DEV" ]]; then
+if [[ "$E" == "DEV" && "$gate" != "true" ]]; then
   [[ "$(q "$r" '["huis","opstaan","Ik {woon} in een klein huis.","Hoe heet je?"].every(x=>j.cards.some(c=>c.nl===x))')" == "true" ]] && ok "seed cards present (word, separable, cloze, question)" || bad "seed cards missing"
 fi
 [[ "$(q "$r" 'typeof j.settings.desired_retention')" == "number" ]] && ok "settings → retention $(q "$r" 'j.settings.desired_retention'), new/day $(q "$r" 'j.settings.new_per_day')" || bad "settings"

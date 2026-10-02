@@ -66,8 +66,9 @@ function updateCurriculumDashboard_(force) {
   cache.put('curriculum_dash', '1', 600);
 
   var ss = ss_();
+  var gate = bool_(readSettings_().require_approval);
   var cards = readTable_(ss.getSheetByName('Cards')).rows
-    .filter(function (r) { return r.id && bool_(r.active); })
+    .filter(function (r) { return cardServed_(r, gate); })
     .map(function (r) { return { id: String(r.id), type: typeCode_(r.type), tags: splitTags_(r.tags) }; });
   var byKey = {};
   readTable_(ss.getSheetByName('Progress')).rows.forEach(function (r) { byKey[r.card_id + '|' + r.track] = r; });

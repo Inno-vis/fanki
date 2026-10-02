@@ -51,7 +51,8 @@ from `apps-script/UserInfo.gs` (your own edits in the tab are then replaced).
 | answer | text | **enkel only**: the back of the card, shown after "Antwoord tonen". Display text — never checked. |
 | added | date | New cards are introduced in `added` order. Filled with today if blank. |
 | active | checkbox | Untick to hide a card without deleting it (progress is kept). |
-| controle | `gecontroleerd` \| `nakijken` \| blank | Teacher bookkeeping only (the app ignores it). Blank = not checked by the teacher yet (all AI-made cards started blank on 2026-10-02). Set on the teacher page; approving an Inbox row sets `gecontroleerd`. |
+| controle | `goedgekeurd` \| `afgekeurd` \| blank | The teacher's approval. With Settings `require_approval` ☑ the app gets ONLY `goedgekeurd` cards (blank and `afgekeurd` stay hidden; her progress on them is kept and returns when approved). Set on the teacher page; approving an Inbox row sets `goedgekeurd`. All AI-made cards started blank on 2026-10-02 (`gecontroleerd` from the first version is read as `goedgekeurd`). |
+| nakijken | checkbox | 🚩 = look at this card again. Does not hide the card. Cleared by Goedkeuren / Afkeuren. |
 
 ### Seed data
 
@@ -166,10 +167,12 @@ A web page in your browser, no tools needed: review the Inbox and edit Cards.
   fr, answer (enkel), examples, tags (from the Tags tab) and flags.
   - **Goedkeuren** (A): checks the required fields, then moves the row into Cards (added = today, active).
   - **Afwijzen** (R): deletes the Inbox row. **Opslaan** (S): saves, stays `voorgesteld`.
-- **Kaarten**: search / filter by tag and by `controle`: "Nog niet gecontroleerd" (default: blank or 🚩),
-  "🚩 Nakijken", "Alle kaarten" (counts in the menu). **Gecontroleerd** (C) saves any edits and sets
-  `gecontroleerd`; **🚩 Nakijken** (F) sets/clears `nakijken`; in Lijst (5) **Alle 5 gecontroleerd** checks the
-  visible rows except the 🚩 ones. The card stays in the app either way. **Opslaan** writes back to Cards;
+- **Kaarten**: search / filter by tag and by `controle`: "Nog niet goedgekeurd" (default), "🚩 Nakijken",
+  "Goedgekeurd", "Afgekeurd", "Alle kaarten" (counts in the menu). **Goedkeuren** (A) saves any edits, checks the
+  required fields and sets `goedgekeurd`; **Afkeuren** (R) sets `afgekeurd` (hidden, nothing deleted, undo by
+  approving); **🚩 Nakijken** (F) toggles `nakijken`. In Lijst (5) every row has Goedkeuren / Afkeuren and
+  **Keur alle 5 goed** approves the visible rows except the 🚩 ones. A line under the filters says whether
+  `require_approval` is on. **Opslaan** writes back to Cards;
   **Terug naar Inbox** moves a card back (it disappears from the app until approved again; same id, so her
   progress returns).
 - **Eén voor één** (full form, keys A/R/S, F 🚩 nakijken, J next, K previous, ⌘/Ctrl+Enter save & next) or
@@ -199,6 +202,7 @@ to move them into Cards. Nothing is ever written to Cards by `/addwords`.
 | session_extra_cards | 10 | Cards added by "Nog 10 kaarten, graag!" (fewer if fewer are left) |
 | cooldown_minutes | 60 | Pause after a session before "Starten" works again (0 = no pause) |
 | min_reviews_to_count | 3 | A session shorter than this does not start a pause |
+| require_approval | FALSE | ☑ = the app gets only Cards with `controle` = goedgekeurd. Turn on with `admin <env> enableApproval` (dry run first; on PROD it first approves + 🚩 the cards she has studied). DEV: on since 2026-10-02 |
 | curriculum_only | TRUE | New cards only from open Curriculum topics; other topics and untagged cards stay locked (reviews of started cards continue) |
 | listen_share | 0.3 | Share of word-recognition reviews that start with only the sound (🔊 "Wat hoor je?"); 0 = off. Only on phones with a Dutch voice |
 | session_resume_minutes | 30 | After "Terug" (or leaving the app) she can continue the same session this long ("Doorgaan"); after that it expires WITHOUT a pause |

@@ -6,6 +6,13 @@ export function isNoun(card: Card): boolean {
 }
 
 /** Dutch text as shown: nouns always with de/het; cloze braces removed. */
+/** How a card is named in lists and shared text: "het huis (la maison)". */
+export function cardLabel(card: Card): string {
+  const nl = dutchText(card);
+  const back = card.type === 'oneway' ? card.answer : card.fr;
+  return back ? `${nl} (${back})` : nl;
+}
+
 export function dutchText(card: Card): string {
   const text = card.nl.replace(/[{}]/g, '');
   return card.type === 'word' && card.article ? `${card.article} ${text}` : text;

@@ -41,7 +41,7 @@ The repo is **public** and hosted on GitHub Pages.
   → `{accepted, duplicate, rejected}`. Idempotent on `event_id`.
 - Admin-only (ADMIN_TOKEN): `listCards, listUntagged, tags, setTags, appendInbox, listInbox,
   promoteInbox, rebuildProgress, setup, readTab, reseedDev (DEV only), purgeSmoke, appendBreaks,
-  setCurriculum, curriculumStatus, migrateToDutch, userInfo, setTeachers, replaceKlok, seedEmoji (both dry run unless
+  setCurriculum, curriculumStatus, migrateToDutch, userInfo, setTeachers, enableApproval, replaceKlok, seedEmoji (dry run unless
   dryRun:false; seedEmoji is DEV only)`. Open items: docs/todo.md.
 - All writes are inside `LockService`. All actions are idempotent, so clients **retry** on
   `no_action` (POST body lost on Google's redirect), `busy`, or non-JSON responses.
@@ -73,9 +73,11 @@ The repo is **public** and hosted on GitHub Pages.
   serves it. Page ↔ server via google.script.run (`review*` functions, each `requireTeacher_()`); no token.
 - Inbox status `nakijken` (🚩 per row / F key): stays in the Inbox, skipped by "Keur alle 5 goed"
   (`reviewApproveMany`), filter "alleen 🚩 nakijken".
-- Cards.`controle` (`gecontroleerd|nakijken|blank` → `checked|review|''`, `CHECK_NL`/`checkCode_`): the teacher's
-  "have I checked this AI-made card" mark, set via `reviewSetCheck`; the learner API ignores it. All cards
-  started blank (2026-10-02).
+- Card approval: Cards.`controle` (`goedgekeurd|afgekeurd|blank` → `approved|rejected|''`, `CHECK_NL`/`checkCode_`)
+  + Cards.`nakijken` (🚩 checkbox, never hides). With Settings.`require_approval` the API serves only approved
+  cards (`cardServed_` in Util.gs; also the Dashboard curriculum). Teacher page: Goedkeuren/Afkeuren
+  (`reviewSetCheck`), 🚩 (`reviewSetCardFlag`). Turn on per env with `admin <env> enableApproval` (dry run;
+  approveStudied keeps her studied cards). All AI-made cards started blank (2026-10-02).
 
 ## Listening and Voortgang
 
@@ -157,6 +159,8 @@ keys, pos and descriptions. The API maps them to internal codes (`typeCode_`/`so
   long-press = flag + note field; lit when the card has an open flag). "Gemarkeerd" screen (`screens/Marked.tsx`)
   shows ONE row per card (`groupFlags`: "3×", all notes; Opgelost resolves all its open flags); counts are cards.
 - Menu: tap "Fanki" (`components/Menu.tsx`) → 📈 Voortgang, 🚩 Gemarkeerd (count; red dot on the title).
+- A flag stores the card's name (`label`, at flag time and in `saveSnapshot` before cards are replaced), so
+  "Gemarkeerd" still names a card that left the phone (e.g. not approved).
 - Strings use the `mark.*` i18n keys. Never mix up with `Card.flags` / `flag.*` (sheet content markers:
   false-friend, separable).
 

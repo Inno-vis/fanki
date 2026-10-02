@@ -1,6 +1,6 @@
 import 'fake-indexeddb/auto';
 import { beforeEach, describe, expect, it } from 'vitest';
-import { _resetDb } from './db';
+import { _resetDb, saveSnapshot } from './db';
 import { createFlag, exportText, flagCardLabel, groupFlags, listFlags, openFlagCards, setCardResolved, setFlagNote, setFlagResolved, splitFlags } from './studentFlags';
 import type { Card } from './types';
 
@@ -76,6 +76,17 @@ describe('export text for "Delen"', () => {
 
   it('a card that no longer exists is named by its id', () => {
     expect(flagCardLabel(undefined, 'c_gone')).toBe('c_gone');
+  });
+
+  it('a card that left the phone keeps its name: saved when flagged, and on every card refresh', async () => {
+    await saveSnapshot([card('c_1'), card('c_2', { nl: 'boom', article: 'de', fr: "l'arbre" })], {});
+    await createFlag('c_1', '', at(10)); // label saved now
+    await (await import('./db')).db().then((d) => d.put('flags', { id: 'old', card_id: 'c_2', ts: at(9).toISOString(), note: '', resolved: false, updated_ts: '' }));
+    await saveSnapshot([], {}); // both cards gone (e.g. not approved): the old flag gets its name first
+    const groups = groupFlags(await listFlags());
+    const cards = new Map<string, Card>();
+    expect(groups.map((g) => flagCardLabel(cards.get(g.card_id), g.card_id, g.label))).toEqual(['het huis (la maison)', "de boom (l'arbre)"]);
+    expect(exportText(await listFlags(), cards, 'Fanki')).toContain("de boom (l'arbre)");
   });
 });
 

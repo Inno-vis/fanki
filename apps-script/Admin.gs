@@ -336,3 +336,42 @@ function adminSetTeachers_(emails, domain) {
   if (domain !== undefined) p.setProperty('TEACHER_DOMAIN', String(domain || '').trim().toLowerCase().replace(/^@/, ''));
   return { teacher_emails: p.getProperty('TEACHER_EMAILS') || '', teacher_domain: p.getProperty('TEACHER_DOMAIN') || '' };
 }
+
+/**
+ * Turns on Settings.require_approval (only goedgekeurd cards go to the app). With approveStudied (default),
+ * every card that has a Progress row is first set to goedgekeurd + 🚩 nakijken, so the learner keeps the
+ * cards she has studied. Dry run unless dryRun:false.
+ */
+function adminEnableApproval_(dryRun, approveStudied) {
+  return withLock_(function () {
+    var ss = ss_();
+    var cards = ss.getSheetByName('Cards');
+    var t = readTable_(cards);
+    var cc = t.headers.indexOf('controle') + 1, fc = t.headers.indexOf('nakijken') + 1;
+    if (!cc || !fc) throw apiError_('setup_needed', 'Cards.controle / nakijken missing: run setup first');
+    var studied = {};
+    readTable_(ss.getSheetByName('Progress')).rows.forEach(function (r) { if (r.card_id) studied[String(r.card_id)] = true; });
+    var toApprove = approveStudied ? t.rows.filter(function (r) { return studied[String(r.id)]; }) : [];
+    var after = t.rows.filter(function (r) {
+      return cardServed_(r, true) || toApprove.indexOf(r) !== -1 && cardServed_(r, false);
+    });
+    var report = {
+      dryRun: dryRun,
+      studiedCards: Object.keys(studied).length,
+      approveAndFlag: toApprove.map(function (r) { return r.id + ' | ' + r.nl + (checkCode_(r.controle) === 'approved' ? ' (al goedgekeurd)' : ''); }),
+      servedBefore: t.rows.filter(function (r) { return cardServed_(r, false); }).length,
+      servedAfter: after.length,
+      studiedNotServed: Object.keys(studied).filter(function (id) { return !after.some(function (r) { return String(r.id) === id; }); })
+    };
+    if (dryRun) return report;
+    toApprove.forEach(function (r) {
+      cards.getRange(r._row, cc).setValue(CHECK_NL.approved);
+      cards.getRange(r._row, fc).setValue(true);
+    });
+    var set = ss.getSheetByName('Settings');
+    var row = readTable_(set).rows.filter(function (r) { return String(r.key).trim() === 'require_approval'; })[0];
+    if (!row) throw apiError_('setup_needed', 'Settings.require_approval missing: run setup first');
+    set.getRange(row._row, 2).setValue(true);
+    return report;
+  });
+}

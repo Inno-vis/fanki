@@ -1,5 +1,6 @@
 import { openDB, type DBSchema, type IDBPDatabase } from 'idb';
 import { NS } from './config';
+import { cardLabel } from './display';
 import { DEFAULT_SETTINGS, type Card, type CurriculumRow, type Settings, type Tag } from './types';
 import type { Progress, Snapshot, Track } from './scheduler';
 import type { Intro, Mode } from './session';
@@ -54,6 +55,7 @@ export type StudentFlag = {
   note: string; // optional, '' when none
   resolved: boolean;
   updated_ts: string; // ISO — last change (note / resolved); lets a future sync merge by recency
+  label?: string; // card name when flagged ("het huis (la maison)"), shown if the card later leaves the phone
 };
 
 interface FankiDB extends DBSchema {
@@ -127,11 +129,20 @@ export async function allCards(): Promise<Card[]> {
   return (await db()).getAllFromIndex('cards', 'added');
 }
 
-/** Replaces the card set and meta in ONE transaction, so a failed pull never leaves half the cards. */
+/**
+ * Replaces the card set and meta in ONE transaction, so a failed pull never leaves half the cards.
+ * First, 🚩 flags without a saved name get one from the old cards (a card may leave, e.g. not approved).
+ */
 export async function saveSnapshot(cards: Card[], meta: Partial<Meta>): Promise<void> {
   const d = await db();
-  const tx = d.transaction(['cards', 'meta'], 'readwrite');
+  const tx = d.transaction(['cards', 'meta', 'flags'], 'readwrite');
   const cardStore = tx.objectStore('cards');
+  const flagStore = tx.objectStore('flags');
+  for (const f of await flagStore.getAll()) {
+    if (f.label) continue;
+    const old = await cardStore.get(f.card_id);
+    if (old) await flagStore.put({ ...f, label: cardLabel(old) });
+  }
   await cardStore.clear();
   for (const c of cards) await cardStore.put(c);
   const metaStore = tx.objectStore('meta');

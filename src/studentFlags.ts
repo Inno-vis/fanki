@@ -4,13 +4,16 @@
 import { db, type StudentFlag } from './db';
 import { uuid } from './review';
 import type { Card } from './types';
-import { dutchText } from './display';
+import { cardLabel } from './display';
 
 /** Flags the card now. Every tap is a new entry (a card can be flagged again later). */
 export async function createFlag(card_id: string, note = '', now = new Date()): Promise<StudentFlag> {
   const ts = now.toISOString();
+  const d = await db();
+  const card = await d.get('cards', card_id);
   const flag: StudentFlag = { id: uuid(), card_id, ts, note: note.trim(), resolved: false, updated_ts: ts };
-  await (await db()).put('flags', flag);
+  if (card) flag.label = cardLabel(card);
+  await d.put('flags', flag);
   return flag;
 }
 
@@ -45,12 +48,12 @@ export function splitFlags(flags: StudentFlag[]): { open: StudentFlag[]; resolve
 }
 
 
-/** How the card is named in the list and the shared text: "het huis (la maison)". */
-export function flagCardLabel(card: Card | undefined, card_id: string): string {
-  if (!card) return card_id;
-  const nl = dutchText(card);
-  const back = card.type === 'oneway' ? card.answer : card.fr;
-  return back ? `${nl} (${back})` : nl;
+/**
+ * How the card is named in the list and the shared text: "het huis (la maison)". When the card is no longer
+ * on the phone (e.g. not approved), the label saved in the flag; the id only as a last resort.
+ */
+export function flagCardLabel(card: Card | undefined, card_id: string, label?: string): string {
+  return card ? cardLabel(card) : label || card_id;
 }
 
 /** All flags of one card, shown as ONE row (a card marked 3 times is listed once, "3×"). */
@@ -61,6 +64,7 @@ export type FlagGroup = {
   resolved: boolean; // true when none is open
   ts: string; // newest flag
   notes: string[]; // non-empty notes, newest first, no duplicates
+  label?: string; // saved card name (newest flag that has one), for cards no longer on the phone
 };
 
 export function groupFlags(flags: StudentFlag[]): FlagGroup[] {
@@ -73,7 +77,8 @@ export function groupFlags(flags: StudentFlag[]): FlagGroup[] {
       const open = list.filter((f) => !f.resolved);
       return {
         card_id, flags: list, open, resolved: open.length === 0, ts: list[0].ts,
-        notes: [...new Set(list.map((f) => f.note).filter(Boolean))]
+        notes: [...new Set(list.map((f) => f.note).filter(Boolean))],
+        label: list.find((f) => f.label)?.label
       };
     })
     .sort((a, b) => b.ts.localeCompare(a.ts));
@@ -97,6 +102,6 @@ export function exportText(flags: StudentFlag[], cards: Map<string, Card>, title
     .filter((g) => !g.resolved)
     .map((g) => ({ g, ts: g.open[0].ts, notes: [...new Set(g.open.map((f) => f.note).filter(Boolean))] }))
     .sort((a, b) => b.ts.localeCompare(a.ts))
-    .map(({ g, notes }) => [flagCardLabel(cards.get(g.card_id), g.card_id), notes.join(' / ')].filter(Boolean).join(' · '));
+    .map(({ g, notes }) => [flagCardLabel(cards.get(g.card_id), g.card_id, g.label), notes.join(' / ')].filter(Boolean).join(' · '));
   return [title, ...lines].join('\n');
 }

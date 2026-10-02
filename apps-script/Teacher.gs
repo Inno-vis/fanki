@@ -47,6 +47,7 @@ function reviewRow_(r, isInbox) {
   c.row = r._row;
   c.status = isInbox ? (statusCode_(r.status) || 'proposed') : '';
   c.check = isInbox ? '' : checkCode_(r.controle);
+  c.review = isInbox ? false : bool_(r.nakijken);
   c.pos = String(r.pos || '');
   return c;
 }
@@ -121,7 +122,8 @@ function reviewBootstrap() {
       return { tag: String(r.tag).trim().toLowerCase(), label: String(r.label_nl || r.tag) };
     }).filter(function (t) { return t.tag; }),
     types: [{ code: 'word', nl: 'dubbel' }, { code: 'oneway', nl: 'enkel' }, { code: 'sentence', nl: 'zin' }, { code: 'question', nl: 'vraag' }],
-    flags: ['false-friend', 'separable']
+    flags: ['false-friend', 'separable'],
+    requireApproval: bool_(readSettings_().require_approval)
   };
 }
 
@@ -135,8 +137,8 @@ function reviewListInbox() {
 }
 
 /**
- * Cards, paged; optional text query (nl/fr/answer), tag, and check filter: 'unchecked' (default: not checked yet,
- * incl. nakijken), 'review' (🚩 nakijken only), 'all'. Also returns counts per check state.
+ * Cards, paged; optional text query (nl/fr/answer), tag, and filter on controle: 'unchecked' (default: not
+ * approved or rejected yet), 'review' (🚩 nakijken), 'approved', 'rejected', 'all'. Also returns counts.
  */
 function reviewListCards(offset, limit, query, tag, check) {
   requireTeacher_();
@@ -144,11 +146,10 @@ function reviewListCards(offset, limit, query, tag, check) {
   check = check || 'unchecked';
   var cards = readTable_(sheet_('Cards')).rows.filter(function (r) { return String(r.id).trim() && String(r.nl).trim(); })
     .map(function (r) { return reviewRow_(r, false); });
-  var counts = { unchecked: 0, review: 0, checked: 0, all: cards.length };
-  cards.forEach(function (c) { if (c.check === 'checked') counts.checked++; else counts.unchecked++; if (c.check === 'review') counts.review++; });
+  var counts = { unchecked: 0, review: 0, approved: 0, rejected: 0, all: cards.length };
+  cards.forEach(function (c) { counts[c.check || 'unchecked']++; if (c.review) counts.review++; });
   var all = cards.filter(function (c) {
-    if (check === 'unchecked' && c.check === 'checked') return false;
-    if (check === 'review' && c.check !== 'review') return false;
+    if (check === 'review' ? !c.review : check !== 'all' && (c.check || 'unchecked') !== check) return false;
     if (tag && c.tags.indexOf(tag) === -1) return false;
     return !q || (c.nl + ' ' + c.fr + ' ' + c.answer).toLowerCase().indexOf(q) !== -1;
   });
@@ -157,23 +158,49 @@ function reviewListCards(offset, limit, query, tag, check) {
   return { total: all.length, offset: offset, rows: all.slice(offset, offset + limit), counts: counts };
 }
 
-/** Kaarten: set `controle` for one or more cards: 'checked' (gecontroleerd), 'review' (🚩 nakijken) or '' (reset). */
-function reviewSetCheck(ids, value) {
-  requireTeacher_();
-  var v = value === 'checked' || value === 'review' ? CHECK_NL[value] : '';
+/** Kaarten: one cell per card, under the lock. */
+function setCardCells_(ids, values) {
   return withLock_(function () {
     var sh = sheet_('Cards');
-    var col = headersOf_(sh).indexOf('controle') + 1;
-    if (!col) throw new Error('Kolom controle ontbreekt (setup draaien)');
+    var h = headersOf_(sh);
+    Object.keys(values).forEach(function (k) { if (h.indexOf(k) === -1) throw new Error('Kolom ' + k + ' ontbreekt (setup draaien)'); });
     var done = [];
     (ids || []).forEach(function (id) {
       var row = findById_(sh, id);
       if (!row) return;
-      sh.getRange(row._row, col).setValue(v);
+      Object.keys(values).forEach(function (k) { sh.getRange(row._row, h.indexOf(k) + 1).setValue(values[k]); });
       done.push(id);
     });
     return { done: done };
   });
+}
+
+/**
+ * Kaarten: Goedkeuren ('approved') / Afkeuren ('rejected') / reset (''). Approving or rejecting also clears 🚩.
+ * Approve refuses cards that fail validateCard_ (returned in `errors`).
+ */
+function reviewSetCheck(ids, value) {
+  requireTeacher_();
+  var v = value === 'approved' || value === 'rejected' ? CHECK_NL[value] : '';
+  var errors = [];
+  if (value === 'approved') {
+    var sh = sheet_('Cards');
+    ids = (ids || []).filter(function (id) {
+      var row = findById_(sh, id);
+      var e = row ? validateCard_(reviewRow_(row, false)) : [];
+      if (e.length) errors.push({ id: id, errors: e });
+      return !e.length;
+    });
+  }
+  var res = setCardCells_(ids, v ? { controle: v, nakijken: false } : { controle: '' });
+  res.errors = errors;
+  return res;
+}
+
+/** Kaarten: 🚩 nakijken on/off (does not change controle, so it never hides a card). */
+function reviewSetCardFlag(ids, on) {
+  requireTeacher_();
+  return setCardCells_(ids, { nakijken: !!on });
 }
 
 function reviewSave(source, id, fields) {
@@ -210,7 +237,7 @@ function approveRow_(id, fields) {
     if (!o.id || taken) o.id = newId_('c_');
     o.added = today;
     o.active = true;
-    o.controle = CHECK_NL.checked; // the teacher just reviewed it
+    o.controle = CHECK_NL.approved; // the teacher just reviewed it
     writeCardRows_(cards, [rowFromObject_(SCHEMA.Cards, o)]);
     inbox.deleteRow(row._row);
     return { ok: true, id: o.id };

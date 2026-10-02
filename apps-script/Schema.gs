@@ -4,9 +4,10 @@ var CARD_COLS = ['id', 'type', 'nl', 'article', 'pos', 'fr', 'example_nl', 'exam
   'tags', 'tags_source', 'flags', 'answer', 'added', 'active'];
 
 var SCHEMA = {
-  // `controle` (Cards only, last column): the teacher's review of each card — '' = nog niet, gecontroleerd,
-  // nakijken. Bookkeeping only: the learner's app never sees it.
-  Cards: CARD_COLS.concat(['controle']),
+  // Cards only (last columns): `controle` = the teacher's approval ('' = nog niet, goedgekeurd, afgekeurd);
+  // with Settings.require_approval only goedgekeurd cards go to the app. `nakijken` = 🚩 checkbox (to look at
+  // again; does not hide the card).
+  Cards: CARD_COLS.concat(['controle', 'nakijken']),
   Progress: ['card_id', 'track', 'state', 'due', 'stability', 'difficulty', 'reps', 'lapses', 'last_review', 'first_review'],
   Log: ['event_id', 'card_id', 'track', 'ts', 'rating', 'mode', 'duration_ms', 'snapshot'],
   Tags: ['tag', 'label_nl', 'label_fr', 'description', 'subject_nl'],
@@ -38,6 +39,7 @@ var SETTINGS_DEFAULTS = [
   ['cooldown_minutes', 60, 'Pauze in minuten na een sessie (0 = geen pauze)'],
   ['min_reviews_to_count', 3, 'Een sessie telt (en start de pauze) vanaf dit aantal herhalingen'],
   ['max_learning_backlog', 3, 'Een nieuwe kaart komt pas als minder dan dit aantal kaarten nog in de korte stappen zit'],
+  ['require_approval', false, 'Alleen kaarten met controle = goedgekeurd gaan naar de app (aan = de leerling ziet geen ongecontroleerde kaarten)'],
   ['curriculum_only', true, 'Nieuwe kaarten alleen uit open onderwerpen van het tabblad Curriculum; andere onderwerpen en kaarten zonder tag blijven dicht'],
   ['listen_share', 0.3, 'Deel van de herkenningskaarten als luisterkaart (0 = uit; alleen met een Nederlandse stem op de telefoon)'],
   ['session_resume_minutes', 30, 'Na "Terug" kan ze de sessie zo lang (minuten) voortzetten; daarna vervalt ze zonder pauze']

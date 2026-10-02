@@ -49,6 +49,7 @@ function doPost(e) {
       case 'appendBreaks': return adminAppendBreaks_(body.lines);
       case 'seedEmoji': return adminSeedEmoji_(body.dryRun !== false, body.allowProd === true);
       case 'replaceKlok': return adminReplaceKlok_(body.dryRun !== false);
+      case 'enableApproval': return adminEnableApproval_(body.dryRun !== false, body.approveStudied !== false);
       case 'setTeachers': return adminSetTeachers_(body.emails, body.domain);
       case 'userInfo': return { rows: writeUserInfo_(ss_(), env_()) };
       case 'setCurriculum': return adminSetCurriculum_(body.tag, body.field, body.value);
@@ -106,9 +107,9 @@ function getCards_() {
     withLock_(function () { fillIds_(cardsSh); });
     t = readTable_(cardsSh);
   }
-  var cards = t.rows.filter(function (r) { return String(r.id).trim() && bool_(r.active) && String(r.nl).trim(); })
-    .map(cardToJson_);
   var settings = readSettings_();
+  var cards = t.rows.filter(function (r) { return cardServed_(r, bool_(settings.require_approval)); })
+    .map(cardToJson_);
   timing.settings = Date.now() - t0;
   return {
     env: env_(),

@@ -45,7 +45,7 @@ export function Marked({ onDone }: { onDone: () => void }) {
     <li key={g.card_id} class={`mark-item${g.resolved ? ' resolved' : ''}`}>
       <div class="mark-main">
         <span class="mark-card" lang="nl">
-          {flagCardLabel(cards.get(g.card_id), g.card_id)}
+          {flagCardLabel(cards.get(g.card_id), g.card_id, g.label)}
           {g.flags.length > 1 && <span class="mark-times"> {g.flags.length}×</span>}
         </span>
         {g.notes.map((n) => (

@@ -58,6 +58,9 @@ from `apps-script/UserInfo.gs` (your own edits in the tab are then replaced).
 - The clock course (ids `K1-01`…`K3-08`, tags `klok-1/2/3`, added 2026-09-30): 8 `dubbel` words + 21 `enkel`
   cards, plus the app word *minuut* tagged `klok-3`. Replaced the earlier `L1-`…`L3-` set via
   `node scripts/admin.mjs <env> replaceKlok '{"dryRun":false}'` (dry run by default).
+- DEV only (for now): the emoji course — 58 `enkel` cards (ids `E-01`…`E-58`, front = emoji, back = the Dutch word
+  with de/het), tag `emoji`, Curriculum order 3, added 2026-10-02. Added with `node scripts/admin.mjs dev seedEmoji
+  '{"dryRun":false}'` (dry run by default; refuses PROD unless `allowProd`), not by setup.
 - DEV **and** PROD: the 50 interface words (tag `app`, `tags_source` manual, `added` 2026-09-27 so they are
   introduced before everything else). `setup()` adds any that are missing and never duplicates.
 

@@ -41,7 +41,8 @@ The repo is **public** and hosted on GitHub Pages.
   → `{accepted, duplicate, rejected}`. Idempotent on `event_id`.
 - Admin-only (ADMIN_TOKEN): `listCards, listUntagged, tags, setTags, appendInbox, listInbox,
   promoteInbox, rebuildProgress, setup, readTab, reseedDev (DEV only), purgeSmoke, appendBreaks,
-  setCurriculum, curriculumStatus, migrateToDutch, userInfo, replaceKlok (dry run unless dryRun:false)`.
+  setCurriculum, curriculumStatus, migrateToDutch, userInfo, replaceKlok, seedEmoji (both dry run unless
+  dryRun:false; seedEmoji is DEV only)`. Open items: docs/todo.md.
 - All writes are inside `LockService`. All actions are idempotent, so clients **retry** on
   `no_action` (POST body lost on Google's redirect), `busy`, or non-JSON responses.
 - Deploy with `npm run gas:deploy:<env>` — keeps the same deployment ID so the /exec URL never changes.

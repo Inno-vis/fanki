@@ -280,3 +280,47 @@ function adminReplaceKlok_(dryRun) {
     return report;
   });
 }
+
+/**
+ * Emoji course: tag `emoji`, Curriculum row at order 3 (later rows shift down), and EMOJI_SEED_CARDS as
+ * enkel cards. Refuses PROD unless allowProd. dryRun (default) only reports. Idempotent.
+ */
+function adminSeedEmoji_(dryRun, allowProd) {
+  if (env_() === 'PROD' && !allowProd) throw apiError_('forbidden', 'seedEmoji is DEV only (pass allowProd to override)');
+  return withLock_(function () {
+    var ss = ss_();
+    var tagsSh = ss.getSheetByName('Tags');
+    var hasTag = readTable_(tagsSh).rows.some(function (r) { return String(r.tag).trim() === 'emoji'; });
+    var cur = ss.getSheetByName('Curriculum');
+    var curRows = readTable_(cur).rows;
+    var hasRow = curRows.some(function (r) { return String(r.tag).trim() === 'emoji'; });
+    var shift = hasRow ? [] : curRows.filter(function (r) { return Number(r.order) >= 3; });
+    var cards = ss.getSheetByName('Cards');
+    var have = {};
+    readTable_(cards).rows.forEach(function (r) { have[String(r.id)] = true; });
+    var parts = EMOJI_SEED_ADDED.split('-');
+    var added = new Date(Number(parts[0]), Number(parts[1]) - 1, Number(parts[2]));
+    var add = EMOJI_SEED_CARDS.map(function (l) { return l.split('|'); }).filter(function (f) { return !have[f[0]]; })
+      .map(function (f) { return [f[0], typeNl_('oneway'), f[1], '', 'emoji', '', '', '', 'emoji', sourceNl_('manual'), '', f[2], added, true]; });
+    var report = {
+      dryRun: dryRun,
+      tag: hasTag ? 'exists' : 'add emoji',
+      curriculum: hasRow ? 'exists' : 'insert order 3; shift ' + shift.map(function (r) { return r.tag + ' ' + r.order + '→' + (Number(r.order) + 1); }).join(', '),
+      add: add.map(function (r) { return r[0] + ' | ' + r[2] + ' → ' + r[11]; })
+    };
+    if (dryRun) return report;
+    if (!hasTag) {
+      tagsSh.getRange(nextRow_(tagsSh, 1), 1, 1, SCHEMA.Tags.length)
+        .setValues([rowFromObject_(SCHEMA.Tags, { tag: 'emoji', label_nl: 'emoji', label_fr: 'emoji', description: 'Emoji → Nederlands woord', subject_nl: '' })]);
+    }
+    if (!hasRow) {
+      shift.forEach(function (r) { cur.getRange(r._row, 1).setValue(Number(r.order) + 1); });
+      cur.getRange(nextRow_(cur, 2), 1, 1, SCHEMA.Curriculum.length).setValues([[3, 'emoji', 0.8, 2, 21, true, OPEN_NL.auto]]);
+      var data = cur.getRange(2, 1, Math.max(nextRow_(cur, 2) - 2, 1), SCHEMA.Curriculum.length); // filled rows only
+      data.sort({ column: 1, ascending: true });
+    }
+    if (add.length) writeCardRows_(cards, add);
+    updateCurriculumDashboard_(true);
+    return report;
+  });
+}

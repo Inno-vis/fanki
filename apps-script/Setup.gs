@@ -249,7 +249,7 @@ function applyCurriculumValidation_(sh) {
   sh.getRange('B2:B').setDataValidation(SpreadsheetApp.newDataValidation().requireValueInRange(tags.getRange('A2:A'), true)
     .setAllowInvalid(false).setHelpText('Een tag uit het tabblad Tags').build());
   sh.getRange('C2:C').setDataValidation(SpreadsheetApp.newDataValidation().requireNumberBetween(0, 1)
-    .setAllowInvalid(false).setHelpText('Tussen 0 en 1 (0,8 = 80 % van de kaarten gekend)').build());
+    .setAllowInvalid(false).setHelpText('Tussen 0 en 1 (0,8 = 80 % van de kaarten bekend)').build());
   sh.getRange('D2:D').setDataValidation(SpreadsheetApp.newDataValidation().requireNumberGreaterThanOrEqualTo(0)
     .setAllowInvalid(false).setHelpText('Minimum aantal herhalingen (2)').build());
   sh.getRange('E2:E').setDataValidation(SpreadsheetApp.newDataValidation().requireNumberGreaterThanOrEqualTo(0)

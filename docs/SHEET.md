@@ -188,7 +188,7 @@ to move them into Cards. Nothing is ever written to Cards by `/addwords`.
 | compliments_enabled | TRUE | Show a compliment every 3rd correct answer |
 | unlock_prod_stability_days | 3 | When a word's `recog` stability reaches this many days, the typing (`prod`) track starts |
 | show_french_help | TRUE | Shows the "Hulp" button (French help) and the one-time rating overlay. Untick when she's ready. |
-| mature_stability_days | 21 | A card counts as "gekend" (mature) for the curriculum at this FSRS stability |
+| mature_stability_days | 21 | A card counts as "bekend" (mature) for the curriculum at this FSRS stability |
 | session_max_cards | 15 | Cards before "Sessie voltooid! Wil je doorgaan?" |
 | session_max_minutes | 8 | Minutes before the same offer (whichever comes first) |
 | session_extra_cards | 10 | Cards added by "Nog 10 kaarten, graag!" (fewer if fewer are left) |
@@ -209,8 +209,8 @@ All settings are read by the phone on every sync — change them here, no redepl
 |---|---|---|
 | order | | 1, 2, 3… (lowest first) |
 | tag | | a key from the Tags tab (dropdown) |
-| unlock_threshold | 0.8 | share of this tag's cards that must be "gekend" before the next row opens |
-| min_reviews | 2 | a card also needs at least this many reviews to count as "gekend" |
+| unlock_threshold | 0.8 | share of this tag's cards that must be "bekend" before the next row opens |
+| min_reviews | 2 | a card also needs at least this many reviews to count as "bekend" |
 | max_wait_days | 21 | the next row opens anyway this many days after this tag's first card was first shown (blank = never) |
 | active | ☑ | unticked rows are skipped: their cards are FREE to come, and they don't hold back the next row (this does NOT lock a topic) |
 | open | automatisch | `automatisch` = the rules below · `altijd open` = open now, whatever the rules say · `dicht` = locked (and every automatic row after it stays locked) |
@@ -224,9 +224,9 @@ from the start (app keeps priority for new cards); klok-2 and klok-3 open one by
 
 **Algorithm** (phone: `src/curriculum.ts`; the Dashboard mirrors it in `apps-script/Curriculum.gs`):
 
-1. A card is **gekend** (mature) when the stability of its main direction (woord: recognising; zin/vraag:
+1. A card is **bekend** (mature) when the stability of its main direction (woord: recognising; zin/vraag:
    the only direction) is ≥ `mature_stability_days` AND its reps ≥ the row's `min_reviews`.
-2. A tag's **score** = gekend cards / active cards with that tag (a tag without cards scores 1).
+2. A tag's **score** = bekend cards / active cards with that tag (a tag without cards scores 1).
 3. The first active row is open. Row N+1 opens when row N is open AND (score(N) ≥ unlock_threshold OR
    `max_wait_days` have passed since row N's first card was first shown). This is recalculated on every
    sync/launch; nothing is stored, so reordering or retuning the tab takes effect immediately.
@@ -274,6 +274,6 @@ more than ~20 %). Add more with `/addbreaks <n>` (appends only).
 Column A–B: te herhalen (all directions), goed onthouden (30 days), herhalingen deze week, actieve
 kaarten, laatst gesynchroniseerd (= newest Log `ts`), and the 10 most-forgotten cards.
 
-Columns D–I: **Curriculum** — one row per active Curriculum tag: gekend / cards, score, open (ja/nee),
+Columns D–I: **Curriculum** — one row per active Curriculum tag: bekend / cards, score, open (ja/nee),
 days until it opens automatically (blank if open, no cap, or the previous tag wasn't shown yet), first
 shown. Refreshed after reviews arrive (at most every 10 minutes) and by setup.

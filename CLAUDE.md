@@ -81,7 +81,7 @@ The repo is **public** and hosted on GitHub Pages.
   shows "Geen Nederlandse stem op deze telefoon." (Hulp explains how to install one on iPhone/Android).
 - Listening cards: with a Dutch voice, about Settings.`listen_share` (0.3) of word-recognition reviews start
   with only the sound ("Wat hoor je?"), Log mode `listen` (`isListeningReview`, deterministic per card+reps).
-- "Voortgang" (`screens/ProgressScreen.tsx`, `src/stats.ts`): geoefend / gekend / reviews this week / streak /
+- "Voortgang" (`screens/ProgressScreen.tsx`, `src/stats.ts`): geoefend / bekend / reviews this week / streak /
   7-day chart / due today-tomorrow-7 days. Per-day counts are stored on the phone (`meta.dayCounts`, written
   in the same transaction as each rating) — they start counting from that update.
 - `src/curriculumParity.test.ts` loads the real Curriculum.gs and compares it with curriculum.ts.

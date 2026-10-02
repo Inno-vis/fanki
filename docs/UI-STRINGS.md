@@ -43,7 +43,7 @@ She sees **nl**. **fr** is hidden help: shown only in the "Hulp" panel and the o
 | `menu.title` | Menu | Menu |
 | `progress.title` | Voortgang | Ma progression |
 | `progress.learned` | kaarten geoefend (van {n}) | cartes déjà travaillées (sur {n} en tout) |
-| `progress.known` | kaarten gekend | cartes bien sues (elles reviennent dans 3 semaines ou plus) |
+| `progress.known` | kaarten bekend | cartes bien sues (elles reviennent dans 3 semaines ou plus) |
 | `progress.week` | herhalingen deze week | révisions ces 7 derniers jours |
 | `progress.streak` | dagen op rij | jours de suite avec au moins une révision |
 | `progress.dueToday` | vandaag | cartes à revoir aujourd’hui |
@@ -88,6 +88,7 @@ She sees **nl**. **fr** is hidden help: shown only in the "Hulp" panel and the o
 | `help.button` | Hulp | Aide |
 | `help.title` | Hulp | Aide |
 | `help.close` | Sluiten | Fermer |
+| `help.updated` | nieuw | l’aide de cet écran a changé : touche « Hulp » pour la relire |
 | `rating.aria` | {label}, {interval} | {label}, {interval} |
 | `rating.helpTitle` | De vier knoppen | Les quatre boutons |
 | `rating.helpOk` | Klaar | Compris |
@@ -118,7 +119,7 @@ She sees **nl**. **fr** is hidden help: shown only in the "Hulp" panel and the o
 | screen | fr (shown in the panel) |
 |---|---|
 | home | Touche « Fanki » en haut pour le menu : « Voortgang » (ta progression) et « Gemarkeerd » (cartes marquées 🚩). Cet écran montre combien de cartes tu dois revoir aujourd’hui (« te herhalen ») et combien de nouvelles cartes t’attendent (« nieuw vandaag »). Touche « Starten » pour commencer. L’appli fonctionne aussi sans internet : tes réponses sont gardées sur le téléphone et envoyées à la prochaine connexion. « Synchroniseren » télécharge les nouvelles cartes quand tu as internet. Après une séance, une pause est prévue : « Volgende sessie over 42 minuten » = prochaine séance dans 42 minutes. Si tu reviens en arrière pendant une séance, « Doorgaan » te permet de la continuer. |
-| progress | Ta progression : « kaarten geoefend » = cartes déjà travaillées, « kaarten gekend » = cartes bien sues, « herhalingen deze week » = révisions des 7 derniers jours, « dagen op rij » = jours de suite. En bas : combien de cartes reviennent aujourd’hui (vandaag), demain (morgen) et cette semaine (deze week). |
+| progress | Ta progression : « kaarten geoefend » = cartes déjà travaillées, « kaarten bekend » = cartes bien sues, « herhalingen deze week » = révisions des 7 derniers jours, « dagen op rij » = jours de suite. En bas : combien de cartes reviennent aujourd’hui (vandaag), demain (morgen) et cette semaine (deze week). |
 | marked | Ici, les cartes que tu as marquées avec 🚩 pendant les révisions, les plus récentes en haut. « Opgelost » = résolu : la carte passe dans la liste « Opgelost » (rien n’est effacé). « Delen » = partager la liste (Messages, e-mail…) avec ton prof ou quelqu’un d’autre : c’est toi qui l’envoies, rien ne part tout seul. |
 | topics | Choisis un ou plusieurs thèmes : les prochaines séances ne montrent que les cartes de ces thèmes (révisions et nouvelles cartes). « Alle onderwerpen » = tous les thèmes. 🔒 « nog dicht » = pas encore ouvert : ce thème s’ouvrira quand le précédent sera bien su. Touche « Klaar » pour revenir. |
 | break | C’est la pause ! Fais ce petit exercice en néerlandais, loin de l’écran : pas besoin de répondre dans l’appli. Touche « OK » pour fermer. La prochaine séance sera possible après la pause. |

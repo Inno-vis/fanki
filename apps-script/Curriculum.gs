@@ -75,7 +75,7 @@ function updateCurriculumDashboard_(force) {
 
   var dash = ss.getSheetByName('Dashboard');
   dash.getRange('D1:I40').clearContent();
-  var rows = [['Curriculum (tag)', 'gekend', 'score', 'open', 'dagen tot automatisch open', 'eerst gezien']];
+  var rows = [['Curriculum (tag)', 'bekend', 'score', 'open', 'dagen tot automatisch open', 'eerst gezien']];
   status.forEach(function (s) {
     rows.push([s.tag, s.mature + ' / ' + s.cards, s.score, s.unlocked ? 'ja' : 'nee', s.daysLeft, s.firstShown || '']);
   });

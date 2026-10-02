@@ -28,7 +28,7 @@ var SETTINGS_DEFAULTS = [
   ['desired_retention', 0.9, 'Gewenste kans om het te onthouden (FSRS, 0.7–0.97)'],
   ['compliments_enabled', true, 'Complimenten tonen'],
   ['unlock_prod_stability_days', 3, 'Stabiliteit (dagen) van herkennen voordat de richting FR → NL start'],
-  ['mature_stability_days', 21, 'Een kaart is "gekend" vanaf deze stabiliteit in dagen (curriculum)'],
+  ['mature_stability_days', 21, 'Een kaart is "bekend" vanaf deze stabiliteit in dagen (curriculum)'],
   ['show_french_help', true, 'Knop "Hulp" en Franse uitleg tonen (uitvinken als ze klaar is)'],
   ['session_max_cards', 15, 'Kaarten per sessie voordat de app vraagt om door te gaan'],
   ['session_max_minutes', 8, 'Minuten per sessie voordat de app vraagt om door te gaan'],

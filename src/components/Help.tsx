@@ -1,19 +1,29 @@
 import { useState } from 'preact/hooks';
 import { HELP, t, type HelpScreen } from '../i18n';
 import { useShowFrenchHelp } from '../prefs';
+import { helpSeen, isHelpUpdated, markHelpSeen } from '../helpSeen';
 
 /** "Hulp" button + panel with the French instructions for one screen. Hidden when show_french_help is off. */
 export function HelpButton({ screen }: { screen: HelpScreen }) {
   const show = useShowFrenchHelp();
   const [open, setOpen] = useState(false);
+  const [, rerender] = useState(0);
   if (!show) return null;
+  const text = HELP[screen].fr;
+  const updated = isHelpUpdated(helpSeen(screen), text);
+  const openHelp = () => {
+    markHelpSeen(screen, text);
+    setOpen(true);
+    rerender((n) => n + 1);
+  };
   return (
     <>
-      <button class="help-btn" onClick={() => setOpen(true)} aria-haspopup="dialog">
+      <button class={`help-btn${updated ? ' updated' : ''}`} onClick={openHelp} aria-haspopup="dialog">
         <span class="help-icon" aria-hidden="true">
           ?
         </span>
         {t('help.button')}
+        {updated && <span class="help-new">{t('help.updated')}</span>}
       </button>
       {open && (
         <div class="sheet-backdrop" onClick={() => setOpen(false)}>

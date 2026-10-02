@@ -268,6 +268,18 @@ body {
   font-weight: 700;
 }
 
+.help-btn.updated {
+  box-shadow: 0 0 0 2px var(--again);
+}
+
+.help-new {
+  background: var(--again);
+  color: #fff;
+  border-radius: 999px;
+  font-size: 12px;
+  padding: 1px 7px;
+}
+
 .sheet-backdrop {
   position: fixed;
   inset: 0;

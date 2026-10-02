@@ -55,7 +55,7 @@ export const UI = {
   // Voortgang (progress overview)
   'progress.title': { nl: 'Voortgang', fr: 'Ma progression' },
   'progress.learned': { nl: 'kaarten geoefend (van {n})', fr: 'cartes déjà travaillées (sur {n} en tout)' },
-  'progress.known': { nl: 'kaarten gekend', fr: 'cartes bien sues (elles reviennent dans 3 semaines ou plus)' },
+  'progress.known': { nl: 'kaarten bekend', fr: 'cartes bien sues (elles reviennent dans 3 semaines ou plus)' },
   'progress.week': { nl: 'herhalingen deze week', fr: 'révisions ces 7 derniers jours' },
   'progress.streak': { nl: 'dagen op rij', fr: 'jours de suite avec au moins une révision' },
   'progress.dueToday': { nl: 'vandaag', fr: 'cartes à revoir aujourd’hui' },
@@ -124,6 +124,7 @@ export const UI = {
   'help.button': { nl: 'Hulp', fr: 'Aide' },
   'help.title': { nl: 'Hulp', fr: 'Aide' },
   'help.close': { nl: 'Sluiten', fr: 'Fermer' },
+  'help.updated': { nl: 'nieuw', fr: 'l’aide de cet écran a changé : touche « Hulp » pour la relire' },
 
   // Rating buttons (labels + meanings live in RATINGS below)
   'rating.aria': { nl: '{label}, {interval}', fr: '{label}, {interval}' },
@@ -150,7 +151,7 @@ export const HELP = {
   progress: {
     nl: 'Hier zie je je voortgang.',
     fr:
-      'Ta progression : « kaarten geoefend » = cartes déjà travaillées, « kaarten gekend » = cartes bien sues, ' +
+      'Ta progression : « kaarten geoefend » = cartes déjà travaillées, « kaarten bekend » = cartes bien sues, ' +
       '« herhalingen deze week » = révisions des 7 derniers jours, « dagen op rij » = jours de suite. ' +
       'En bas : combien de cartes reviennent aujourd’hui (vandaag), demain (morgen) ' +
       'et cette semaine (deze week).'

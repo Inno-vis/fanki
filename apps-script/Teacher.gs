@@ -50,13 +50,36 @@ function reviewRow_(r, isInbox) {
   return c;
 }
 
-function findById_(sh, id) {
-  return readTable_(sh).rows.filter(function (r) { return String(r.id) === String(id); })[0] || null;
+/** Header row only (one small read). */
+function headersOf_(sh) {
+  return sh.getRange(1, 1, 1, Math.max(sh.getLastColumn(), 1)).getValues()[0].map(String);
 }
 
-/** Writes the editable fields (client codes → Dutch sheet values) into one row. */
+/**
+ * One row by id without reading the whole tab: Sheets' TextFinder on column A, then just that row.
+ * Returns the row object with `_row` (like readTable_ rows) or null.
+ */
+function findById_(sh, id) {
+  if (!id) return null;
+  var last = sh.getLastRow();
+  if (last < 2) return null;
+  var hit = sh.getRange(2, 1, last - 1, 1).createTextFinder(String(id)).matchEntireCell(true).matchCase(true).findNext();
+  if (!hit) return null;
+  var headers = headersOf_(sh);
+  var values = sh.getRange(hit.getRow(), 1, 1, headers.length).getValues()[0];
+  var o = { _row: hit.getRow() };
+  headers.forEach(function (h, j) { o[h] = values[j]; });
+  return o;
+}
+
+/**
+ * Merges the editable fields (client codes → Dutch sheet values) into `row` and writes the whole row in ONE call.
+ * Returns the updated row object (no re-read needed). Text columns are already plain-text formatted by setup.
+ */
 function writeFields_(sh, row, fields) {
-  var headers = readTable_(sh).headers;
+  var headers = headersOf_(sh);
+  var o = {};
+  headers.forEach(function (h) { o[h] = row[h]; });
   REVIEW_EDITABLE.forEach(function (k) {
     if (!fields.hasOwnProperty(k)) return;
     var v = fields[k];
@@ -65,9 +88,11 @@ function writeFields_(sh, row, fields) {
     else if (k === 'flags') v = (Array.isArray(v) ? v : splitTags_(v)).join(', ');
     else if (k === 'article') v = v === 'de' || v === 'het' ? v : '';
     else v = String(v == null ? '' : v).trim();
-    var col = headers.indexOf(k) + 1;
-    if (col) sh.getRange(row._row, col).setNumberFormat(k === 'tags' || k === 'flags' || k === 'type' || k === 'article' ? 'General' : '@').setValue(v);
+    o[k] = v;
   });
+  sh.getRange(row._row, 1, 1, headers.length).setValues([headers.map(function (h) { return o[h] === undefined ? '' : o[h]; })]);
+  o._row = row._row;
+  return o;
 }
 
 /** Required fields per type (Dutch messages for the page). */
@@ -129,22 +154,23 @@ function reviewSave(source, id, fields) {
     var sh = sheet_(source === 'cards' ? 'Cards' : 'Inbox');
     var row = findById_(sh, id);
     if (!row) throw new Error('Rij niet gevonden (al verplaatst?)');
-    writeFields_(sh, row, fields || {});
-    return reviewRow_(findById_(sh, id), source !== 'cards');
+    return reviewRow_(writeFields_(sh, row, fields || {}), source !== 'cards');
   });
 }
 
 /** Goedkeuren: save the edits, validate, move the Inbox row to Cards (added = today, active). */
 function reviewApprove(id, fields) {
   requireTeacher_();
-  return withLock_(function () {
+  return withLock_(function () { return approveRow_(id, fields); });
+}
+
+/** The approve work itself (caller holds the lock). */
+function approveRow_(id, fields) {
+  {
     var inbox = sheet_('Inbox');
     var row = findById_(inbox, id);
     if (!row) throw new Error('Rij niet gevonden (al verplaatst?)');
-    if (fields) {
-      writeFields_(inbox, row, fields);
-      row = findById_(inbox, id);
-    }
+    if (fields) row = writeFields_(inbox, row, fields);
     var c = reviewRow_(row, true);
     var errors = validateCard_(c);
     if (errors.length) return { ok: false, errors: errors };
@@ -159,24 +185,24 @@ function reviewApprove(id, fields) {
     writeCardRows_(cards, [rowFromObject_(CARD_COLS, o)]);
     inbox.deleteRow(row._row);
     return { ok: true, id: o.id };
-  });
+  }
 }
 
 /** Keur alle goed: approves several Inbox rows in one go (rows marked "nakijken" are skipped). */
 function reviewApproveMany(ids) {
   requireTeacher_();
-  var results = [];
-  (ids || []).forEach(function (id) {
-    var row = findById_(sheet_('Inbox'), id);
-    if (row && statusCode_(row.status) === 'review') { results.push({ id: id, ok: false, errors: ['gemarkeerd om na te kijken'] }); return; }
-    try {
-      var r = reviewApprove(id, null);
-      results.push({ id: id, ok: r.ok, errors: r.errors || [] });
-    } catch (e) {
-      results.push({ id: id, ok: false, errors: [String(e.message || e)] });
-    }
+  return withLock_(function () {
+    return (ids || []).map(function (id) {
+      try {
+        var row = findById_(sheet_('Inbox'), id);
+        if (row && statusCode_(row.status) === 'review') return { id: id, ok: false, errors: ['gemarkeerd om na te kijken'] };
+        var r = approveRow_(id, null);
+        return { id: id, ok: r.ok, errors: r.errors || [] };
+      } catch (e) {
+        return { id: id, ok: false, errors: [String(e.message || e)] };
+      }
+    });
   });
-  return results;
 }
 
 /** 🚩 Nakijken: mark an Inbox row to check later (status nakijken) or unmark it (voorgesteld). */
@@ -186,7 +212,7 @@ function reviewSetFlag(id, flagged) {
     var inbox = sheet_('Inbox');
     var row = findById_(inbox, id);
     if (!row) throw new Error('Rij niet gevonden (al verplaatst?)');
-    var col = readTable_(inbox).headers.indexOf('status') + 1;
+    var col = headersOf_(inbox).indexOf('status') + 1;
     inbox.getRange(row._row, col).setValue(flagged ? STATUS_NL.review : STATUS_NL.proposed);
     return reviewRow_(findById_(inbox, id), true);
   });

@@ -50,7 +50,7 @@
   <h1>Fanki – controleren <span class="env" id="env"></span></h1>
   <div class="seg" id="source"><button data-v="inbox" class="on">Inbox</button><button data-v="cards">Kaarten</button></div>
   <div class="seg" id="mode"><button data-v="one" class="on">Eén voor één</button><button data-v="list">Lijst (5)</button></div>
-  <div class="stats"><span id="progress"></span> · goedgekeurd <b id="nApproved">0</b> · afgewezen <b id="nRejected">0</b> · <span id="who"></span> · <span id="build" title="versie van deze pagina"></span></div>
+  <div class="stats"><span id="progress"></span> · goedgekeurd <b id="nApproved">0</b> · afgewezen <b id="nRejected">0</b> · <span id="who"></span> · <span id="build" title="versie van deze pagina"></span> <b id="pending"></b></div>
 </header>
 <main>
   <div class="bar" id="inboxBar">
@@ -90,6 +90,7 @@ function typeNl(code) { var t = (S.boot.types.filter(function (x) { return x.cod
 
 // ---------- loading ----------
 function load() {
+  if (Q.running || Q.jobs.length) { setTimeout(load, 400); return; } // let background saves finish first
   S.busy = true; render();
   var p = S.source === 'inbox' ? run('reviewListInbox').then(function (rows) { S.all = rows; applyFilter(); })
     : run('reviewListCards', S.cards.offset, 50, S.cards.q, S.cards.tag).then(function (res) { S.items = res.rows; S.cards.total = res.total; });
@@ -136,54 +137,108 @@ function formFor(item) {
   return { node: grid, values: f };
 }
 
-// ---------- actions ----------
+// ---------- actions (optimistic: the page moves on at once, the server works in the background) ----------
+var Q = { jobs: [], running: false };
+
+/** Same required-field rules as validateCard_ on the server, so background approvals rarely fail. */
+function validate(c) {
+  var errors = [];
+  var type = c.type || 'word';
+  if (!String(c.nl || '').trim()) errors.push('nl ontbreekt');
+  if (type === 'oneway' && !String(c.answer || '').trim()) errors.push('answer ontbreekt (enkel)');
+  if (type !== 'oneway' && !String(c.fr || '').trim()) errors.push('fr ontbreekt');
+  if (type === 'sentence' && !/\{[^}]+\}/.test(String(c.nl || ''))) errors.push('zin: zet het doelwoord tussen {accolades}');
+  if (type === 'word' && /zelfstandig|noun/i.test(String(c.pos || '')) && c.article !== 'de' && c.article !== 'het') errors.push('zelfstandig naamwoord zonder de/het');
+  return errors;
+}
+function merged(item, values) { var o = {}; Object.keys(item).forEach(function (k) { o[k] = item[k]; }); Object.keys(values || {}).forEach(function (k) { o[k] = values[k]; }); return o; }
+
+function enqueue(job) { Q.jobs.push(job); pending(); pump(); }
+function pending() {
+  var n = Q.jobs.length + (Q.running ? 1 : 0);
+  $('pending').textContent = n ? '⏳ ' + n + ' bezig…' : '';
+}
+function pump() {
+  if (Q.running || !Q.jobs.length) return;
+  var job = Q.jobs.shift(); Q.running = true; pending();
+  job.run().then(function (res) { job.done && job.done(res); }, function (e) { job.fail && job.fail(e); })
+    .then(function () { Q.running = false; pending(); render(); pump(); });
+}
+window.addEventListener('beforeunload', function (e) {
+  if (Q.running || Q.jobs.length) { e.preventDefault(); e.returnValue = ''; }
+});
+
+/** Takes a row out of the list now; returns a function that puts it back (used when the server says no). */
+function takeOut(item) {
+  var ia = S.all.indexOf(item), ii = S.items.indexOf(item);
+  removeItem(item.id);
+  return function () {
+    if (ia >= 0) S.all.splice(Math.min(ia, S.all.length), 0, item);
+    if (ii >= 0) S.items.splice(Math.min(ii, S.items.length), 0, item);
+  };
+}
+function back(msg) { return function (e) { alert(msg + ': ' + ((e && e.message) || e)); }; }
+
 function act(kind, item, values) {
-  if (S.busy) return;
-  S.busy = true; render();
-  var id = item.id, p;
-  if (kind === 'approve') p = run('reviewApprove', id, values || null).then(function (r) {
-    if (!r.ok) { S.busy = false; render(); showErrors(r.errors); return; }
-    S.approved++; removeItem(id); toast('Goedgekeurd');
-  });
-  else if (kind === 'flag') p = run('reviewSetFlag', id, item.status !== 'review').then(function (fresh) {
-    S.items = S.items.map(function (x) { return x.id === id ? fresh : x; }); syncAll();
-    toast(fresh.status === 'review' ? '🚩 Nakijken' : 'Niet meer gemarkeerd');
-  });
-  else if (kind === 'reject') {
-    if (!confirm('"' + item.nl + '" afwijzen? De rij wordt uit de Inbox verwijderd.')) { S.busy = false; render(); return; }
-    p = run('reviewReject', id).then(function () { S.rejected++; removeItem(id); toast('Afgewezen'); });
+  var id = item.id;
+  if (kind === 'approve') {
+    var errs = validate(merged(item, values));
+    if (errs.length) { showErrors(errs); return; }
+    var putBack = takeOut(item); S.approved++; toast('Goedgekeurd'); render();
+    enqueue({
+      run: function () { return run('reviewApprove', id, values || null); },
+      done: function (r) { if (!r.ok) { putBack(); S.approved--; alert('"' + item.nl + '" niet goedgekeurd: ' + r.errors.join(', ')); } },
+      fail: function (e) { putBack(); S.approved--; back('"' + item.nl + '" niet goedgekeurd')(e); }
+    });
+  } else if (kind === 'reject') {
+    if (!confirm('"' + item.nl + '" afwijzen? De rij wordt uit de Inbox verwijderd.')) return;
+    var putBackR = takeOut(item); S.rejected++; toast('Afgewezen'); render();
+    enqueue({ run: function () { return run('reviewReject', id); }, fail: function (e) { putBackR(); S.rejected--; back('"' + item.nl + '" niet afgewezen')(e); } });
   } else if (kind === 'toInbox') {
-    if (!confirm('"' + item.nl + '" terug naar de Inbox? De kaart verdwijnt uit de app tot ze weer goedgekeurd is.')) { S.busy = false; render(); return; }
-    p = run('reviewCardToInbox', id).then(function () { removeItem(id); toast('Terug naar Inbox'); });
-  } else {
-    p = run('reviewSave', S.source, id, values).then(function (fresh) {
-      S.items = S.items.map(function (x) { return x.id === id ? fresh : x; }); syncAll();
-      toast('Opgeslagen');
-      if (kind === 'saveNext') S.idx = Math.min(S.idx + 1, S.items.length - 1);
+    if (!confirm('"' + item.nl + '" terug naar de Inbox? De kaart verdwijnt uit de app tot ze weer goedgekeurd is.')) return;
+    var putBackT = takeOut(item); toast('Terug naar Inbox'); render();
+    enqueue({ run: function () { return run('reviewCardToInbox', id); }, fail: function (e) { putBackT(); back('"' + item.nl + '" niet verplaatst')(e); } });
+  } else if (kind === 'flag') {
+    var flagged = item.status !== 'review';
+    item.status = flagged ? 'review' : 'proposed'; toast(flagged ? '🚩 Nakijken' : 'Niet meer gemarkeerd'); render();
+    enqueue({ run: function () { return run('reviewSetFlag', id, flagged); }, fail: function (e) { item.status = flagged ? 'proposed' : 'review'; back('🚩 niet opgeslagen')(e); } });
+  } else { // save / saveNext: keep the edits locally at once
+    var before = merged(item, {});
+    Object.keys(values || {}).forEach(function (k) { item[k] = values[k]; });
+    toast('Opgeslagen');
+    if (kind === 'saveNext') S.idx = Math.min(S.idx + 1, S.items.length - 1);
+    render();
+    enqueue({
+      run: function () { return run('reviewSave', S.source, id, values); },
+      fail: function (e) { Object.keys(before).forEach(function (k) { item[k] = before[k]; }); back('"' + item.nl + '" niet opgeslagen')(e); }
     });
   }
-  p.then(function () { S.busy = false; render(); }, fail);
 }
+
 function approveMany(rows) {
-  var ids = rows.filter(function (x) { return x.status !== 'review'; }).map(function (x) { return x.id; });
-  var skipped = rows.length - ids.length;
-  if (!ids.length) { toast('Alle 5 zijn gemarkeerd om na te kijken'); return; }
-  if (!confirm(ids.length + ' kaart(en) goedkeuren' + (skipped ? ' (' + skipped + ' met 🚩 overgeslagen)' : '') + '?')) return;
-  S.busy = true; render();
-  run('reviewApproveMany', ids).then(function (res) {
-    var ok = res.filter(function (r) { return r.ok; });
-    ok.forEach(function (r) { S.approved++; removeItem(r.id); });
-    var bad = res.filter(function (r) { return !r.ok; });
-    S.busy = false; render();
-    toast(ok.length + ' goedgekeurd');
-    if (bad.length) alert('Niet goedgekeurd:\n' + bad.map(function (r) {
-      var it = S.all.filter(function (x) { return x.id === r.id; })[0];
-      return (it ? it.nl : r.id) + ': ' + r.errors.join(', ');
-    }).join('\n'));
-  }, fail);
+  var ok = [], bad = [];
+  rows.forEach(function (x) {
+    if (x.status === 'review') return;
+    var errs = validate(x);
+    if (errs.length) bad.push(x.nl + ': ' + errs.join(', ')); else ok.push(x);
+  });
+  var skipped = rows.length - ok.length - bad.length;
+  if (!ok.length) { alert(bad.length ? 'Niet goed te keuren:\n' + bad.join('\n') : 'Alle rijen zijn gemarkeerd om na te kijken'); return; }
+  if (!confirm(ok.length + ' kaart(en) goedkeuren' + (skipped ? ' (' + skipped + ' met 🚩 overgeslagen)' : '') + (bad.length ? ' (' + bad.length + ' met fouten blijven staan)' : '') + '?')) return;
+  var putBacks = ok.map(takeOut); S.approved += ok.length; toast(ok.length + ' goedgekeurd'); render();
+  if (bad.length) alert('Blijven in de Inbox (eerst verbeteren):\n' + bad.join('\n'));
+  enqueue({
+    run: function () { return run('reviewApproveMany', ok.map(function (x) { return x.id; })); },
+    done: function (res) {
+      var failed = res.filter(function (r) { return !r.ok; });
+      failed.forEach(function (r) { var i = ok.map(function (x) { return x.id; }).indexOf(r.id); if (i >= 0) putBacks[i](); S.approved--; });
+      if (failed.length) alert('Niet goedgekeurd:\n' + failed.map(function (r) { return r.id + ': ' + r.errors.join(', '); }).join('\n'));
+    },
+    fail: function (e) { putBacks.forEach(function (f) { f(); }); S.approved -= ok.length; back('Niet goedgekeurd')(e); }
+  });
 }
 function removeItem(id) { S.all = S.all.filter(function (x) { return x.id !== id; }); S.items = S.items.filter(function (x) { return x.id !== id; }); S.idx = Math.min(S.idx, Math.max(0, S.items.length - 1)); }
-function showErrors(errs) { var e = document.querySelector('.errors'); if (e) e.textContent = 'Niet goedgekeurd: ' + errs.join(' · '); }
+function showErrors(errs) { var e = document.querySelector('.errors'); if (e) e.textContent = 'Niet goedgekeurd: ' + errs.join(' · '); else alert('Niet goedgekeurd: ' + errs.join(', ')); }
 
 // ---------- render ----------
 var current = null;
@@ -275,7 +330,7 @@ $('q').addEventListener('keydown', function (e) { if (e.key === 'Enter') $('sear
 $('pagePrev').addEventListener('click', function () { S.cards.offset = Math.max(0, S.cards.offset - 50); S.idx = 0; load(); });
 $('pageNext').addEventListener('click', function () { if (S.cards.offset + 50 < S.cards.total) { S.cards.offset += 50; S.idx = 0; load(); } });
 document.addEventListener('keydown', function (e) {
-  if (S.mode !== 'one' || !current || S.busy) return;
+  if (S.mode !== 'one' || !current || S.busy) return; // S.busy = only while a list is loading
   var typing = /INPUT|SELECT|TEXTAREA/.test(e.target.tagName);
   if ((e.metaKey || e.ctrlKey) && e.key === 'Enter') { e.preventDefault(); act('saveNext', current.item, current.form.values); return; }
   if (typing || e.metaKey || e.ctrlKey || e.altKey) return;

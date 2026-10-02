@@ -51,6 +51,7 @@ from `apps-script/UserInfo.gs` (your own edits in the tab are then replaced).
 | answer | text | **enkel only**: the back of the card, shown after "Antwoord tonen". Display text — never checked. |
 | added | date | New cards are introduced in `added` order. Filled with today if blank. |
 | active | checkbox | Untick to hide a card without deleting it (progress is kept). |
+| controle | `gecontroleerd` \| `nakijken` \| blank | Teacher bookkeeping only (the app ignores it). Blank = not checked by the teacher yet (all AI-made cards started blank on 2026-10-02). Set on the teacher page; approving an Inbox row sets `gecontroleerd`. |
 
 ### Seed data
 
@@ -165,8 +166,12 @@ A web page in your browser, no tools needed: review the Inbox and edit Cards.
   fr, answer (enkel), examples, tags (from the Tags tab) and flags.
   - **Goedkeuren** (A): checks the required fields, then moves the row into Cards (added = today, active).
   - **Afwijzen** (R): deletes the Inbox row. **Opslaan** (S): saves, stays `voorgesteld`.
-- **Kaarten**: search / filter by tag, 50 per page; **Opslaan** writes back to Cards; **Terug naar Inbox** moves a
-  card back (it disappears from the app until approved again; same id, so her progress returns).
+- **Kaarten**: search / filter by tag and by `controle`: "Nog niet gecontroleerd" (default: blank or 🚩),
+  "🚩 Nakijken", "Alle kaarten" (counts in the menu). **Gecontroleerd** (C) saves any edits and sets
+  `gecontroleerd`; **🚩 Nakijken** (F) sets/clears `nakijken`; in Lijst (5) **Alle 5 gecontroleerd** checks the
+  visible rows except the 🚩 ones. The card stays in the app either way. **Opslaan** writes back to Cards;
+  **Terug naar Inbox** moves a card back (it disappears from the app until approved again; same id, so her
+  progress returns).
 - **Eén voor één** (full form, keys A/R/S, F 🚩 nakijken, J next, K previous, ⌘/Ctrl+Enter save & next) or
   **Lijst (5)** to scan quickly: "Detail" opens a row, ⚐/🚩 marks it "nakijken", and **Keur alle 5 goed** (between
   "‹ Vorige 5" and "Volgende 5 ›") approves the visible rows except the 🚩 ones. Filter "alleen 🚩 nakijken". The header shows "12 van 47" and the session's approved/rejected.

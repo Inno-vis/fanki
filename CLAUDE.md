@@ -73,6 +73,9 @@ The repo is **public** and hosted on GitHub Pages.
   serves it. Page ↔ server via google.script.run (`review*` functions, each `requireTeacher_()`); no token.
 - Inbox status `nakijken` (🚩 per row / F key): stays in the Inbox, skipped by "Keur alle 5 goed"
   (`reviewApproveMany`), filter "alleen 🚩 nakijken".
+- Cards.`controle` (`gecontroleerd|nakijken|blank` → `checked|review|''`, `CHECK_NL`/`checkCode_`): the teacher's
+  "have I checked this AI-made card" mark, set via `reviewSetCheck`; the learner API ignores it. All cards
+  started blank (2026-10-02).
 
 ## Listening and Voortgang
 

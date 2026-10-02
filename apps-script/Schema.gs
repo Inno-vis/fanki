@@ -4,7 +4,9 @@ var CARD_COLS = ['id', 'type', 'nl', 'article', 'pos', 'fr', 'example_nl', 'exam
   'tags', 'tags_source', 'flags', 'answer', 'added', 'active'];
 
 var SCHEMA = {
-  Cards: CARD_COLS,
+  // `controle` (Cards only, last column): the teacher's review of each card — '' = nog niet, gecontroleerd,
+  // nakijken. Bookkeeping only: the learner's app never sees it.
+  Cards: CARD_COLS.concat(['controle']),
   Progress: ['card_id', 'track', 'state', 'due', 'stability', 'difficulty', 'reps', 'lapses', 'last_review', 'first_review'],
   Log: ['event_id', 'card_id', 'track', 'ts', 'rating', 'mode', 'duration_ms', 'snapshot'],
   Tags: ['tag', 'label_nl', 'label_fr', 'description', 'subject_nl'],

@@ -94,6 +94,7 @@ function applyCardValidation_(sh, isInbox) {
   sh.getRange('L2:L').setNumberFormat('@').clearDataValidations(); // answer
   sh.getRange('N2:N').setDataValidation(SpreadsheetApp.newDataValidation().requireCheckbox().build());
   if (isInbox) sh.getRange('O2:O').setDataValidation(list([STATUS_NL.proposed, STATUS_NL.review, STATUS_NL.approved]));
+  else sh.getRange('O2:O').setDataValidation(list([CHECK_NL.checked, CHECK_NL.review])); // Cards.controle
 }
 
 function seedSettings_(sh) {

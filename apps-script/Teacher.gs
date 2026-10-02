@@ -46,6 +46,7 @@ function reviewRow_(r, isInbox) {
   var c = cardToJson_(r);
   c.row = r._row;
   c.status = isInbox ? (statusCode_(r.status) || 'proposed') : '';
+  c.check = isInbox ? '' : checkCode_(r.controle);
   c.pos = String(r.pos || '');
   return c;
 }
@@ -133,19 +134,46 @@ function reviewListInbox() {
     .sort(function (a, b) { return a.added.localeCompare(b.added) || a.row - b.row; });
 }
 
-/** Cards, paged; optional text query (nl/fr/answer) and tag. */
-function reviewListCards(offset, limit, query, tag) {
+/**
+ * Cards, paged; optional text query (nl/fr/answer), tag, and check filter: 'unchecked' (default: not checked yet,
+ * incl. nakijken), 'review' (🚩 nakijken only), 'all'. Also returns counts per check state.
+ */
+function reviewListCards(offset, limit, query, tag, check) {
   requireTeacher_();
   var q = String(query || '').trim().toLowerCase();
-  var all = readTable_(sheet_('Cards')).rows.filter(function (r) { return String(r.id).trim() && String(r.nl).trim(); })
-    .map(function (r) { return reviewRow_(r, false); })
-    .filter(function (c) {
-      if (tag && c.tags.indexOf(tag) === -1) return false;
-      return !q || (c.nl + ' ' + c.fr + ' ' + c.answer).toLowerCase().indexOf(q) !== -1;
-    });
+  check = check || 'unchecked';
+  var cards = readTable_(sheet_('Cards')).rows.filter(function (r) { return String(r.id).trim() && String(r.nl).trim(); })
+    .map(function (r) { return reviewRow_(r, false); });
+  var counts = { unchecked: 0, review: 0, checked: 0, all: cards.length };
+  cards.forEach(function (c) { if (c.check === 'checked') counts.checked++; else counts.unchecked++; if (c.check === 'review') counts.review++; });
+  var all = cards.filter(function (c) {
+    if (check === 'unchecked' && c.check === 'checked') return false;
+    if (check === 'review' && c.check !== 'review') return false;
+    if (tag && c.tags.indexOf(tag) === -1) return false;
+    return !q || (c.nl + ' ' + c.fr + ' ' + c.answer).toLowerCase().indexOf(q) !== -1;
+  });
   offset = Math.max(0, Number(offset) || 0);
   limit = Math.min(200, Math.max(1, Number(limit) || 50));
-  return { total: all.length, offset: offset, rows: all.slice(offset, offset + limit) };
+  return { total: all.length, offset: offset, rows: all.slice(offset, offset + limit), counts: counts };
+}
+
+/** Kaarten: set `controle` for one or more cards: 'checked' (gecontroleerd), 'review' (🚩 nakijken) or '' (reset). */
+function reviewSetCheck(ids, value) {
+  requireTeacher_();
+  var v = value === 'checked' || value === 'review' ? CHECK_NL[value] : '';
+  return withLock_(function () {
+    var sh = sheet_('Cards');
+    var col = headersOf_(sh).indexOf('controle') + 1;
+    if (!col) throw new Error('Kolom controle ontbreekt (setup draaien)');
+    var done = [];
+    (ids || []).forEach(function (id) {
+      var row = findById_(sh, id);
+      if (!row) return;
+      sh.getRange(row._row, col).setValue(v);
+      done.push(id);
+    });
+    return { done: done };
+  });
 }
 
 function reviewSave(source, id, fields) {
@@ -182,7 +210,8 @@ function approveRow_(id, fields) {
     if (!o.id || taken) o.id = newId_('c_');
     o.added = today;
     o.active = true;
-    writeCardRows_(cards, [rowFromObject_(CARD_COLS, o)]);
+    o.controle = CHECK_NL.checked; // the teacher just reviewed it
+    writeCardRows_(cards, [rowFromObject_(SCHEMA.Cards, o)]);
     inbox.deleteRow(row._row);
     return { ok: true, id: o.id };
   }

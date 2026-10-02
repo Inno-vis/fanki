@@ -129,6 +129,14 @@ var TYPE_NL = { word: 'dubbel', oneway: 'enkel', sentence: 'zin', question: 'vra
 var TYPE_ALIASES = { woord: 'word', calc: 'oneway' }; // older sheet values, still read
 var SOURCE_NL = { manual: 'handmatig', auto: 'automatisch' };
 var STATUS_NL = { proposed: 'voorgesteld', review: 'nakijken', approved: 'goedgekeurd' };
+var CHECK_NL = { checked: 'gecontroleerd', review: 'nakijken' }; // Cards.controle ('' = not checked yet)
+
+/** Cards.controle → 'checked' | 'review' | ''. */
+function checkCode_(v) {
+  var s = String(v || '').trim().toLowerCase();
+  if (CHECK_NL[s]) return s;
+  return invert_(CHECK_NL)[s] || '';
+}
 // Old English tag keys → Dutch keys (used by the one-time migration and to convert seed lines).
 var TAG_RENAME = { household: 'huishouden', family: 'familie', travel: 'reizen', food: 'eten', work: 'werk',
   health: 'gezondheid', shopping: 'winkelen', time: 'tijd' };

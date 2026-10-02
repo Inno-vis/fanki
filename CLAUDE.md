@@ -72,6 +72,18 @@ The repo is **public** and hosted on GitHub Pages.
   TEACHER_DOMAIN (`admin <env> setTeachers`). The anonymous API deployment has no userinfo scope → never
   serves it. Page ↔ server via google.script.run (`review*` functions, each `requireTeacher_()`); no token.
 
+## Listening and Voortgang
+
+- `src/tts.ts`: phone voices only (Web Speech API, offline with an installed voice). `pickDutchVoice` prefers
+  nl-NL, then nl-BE, then any nl. 🔊 (`SpeakButton`) on the Dutch side of every card; without a Dutch voice it
+  shows "Geen Nederlandse stem op deze telefoon." (Hulp explains how to install one on iPhone/Android).
+- Listening cards: with a Dutch voice, about Settings.`listen_share` (0.3) of word-recognition reviews start
+  with only the sound ("Wat hoor je?"), Log mode `listen` (`isListeningReview`, deterministic per card+reps).
+- "Voortgang" (`screens/ProgressScreen.tsx`, `src/stats.ts`): geoefend / gekend / reviews this week / streak /
+  7-day chart / due today-tomorrow-7 days. Per-day counts are stored on the phone (`meta.dayCounts`, written
+  in the same transaction as each rating) — they start counting from that update.
+- `src/curriculumParity.test.ts` loads the real Curriculum.gs and compares it with curriculum.ts.
+
 ## Android (additive; same service worker, caching and IndexedDB)
 
 - Manifest icons: 192/512 `purpose: any` + 512 `maskable` (content inside the inner ~78 %; DEV badge inside
@@ -203,3 +215,5 @@ Slash commands in `.claude/commands/` (all go through `scripts/admin.mjs`, defau
   (status voorgesteld). Never writes Cards.
 - `/promote` — show `goedgekeurd` Inbox rows, wait for OK, `promoteInbox`.
 - `/addbreaks <n>` — new varied Breaks lines (axes + ≤ ~20 % rule), wait for OK, `appendBreaks`.
+
+Teacher review page: docs/SHEET.md › Teacher review page.

@@ -13,17 +13,29 @@ import { interleave, planToday, REQUEUE_WITHIN_MS, todaysIntro, type Item } from
 import { curriculumStatus, makePicker } from './curriculum';
 import { Topics } from './screens/Topics';
 import { Marked } from './screens/Marked';
+import { ProgressScreen } from './screens/ProgressScreen';
 import { Toast } from './components/Toast';
 import type { Card } from './types';
 import { resumable, type SessionState } from './sessionRules';
 import { resetCooldownOnNewDevBuild } from './devReset';
+import { isListeningReview, voicesReady } from './tts';
 
-type Screen = { name: 'home' } | { name: 'topics' } | { name: 'marked' } | { name: 'review'; items: Item[]; resume: SessionState | null };
+type Screen = { name: 'home' } | { name: 'topics' } | { name: 'marked' } | { name: 'progress' } | { name: 'review'; items: Item[]; resume: SessionState | null };
 
 export function App() {
   const online = useOnline();
   const s = useStore();
   const [screen, setScreen] = useState<Screen>({ name: 'home' });
+  const [hasVoice, setHasVoice] = useState(false);
+  useEffect(() => {
+    voicesReady().then((v) => setHasVoice(!!v));
+  }, []);
+  /** Session items; with a Dutch voice, some word-recognition reviews become listening cards. */
+  const sessionItems = () =>
+    interleave(plan).map((i) => ({
+      ...i,
+      listen: hasVoice && i.track === 'recog' && isListeningReview(i.card, i.progress?.reps ?? 0, s.settings.listen_share)
+    }));
 
   // Load what's on the phone first (works offline), then refresh from the sheet when online.
   useEffect(() => {
@@ -92,15 +104,17 @@ export function App() {
               {t('mark.badge', { n: s.flagsOpen })}
             </button>
           )}
-          <HelpButton screen={screen.name === 'topics' ? 'topics' : screen.name === 'marked' ? 'marked' : 'home'} />
+          <HelpButton screen={screen.name === 'home' ? 'home' : screen.name} />
         </div>
       </header>
       {screen.name === 'topics' ? (
         <Topics onDone={() => setScreen({ name: 'home' })} />
       ) : screen.name === 'marked' ? (
         <Marked onDone={() => setScreen({ name: 'home' })} />
+      ) : screen.name === 'progress' ? (
+        <ProgressScreen onDone={() => setScreen({ name: 'home' })} />
       ) : (
-      <Home onTopics={() => setScreen({ name: 'topics' })} due={plan.due.length} newToday={plan.fresh.length} onStart={() => setScreen({ name: 'review', items: interleave(plan), resume: resumable(s.openSession, s.settings, Date.now()) })} />
+      <Home onProgress={() => setScreen({ name: 'progress' })} onTopics={() => setScreen({ name: 'topics' })} due={plan.due.length} newToday={plan.fresh.length} onStart={() => setScreen({ name: 'review', items: sessionItems(), resume: resumable(s.openSession, s.settings, Date.now()) })} />
       )}
       <footer class="footer muted">
         {APP_ENV} · {BUILD_ID}

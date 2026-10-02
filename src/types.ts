@@ -36,6 +36,7 @@ export type Settings = {
   max_learning_backlog: number;
   session_resume_minutes: number;
   curriculum_only: boolean;
+  listen_share: number; // share of word-recognition reviews done as listening cards (0 = off)
 };
 
 /** One row of the Curriculum tab (sorted by order). max_wait_days null = no cap. */
@@ -63,7 +64,8 @@ export const DEFAULT_SETTINGS: Settings = {
   min_reviews_to_count: 3,
   max_learning_backlog: 3,
   session_resume_minutes: 30,
-  curriculum_only: true
+  curriculum_only: true,
+  listen_share: 0.3
 };
 
 export type CardsResponse = {

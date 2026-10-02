@@ -4,7 +4,7 @@ import { progressKey, tracksFor, type Progress, type Track } from './scheduler';
 export type Mode = 'nl_fr' | 'fr_nl' | 'cloze' | 'question' | 'oneway' | 'listen';
 
 /** learning = came back in this session after a short (re)learning step. */
-export type Item = { card: Card; track: Track; progress?: Progress; isNew: boolean; learning?: boolean };
+export type Item = { card: Card; track: Track; progress?: Progress; isNew: boolean; learning?: boolean; listen?: boolean };
 
 /** New cards introduced on one local day (so the daily cap survives closing the app). */
 export type Intro = { date: string; main: string[]; prod: string[] };
@@ -19,7 +19,8 @@ export function todaysIntro(intro: Intro | undefined, now = new Date()): Intro {
   return intro && intro.date === date ? intro : { date, main: [], prod: [] };
 }
 
-export function modeFor(card: Card, track: Track): Mode {
+export function modeFor(card: Card, track: Track, listen = false): Mode {
+  if (listen && card.type === 'word' && track === 'recog') return 'listen';
   if (card.type === 'sentence') return 'cloze';
   if (card.type === 'question') return 'question';
   if (card.type === 'oneway') return 'oneway';

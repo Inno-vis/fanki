@@ -24,6 +24,7 @@ export type State = {
   breaks: string[];
   studyTags: string[];
   openSession: SessionState | null;
+  dayCounts: Record<string, number>; // reviews per local day (Voortgang)
   flagsOpen: number; // 🚩 unresolved student flags
   flagsTotal: number;
 };
@@ -44,6 +45,7 @@ let state: State = {
   breaks: [],
   studyTags: [],
   openSession: null,
+  dayCounts: {},
   flagsOpen: 0,
   flagsTotal: 0
 };
@@ -74,7 +76,7 @@ export function byAdded(a: Card & { order?: number }, b: Card & { order?: number
 }
 
 export async function loadFromDb(): Promise<void> {
-  const [cards, settings, tags, compliments, lastSync, progress, intro, pending, curriculum, lastSession, breaks, studyTags, openSession] = await Promise.all([
+  const [cards, settings, tags, compliments, lastSync, progress, intro, pending, curriculum, lastSession, breaks, studyTags, openSession, dayCounts] = await Promise.all([
     allCards(),
     getSettings(),
     getMeta('tags'),
@@ -87,7 +89,8 @@ export async function loadFromDb(): Promise<void> {
     getMeta('lastSession'),
     getMeta('breaks'),
     getMeta('studyTags'),
-    getMeta('openSession')
+    getMeta('openSession'),
+    getMeta('dayCounts')
   ]);
   setState({
     loaded: true,
@@ -103,7 +106,8 @@ export async function loadFromDb(): Promise<void> {
     lastSession: lastSession ?? null,
     breaks: breaks ?? [],
     studyTags: studyTags ?? [],
-    openSession: openSession ?? null
+    openSession: openSession ?? null,
+    dayCounts: dayCounts ?? {}
   });
   await refreshFlagCount();
 }

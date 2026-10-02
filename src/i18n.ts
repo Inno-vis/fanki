@@ -48,6 +48,28 @@ export const UI = {
   'home.topicAll': { nl: 'Onderwerp: alle', fr: 'Thème : tous' },
   'home.topic': { nl: 'Onderwerp: {list}', fr: 'Thème : {list}' },
 
+  // Voortgang (progress overview)
+  'progress.title': { nl: 'Voortgang', fr: 'Ma progression' },
+  'progress.learned': { nl: 'kaarten geoefend (van {n})', fr: 'cartes déjà travaillées (sur {n} en tout)' },
+  'progress.known': { nl: 'kaarten gekend', fr: 'cartes bien sues (elles reviennent dans 3 semaines ou plus)' },
+  'progress.week': { nl: 'herhalingen deze week', fr: 'révisions ces 7 derniers jours' },
+  'progress.streak': { nl: 'dagen op rij', fr: 'jours de suite avec au moins une révision' },
+  'progress.chart': { nl: 'Herhalingen per dag', fr: 'Révisions par jour (7 derniers jours)' },
+  'progress.dueToday': { nl: 'vandaag', fr: 'cartes à revoir aujourd’hui' },
+  'progress.dueTomorrow': { nl: 'morgen', fr: 'cartes à revoir demain' },
+  'progress.due7': { nl: 'deze week', fr: 'cartes à revoir dans les 7 prochains jours' },
+
+  // Audio
+  'audio.listen': { nl: 'Luister', fr: 'Écouter' },
+  'audio.play': { nl: 'Luisteren', fr: 'Écouter le mot en néerlandais' },
+  'audio.question': { nl: 'Wat hoor je?', fr: 'Qu’est-ce que tu entends ? Essaie de comprendre le mot, puis montre la réponse.' },
+  'audio.noVoice': {
+    nl: 'Geen Nederlandse stem op deze telefoon.',
+    fr:
+      'Pas de voix néerlandaise sur ce téléphone. iPhone : Réglages › Accessibilité › Contenu énoncé › Voix › ' +
+      'Néerlandais (télécharger). Android : Paramètres › Synthèse vocale (Google) › Installer les données vocales › Néerlandais.'
+  },
+
   // Break screen (when a pause starts)
   'break.title': { nl: 'Sessie voltooid!', fr: 'Séance terminée !' },
   'break.ok': { nl: 'OK', fr: 'OK' },
@@ -120,6 +142,14 @@ export const HELP = {
       'prévue : « Volgende sessie over 42 minuten » = prochaine séance dans 42 minutes. Si tu reviens en ' +
       'arrière pendant une séance, « Doorgaan » te permet de la continuer.'
   },
+  progress: {
+    nl: 'Hier zie je je voortgang.',
+    fr:
+      'Ta progression : « kaarten geoefend » = cartes déjà travaillées, « kaarten gekend » = cartes bien sues, ' +
+      '« herhalingen deze week » = révisions des 7 derniers jours, « dagen op rij » = jours de suite. Le graphique ' +
+      'montre tes révisions par jour. En bas : combien de cartes reviennent aujourd’hui (vandaag), demain (morgen) ' +
+      'et cette semaine (deze week).'
+  },
   marked: {
     nl: 'Hier zie je je gemarkeerde kaarten.',
     fr:
@@ -151,6 +181,10 @@ export const HELP = {
       '« de » ou « het ». Badge « valse vriend » = faux ami. ' +
       'La barre en haut montre ta séance (« 9 van 15 kaarten » = 9 cartes sur 15). À la fin, ' +
       '« Nog 10 kaarten, graag! » = encore 10 cartes, « Stoppen » = arrêter. « Terug » = retour. ' +
+      '🔊 = écouter le mot en néerlandais. Parfois la carte commence seulement par le son (« Wat hoor je? ») : ' +
+      'écoute, devine, puis « Antwoord tonen ». S’il n’y a pas de voix néerlandaise sur ton téléphone : ' +
+      'iPhone : Réglages › Accessibilité › Contenu énoncé › Voix › Néerlandais ; Android : Paramètres › ' +
+      'Synthèse vocale › Installer les données vocales › Néerlandais. ' +
       '🚩 en haut de la carte = marquer une carte qui te pose question (appui long ou « + notitie » pour ' +
       'ajouter une note).'
   }

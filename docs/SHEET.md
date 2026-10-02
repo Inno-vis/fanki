@@ -191,6 +191,7 @@ to move them into Cards. Nothing is ever written to Cards by `/addwords`.
 | cooldown_minutes | 60 | Pause after a session before "Starten" works again (0 = no pause) |
 | min_reviews_to_count | 3 | A session shorter than this does not start a pause |
 | curriculum_only | TRUE | New cards only from open Curriculum topics; other topics and untagged cards stay locked (reviews of started cards continue) |
+| listen_share | 0.3 | Share of word-recognition reviews that start with only the sound (🔊 "Wat hoor je?"); 0 = off. Only on phones with a Dutch voice |
 | session_resume_minutes | 30 | After "Terug" (or leaving the app) she can continue the same session this long ("Doorgaan"); after that it expires WITHOUT a pause |
 | max_learning_backlog | 3 | In a session, the next NEW card waits while this many cards are still in their short "again in minutes" steps |
 

@@ -36,6 +36,7 @@ export type Meta = {
   lastBuild: string; // DEV: build that last reset the cooldown
   studyTags: string[]; // tag filter ("Kies een onderwerp"); [] = everything
   openSession: SessionState | null; // a paused session she can continue ("Doorgaan")
+  dayCounts: Record<string, number>; // local date (yyyy-mm-dd) → reviews that day (Voortgang screen)
 };
 
 /** The last session that counted (>= min_reviews_to_count reviews). */
@@ -135,6 +136,12 @@ export async function recordReview(progress: Progress, event: ReviewEvent, intro
   await tx.objectStore('progress').put(progress);
   await tx.objectStore('queue').put(event);
   await tx.objectStore('meta').put({ key: 'intro', value: intro });
+  // Reviews per local day (for "Voortgang"), in the same transaction.
+  const day = intro.date;
+  const row = await tx.objectStore('meta').get('dayCounts');
+  const counts = { ...((row?.value as Record<string, number>) ?? {}) };
+  counts[day] = (counts[day] ?? 0) + 1;
+  await tx.objectStore('meta').put({ key: 'dayCounts', value: counts });
   await tx.done;
 }
 

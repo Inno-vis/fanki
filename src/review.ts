@@ -30,14 +30,15 @@ export async function rate(item: Item, outcome: Outcome, shownAt: number, now = 
     track: item.track,
     ts: now.toISOString(),
     rating: outcome.rating as ReviewEvent['rating'],
-    mode: modeFor(item.card, item.track),
+    mode: modeFor(item.card, item.track, item.listen),
     duration_ms: Math.max(0, Math.round(now.getTime() - shownAt)),
     snapshot: snapshotOf(next)
   };
   await recordReview(next, event, intro);
   const progress = new Map(s.progress);
   progress.set(next.key, next);
-  setState({ progress, intro, pending: s.pending + 1 });
+  const dayCounts = { ...s.dayCounts, [intro.date]: (s.dayCounts[intro.date] ?? 0) + 1 };
+  setState({ progress, intro, pending: s.pending + 1, dayCounts });
   schedulePush();
 }
 

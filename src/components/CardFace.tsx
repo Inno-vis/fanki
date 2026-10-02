@@ -1,6 +1,10 @@
 import type { Card } from '../types';
 import type { Mode } from '../session';
 import { clozeParts, dutchText, flagLabel, visibleFlags } from '../display';
+import { useEffect } from 'preact/hooks';
+import { t } from '../i18n';
+import { dutchSpeech, speakDutch } from '../tts';
+import { SpeakButton } from './SpeakButton';
 
 /**
  * One card in a given direction.
@@ -41,6 +45,39 @@ export function CardFace({ card, mode, revealed }: { card: Card; mode: Mode; rev
     </p>
   ) : null;
 
+  const speech = dutchSpeech(card);
+  // Listening card: try to play once when it appears (iOS may need the tap on 🔊 instead).
+  useEffect(() => {
+    if (mode === 'listen' && !revealed) speakDutch(speech);
+  }, [card.id, mode]);
+
+  // Listening card: only the sound first; the reveal shows the Dutch word and the French.
+  if (mode === 'listen') {
+    return (
+      <article class="card" aria-live="polite">
+        {!revealed ? (
+          <>
+            <SpeakButton text={speech} big />
+            <p class="card-prompt">{t('audio.question')}</p>
+          </>
+        ) : (
+          <>
+            {flags}
+            <p class="card-front" lang="nl">
+              {dutchWord} <SpeakButton text={speech} />
+            </p>
+            <div class="card-back">
+              <p class="card-answer" lang="fr">
+                {card.fr}
+              </p>
+              {example}
+            </div>
+          </>
+        )}
+      </article>
+    );
+  }
+
   // enkel (oneway): the Dutch prompt, then the answer (display text; she rates herself).
   if (mode === 'oneway') {
     return (
@@ -57,7 +94,7 @@ export function CardFace({ card, mode, revealed }: { card: Card; mode: Mode; rev
         {revealed && (
           <div class="card-back">
             <p class="card-answer" lang="nl">
-              {card.answer}
+              {card.answer} {speech && <SpeakButton text={speech} />}
             </p>
             {example}
           </div>
@@ -83,13 +120,13 @@ export function CardFace({ card, mode, revealed }: { card: Card; mode: Mode; rev
     );
   }
 
-  const nlFront = mode === 'nl_fr' || mode === 'listen';
+  const nlFront = mode === 'nl_fr';
   return (
     <article class="card" aria-live="polite">
       {flags}
       {nlFront ? (
         <p class="card-front" lang="nl">
-          {dutchWord}
+          {dutchWord} <SpeakButton text={speech} />
         </p>
       ) : (
         <p class={mode === 'question' ? 'card-prompt card-prompt-big' : 'card-front'} lang="fr">
@@ -104,7 +141,7 @@ export function CardFace({ card, mode, revealed }: { card: Card; mode: Mode; rev
             </p>
           ) : (
             <p class="card-answer" lang="nl">
-              {dutchWord}
+              {dutchWord} <SpeakButton text={speech} />
             </p>
           )}
           {example}

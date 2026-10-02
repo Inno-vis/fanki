@@ -50,7 +50,8 @@ export function cleanSettings(raw: Partial<Settings> | undefined): Settings {
     min_reviews_to_count: Math.round(num(s.min_reviews_to_count, 3, 0, 100)),
     max_learning_backlog: Math.round(num(s.max_learning_backlog, 3, 1, 100)),
     session_resume_minutes: num(s.session_resume_minutes, 30, 1, 24 * 60),
-    curriculum_only: s.curriculum_only !== false
+    curriculum_only: s.curriculum_only !== false,
+    listen_share: num(s.listen_share, 0.3, 0, 1)
   };
 }
 

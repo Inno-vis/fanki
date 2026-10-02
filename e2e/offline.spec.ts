@@ -5,7 +5,11 @@ const API = 'https://mock.fanki.test/exec';
 
 type Event = { event_id: string; card_id: string; rating: number };
 
-function mockServer(settings: Record<string, unknown> = { new_per_day: 5, cooldown_minutes: 0, show_french_help: true }, breaks: string[] = []) {
+function mockServer(
+  settings: Record<string, unknown> = { new_per_day: 5, cooldown_minutes: 0, show_french_help: true },
+  breaks: string[] = [],
+  extraCards: Record<string, unknown>[] = []
+) {
   settings = { curriculum_only: false, ...settings }; // the mock has no Curriculum tab
   const log = new Map<string, Event>();
   let posts = 0;
@@ -14,6 +18,7 @@ function mockServer(settings: Record<string, unknown> = { new_per_day: 5, cooldo
     id: `c_${i}`, type: 'word', nl, article: 'de', pos: 'noun', fr: `fr-${nl}`, example_nl: '', example_fr: '',
     tags: i < 2 ? ['huishouden'] : ['reizen'], tags_source: 'manual', flags: [], added: '2026-09-27', active: true
   }));
+  cards.unshift(...(extraCards as typeof cards));
   const json = (route: Route, body: unknown) =>
     route.fulfill({ status: 200, contentType: 'application/json', headers: { 'access-control-allow-origin': '*' }, body: JSON.stringify(body) });
 
@@ -32,7 +37,11 @@ function mockServer(settings: Record<string, unknown> = { new_per_day: 5, cooldo
           return json(route, {
             ok: true, env: 'DEV', serverTime: new Date().toISOString(), cards,
             settings,
-            tags: [{ tag: 'huishouden', label_nl: 'huishouden', label_fr: 'la maison' }, { tag: 'reizen', label_nl: 'reizen', label_fr: 'voyages' }],
+            tags: [
+              { tag: 'huishouden', label_nl: 'huishouden', label_fr: 'la maison' },
+              { tag: 'reizen', label_nl: 'reizen', label_fr: 'voyages' },
+              { tag: 'emoji', label_nl: 'emoji', label_fr: 'emoji', subject_nl: 'Wat is dit?' }
+            ],
             compliments: ['Goed zo!'], curriculum: [], breaks
           });
         }
@@ -176,4 +185,59 @@ test('topics, pause and the one-time break prompt', async ({ page }) => {
   await page.reload();
   await expect(page.getByRole('button', { name: /Volgende sessie over (60|59) minuten/ })).toBeDisabled();
   await expect(page.getByText('Zoek iets ronds.')).toBeHidden();
+});
+
+test('enkel/emoji card, 🔊 without a Dutch voice, and 🚩 flags (flag, note, list, copy, resolve)', async ({ page, context }) => {
+  await context.grantPermissions(['clipboard-read', 'clipboard-write']);
+  const emoji = {
+    id: 'E-01', type: 'oneway', nl: '🛏️', article: '', pos: 'emoji', fr: '', example_nl: '', example_fr: '', tags: ['emoji'],
+    tags_source: 'manual', flags: [], answer: 'het bed', added: '2026-09-01', active: true
+  };
+  const server = mockServer({ new_per_day: 5, cooldown_minutes: 0, show_french_help: true }, [], [emoji]);
+  await server.install(page);
+  // Simulate a phone without a Dutch voice (the test machine may have one): hide every nl-* voice.
+  await page.addInitScript(() => {
+    if (!('speechSynthesis' in window)) return;
+    const orig = speechSynthesis.getVoices.bind(speechSynthesis);
+    speechSynthesis.getVoices = () => orig().filter((v) => !/^nl/i.test(v.lang));
+  });
+  await page.goto('/fanki/dev/');
+  await expect(page.getByText('Laatst gesynchroniseerd: zojuist')).toBeVisible({ timeout: 20_000 });
+
+  // The oldest card comes first: the emoji card, with its subject label; the answer only after the reveal.
+  await page.getByRole('button', { name: 'Starten' }).click();
+  await expect(page.getByText('Wat is dit?')).toBeVisible();
+  await expect(page.getByText('🛏️')).toBeVisible();
+  await expect(page.getByText('het bed')).toBeHidden();
+  await page.getByRole('button', { name: 'Antwoord tonen' }).click();
+  const overlay = page.getByRole('dialog', { name: 'De vier knoppen' });
+  await expect(overlay).toBeVisible(); // first session in a fresh browser: the one-time French overlay
+  await overlay.getByRole('button', { name: 'Klaar' }).click();
+  await expect(page.getByText('het bed')).toBeVisible();
+
+  // 🔊 on a phone/browser without a Dutch voice → clear message.
+  await page.getByRole('button', { name: 'Luisteren' }).first().click();
+  await expect(page.getByText('Geen Nederlandse stem op deze telefoon.')).toBeVisible();
+
+  // 🚩 flag this card with a note; the review goes on.
+  await page.getByRole('button', { name: 'Kaart markeren' }).click();
+  await expect(page.getByText('Gemarkeerd', { exact: true })).toBeVisible();
+  await page.getByRole('button', { name: '+ notitie' }).click();
+  await page.getByPlaceholder('Notitie (mag leeg)').fill('waarom geen emoji?');
+  await page.getByRole('button', { name: 'Opslaan' }).click();
+  await page.getByRole('button', { name: /^Makkelijk, / }).click();
+  await page.getByRole('button', { name: /Terug/ }).click();
+
+  // Home badge → Gemarkeerd screen → copy text → Opgelost.
+  await page.getByRole('button', { name: 'Gemarkeerd' }).click();
+  await expect(page.getByText('🛏️ (het bed)')).toBeVisible();
+  await expect(page.getByText('“waarom geen emoji?”')).toBeVisible();
+  await page.getByRole('button', { name: 'Kopieer naar klembord' }).click();
+  const copied = await page.evaluate(() => navigator.clipboard.readText());
+  expect(copied).toContain('Fanki: gemarkeerde kaarten');
+  expect(copied).toContain('🛏️ (het bed) · waarom geen emoji?');
+  await page.getByRole('button', { name: 'Opgelost' }).click();
+  await expect(page.getByText('Opgelost (1)')).toBeVisible();
+  await page.getByRole('button', { name: 'Klaar' }).click();
+  await expect(page.getByRole('button', { name: 'Gemarkeerd' })).toHaveText('🚩 0');
 });

@@ -198,7 +198,7 @@ export function Review({ items, resume, onExit }: { items: Item[]; resume?: Sess
         <main class="review">
           {subjectFor(item.card, s.tags) && <p class="card-subject">{subjectFor(item.card, s.tags)}</p>}
           <div class="card-wrap">
-            <CardFace card={item.card} mode={modeFor(item.card, item.track)} revealed={revealed} />
+            <CardFace card={item.card} mode={modeFor(item.card, item.track, item.listen)} revealed={revealed} />
             <FlagButton key={item.card.id} cardId={item.card.id} />
           </div>
           <div class="review-actions">

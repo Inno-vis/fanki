@@ -37,6 +37,7 @@ var SETTINGS_DEFAULTS = [
   ['min_reviews_to_count', 3, 'Een sessie telt (en start de pauze) vanaf dit aantal herhalingen'],
   ['max_learning_backlog', 3, 'Een nieuwe kaart komt pas als minder dan dit aantal kaarten nog in de korte stappen zit'],
   ['curriculum_only', true, 'Nieuwe kaarten alleen uit open onderwerpen van het tabblad Curriculum; andere onderwerpen en kaarten zonder tag blijven dicht'],
+  ['listen_share', 0.3, 'Deel van de herkenningskaarten als luisterkaart (0 = uit; alleen met een Nederlandse stem op de telefoon)'],
   ['session_resume_minutes', 30, 'Na "Terug" kan ze de sessie zo lang (minuten) voortzetten; daarna vervalt ze zonder pauze']
 ];
 

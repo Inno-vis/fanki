@@ -63,14 +63,14 @@ describe('export text for "Delen"', () => {
     ['K2-06', card('K2-06', { type: 'oneway', nl: '9:40u + 20 min = ...', article: '', fr: '', answer: '10:00u' })]
   ]);
 
-  it('title, then one line per OPEN flag, newest first: date · word · note', () => {
+  it('title, then one line per OPEN flag, newest first: word · note (no date)', () => {
     const flags = [
       { id: '1', card_id: 'c_1', ts: at(9).toISOString(), note: "waarom niet 'de'?", resolved: false, updated_ts: '' },
       { id: '2', card_id: 'K2-06', ts: at(11).toISOString(), note: '', resolved: false, updated_ts: '' },
       { id: '3', card_id: 'c_1', ts: at(12).toISOString(), note: 'al opgelost', resolved: true, updated_ts: '' }
     ];
     expect(exportText(flags, cards, 'Fanki')).toBe(
-      ['Fanki', '2026-09-30 · 9:40u + 20 min = ... (10:00u)', "2026-09-30 · het huis (la maison) · waarom niet 'de'?"].join('\n')
+      ['Fanki', '9:40u + 20 min = ... (10:00u)', "het huis (la maison) · waarom niet 'de'?"].join('\n')
     );
   });
 
@@ -106,6 +106,6 @@ describe('one card marked several times counts once', () => {
   it('shared text has one line per card', () => {
     const f = (id: string, card_id: string, h: number, note = '') => ({ id, card_id, ts: at(h).toISOString(), note, resolved: false, updated_ts: '' });
     const text = exportText([f('1', 'c_1', 9, 'een'), f('2', 'c_1', 10, 'twee'), f('3', 'c_1', 11)], new Map([['c_1', card('c_1')]]), 'T');
-    expect(text).toBe('T\n2026-09-30 · het huis (la maison) · twee / een');
+    expect(text).toBe('T\nhet huis (la maison) · twee / een');
   });
 });

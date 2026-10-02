@@ -5,10 +5,6 @@ import type { StudentFlag } from '../db';
 import { exportText, flagCardLabel, groupFlags, listFlags, setCardResolved, type FlagGroup } from '../studentFlags';
 import { showToast } from '../components/Toast';
 
-function day(iso: string): string {
-  return new Date(iso).toLocaleDateString('nl-BE', { day: 'numeric', month: 'short', year: 'numeric' });
-}
-
 /** "Gemarkeerd": the learner's own 🚩 flags. Local only; "Delen" is the only way they leave the phone. */
 export function Marked({ onDone }: { onDone: () => void }) {
   const s = useStore();
@@ -57,7 +53,6 @@ export function Marked({ onDone }: { onDone: () => void }) {
             “{n}”
           </span>
         ))}
-        <span class="mark-date">{day(g.ts)}</span>
       </div>
       <button class={`mark-toggle${g.resolved ? ' on' : ''}`} aria-pressed={g.resolved} onClick={() => void toggle(g)}>
         {g.resolved ? '✓ ' : ''}

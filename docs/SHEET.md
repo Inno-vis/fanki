@@ -22,7 +22,7 @@ validation and the Dashboard, seeds only empty tabs, and seeds Cards only in DEV
 ## Not in the sheet: 🚩 "Gemarkeerd" (student flags)
 
 During review the learner can tap 🚩 on any card (long-press or "+ notitie" adds a short note). These are
-stored **only on her phone** (IndexedDB store `flags`: id, card_id, ts, note, resolved, updated_ts) and are
+stored **only on her phone** (shown without dates) (IndexedDB store `flags`: id, card_id, ts, note, resolved, updated_ts) and are
 never synced to this sheet. She sees them on the "Gemarkeerd" screen (🚩 badge on the home screen), can mark
 them "Opgelost", and sends them to you herself with "Delen" (share sheet) or "Kopieer naar klembord".
 This has nothing to do with the Cards `flags` column (false-friend / separable), which is content you set.

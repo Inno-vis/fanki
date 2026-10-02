@@ -44,11 +44,6 @@ export function splitFlags(flags: StudentFlag[]): { open: StudentFlag[]; resolve
   return { open: flags.filter((f) => !f.resolved), resolved: flags.filter((f) => f.resolved) };
 }
 
-function localDay(iso: string): string {
-  const d = new Date(iso);
-  const p = (n: number) => String(n).padStart(2, '0');
-  return `${d.getFullYear()}-${p(d.getMonth() + 1)}-${p(d.getDate())}`;
-}
 
 /** How the card is named in the list and the shared text: "het huis (la maison)". */
 export function flagCardLabel(card: Card | undefined, card_id: string): string {
@@ -95,13 +90,13 @@ export async function setCardResolved(group: FlagGroup, resolved: boolean, now?:
   else if (group.flags[0]) await setFlagResolved(group.flags[0].id, false, now);
 }
 
-/** Plain text for "Delen": a title, then one line per card with an open flag: date · word · notes. */
+/** Plain text for "Delen": a title, then one line per card with an open flag: word · notes (no date). */
 export function exportText(flags: StudentFlag[], cards: Map<string, Card>, title: string): string {
   // Only the OPEN flags of each card count here (their newest date, their notes).
   const lines = groupFlags(flags)
     .filter((g) => !g.resolved)
     .map((g) => ({ g, ts: g.open[0].ts, notes: [...new Set(g.open.map((f) => f.note).filter(Boolean))] }))
     .sort((a, b) => b.ts.localeCompare(a.ts))
-    .map(({ g, ts, notes }) => [localDay(ts), flagCardLabel(cards.get(g.card_id), g.card_id), notes.join(' / ')].filter(Boolean).join(' · '));
+    .map(({ g, notes }) => [flagCardLabel(cards.get(g.card_id), g.card_id), notes.join(' / ')].filter(Boolean).join(' · '));
   return [title, ...lines].join('\n');
 }

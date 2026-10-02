@@ -14,7 +14,8 @@ import { curriculumStatus, makePicker } from './curriculum';
 import { Topics } from './screens/Topics';
 import { Marked } from './screens/Marked';
 import { ProgressScreen } from './screens/ProgressScreen';
-import { Toast } from './components/Toast';
+import { Toast, showToast } from './components/Toast';
+import { setDbBlockedHandler } from './db';
 import { Menu } from './components/Menu';
 import type { Card } from './types';
 import { resumable, type SessionState } from './sessionRules';
@@ -40,6 +41,7 @@ export function App() {
 
   // Load what's on the phone first (works offline), then refresh from the sheet when online.
   useEffect(() => {
+    setDbBlockedHandler(() => showToast(t('db.blocked'), { ms: 15000 }));
     resetCooldownOnNewDevBuild()
       .catch(() => false)
       .then(() => loadFromDb())

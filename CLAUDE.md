@@ -189,6 +189,9 @@ keys, pos and descriptions. The API maps them to internal codes (`typeCode_`/`so
   review) → push again. Runs at launch, when back online, when the app returns to the foreground (> 2 min
   since the last sync) and on "Synchroniseren".
 - `useOnline()` is ONE shared flag (src/pwa.ts); don't add per-component online listeners.
+- IndexedDB upgrades (bump the version in `db()`, add stores in `upgrade(d, oldVersion)` only): an open copy of the
+  app closes its connection and reloads when a newer version needs to upgrade (`blocking`); if an old copy still
+  blocks, a toast asks to close it (`blocked`). Copies from before 2026-10-02 don't let go — close them.
 - Tests: `src/queue.test.ts` (idempotent push, lost replies, merge) and `e2e/offline.spec.ts` (Playwright:
   online load → offline reload → review → reconnect with a lost reply → exactly-once on the mock server).
 

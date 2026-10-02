@@ -65,6 +65,11 @@ interface FankiDB extends DBSchema {
 }
 
 let dbPromise: Promise<IDBPDatabase<FankiDB>> | null = null;
+let onDbBlocked: (() => void) | null = null;
+/** Called when an upgrade waits for another open copy of the app (the UI shows a message). */
+export function setDbBlockedHandler(fn: () => void) {
+  onDbBlocked = fn;
+}
 
 export function db(name = NS): Promise<IDBPDatabase<FankiDB>> {
   if (!dbPromise) {
@@ -81,6 +86,19 @@ export function db(name = NS): Promise<IDBPDatabase<FankiDB>> {
           flags.createIndex('card_id', 'card_id');
           flags.createIndex('ts', 'ts');
         }
+      },
+      // Another (older) copy of the app still has the database open, so this upgrade has to wait.
+      blocked() {
+        onDbBlocked?.();
+      },
+      // A NEWER version of the app wants to upgrade: let go and reload into it (never block an upgrade).
+      blocking() {
+        void dbPromise?.then((d) => d.close());
+        dbPromise = null;
+        if (typeof location !== 'undefined') location.reload();
+      },
+      terminated() {
+        dbPromise = null;
       }
     });
   }

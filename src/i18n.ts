@@ -16,6 +16,11 @@ export const UI = {
   'home.emptyOffline': { nl: 'Nog geen kaarten. Zet het internet aan.', fr: 'Pas encore de cartes. Connecte-toi à internet.' },
   'home.allDone': { nl: 'Klaar voor vandaag!', fr: 'Fini pour aujourd’hui !' },
 
+  'db.blocked': {
+    nl: 'Fanki is nog open in een ander venster. Sluit het en open de app opnieuw.',
+    fr: 'Une autre fenêtre de Fanki (ancienne version) est encore ouverte : ferme-la, puis rouvre l’appli.'
+  },
+
   // Status + sync
   'status.offline': { nl: 'Geen internet', fr: 'Pas d’internet' },
   'sync.button': { nl: 'Synchroniseren', fr: 'Synchroniser (télécharger les cartes et envoyer tes réponses)' },

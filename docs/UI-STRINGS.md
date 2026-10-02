@@ -15,6 +15,7 @@ She sees **nl**. **fr** is hidden help: shown only in the "Hulp" panel and the o
 | `home.empty` | Nog geen kaarten. Tik op Synchroniseren. | Pas encore de cartes. Touche « Synchroniseren ». |
 | `home.emptyOffline` | Nog geen kaarten. Zet het internet aan. | Pas encore de cartes. Connecte-toi à internet. |
 | `home.allDone` | Klaar voor vandaag! | Fini pour aujourd’hui ! |
+| `db.blocked` | Fanki is nog open in een ander venster. Sluit het en open de app opnieuw. | Une autre fenêtre de Fanki (ancienne version) est encore ouverte : ferme-la, puis rouvre l’appli. |
 | `status.offline` | Geen internet | Pas d’internet |
 | `sync.button` | Synchroniseren | Synchroniser (télécharger les cartes et envoyer tes réponses) |
 | `sync.running` | Synchroniseren… | Synchronisation en cours… |

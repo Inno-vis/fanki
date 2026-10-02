@@ -216,6 +216,9 @@ from the start (app keeps priority for new cards); klok-2 and klok-3 open one by
 - At `session_max_cards` reviews or `session_max_minutes` (checked after each card) she sees ONE offer:
   "Nog 10 kaarten, graag!" (adds `session_extra_cards`, or fewer if fewer are left) or "Stoppen".
   After accepting, "Stoppen" is in the header and the session ends when those cards are done.
+- A card that comes back after a short step ("1 min", "10 min", "15 min"…) is a repeat: it does not count in
+  "X van Y" and is always shown before the session offers to continue or ends — also after 15 cards, 8 minutes
+  or the extra 10.
 - The session also ends when cards run out or on "Stoppen". "Terug" and leaving the app only PAUSE it:
   home shows "Doorgaan (4 van 15 kaarten)"; only reviewing time counts toward `session_max_minutes`.
   A paused session not continued within `session_resume_minutes` expires without starting a pause.

@@ -19,7 +19,8 @@ type Rules = Pick<
 
 export type SessionState = {
   start: number; // ms
-  reviewed: number;
+  reviewed: number; // distinct cards rated in this session ("X van Y"); repeats of short steps don't count
+  ratings?: number; // every rating incl. repeats (for min_reviews_to_count); missing in older saved sessions
   offered: boolean; // the one offer was shown
   extendedAt: number | null; // `reviewed` when she chose to continue
   extraTarget: number | null; // cards in the extension (min(extra, remaining at that moment))
@@ -29,7 +30,7 @@ export type SessionState = {
 };
 
 export function startSession(now: number): SessionState {
-  return { start: now, reviewed: 0, offered: false, extendedAt: null, extraTarget: null, activeMs: 0, resumedAt: now, lastActivity: now };
+  return { start: now, reviewed: 0, ratings: 0, offered: false, extendedAt: null, extraTarget: null, activeMs: 0, resumedAt: now, lastActivity: now };
 }
 
 /** Reviewing time so far (time spent away from the review screen does not count). */
@@ -59,15 +60,23 @@ export function loadOpenSession(): Promise<SessionState | null | undefined> {
   return getMeta('openSession');
 }
 
-export type Next = 'card' | 'offer' | 'end';
+/** 'repeat' = the cap is reached but short-step repeats are still pending: show only those first. */
+export type Next = 'card' | 'repeat' | 'offer' | 'end';
 
-/** What happens after a rating (or when time runs out between cards). `remaining` = cards left in the queue. */
-export function nextStep(s: SessionState, rules: Rules, now: number, remaining: number): Next {
+/**
+ * What happens after a rating. `remaining` = cards left in the queue; `learningLeft` = how many of them are
+ * repeats of a short (re)learning step started in this session. The session never offers or ends while
+ * such repeats are pending — they are finished first, whatever the card count or time.
+ */
+export function nextStep(s: SessionState, rules: Rules, now: number, remaining: number, learningLeft = 0): Next {
   if (remaining <= 0) return 'end';
-  if (s.extendedAt !== null) return s.reviewed - s.extendedAt >= (s.extraTarget ?? 0) ? 'end' : 'card';
-  if (s.offered) return 'end'; // offer shown and not accepted → session is over
-  const capHit = s.reviewed >= rules.session_max_cards || elapsedMs(s, now) >= rules.session_max_minutes * 60_000;
-  return capHit ? 'offer' : 'card';
+  const extended = s.extendedAt !== null;
+  const capReached = extended
+    ? s.reviewed - s.extendedAt! >= (s.extraTarget ?? 0)
+    : s.offered || s.reviewed >= rules.session_max_cards || elapsedMs(s, now) >= rules.session_max_minutes * 60_000;
+  if (!capReached) return 'card';
+  if (learningLeft > 0) return 'repeat';
+  return extended || s.offered ? 'end' : 'offer';
 }
 
 export function markOffered(s: SessionState): SessionState {
@@ -78,8 +87,10 @@ export function extend(s: SessionState, rules: Rules, remaining: number): Sessio
   return { ...s, offered: true, extendedAt: s.reviewed, extraTarget: Math.min(rules.session_extra_cards, remaining) };
 }
 
-export function reviewed(s: SessionState, now = Date.now()): SessionState {
-  return { ...s, reviewed: s.reviewed + 1, lastActivity: now };
+/** One rating. A repeat of a short step (`repeat`) does not count toward "X van Y". */
+export function reviewed(s: SessionState, now = Date.now(), repeat = false): SessionState {
+  const ratings = (s.ratings ?? s.reviewed) + 1;
+  return { ...s, reviewed: repeat ? s.reviewed : s.reviewed + 1, ratings, lastActivity: now };
 }
 
 /** "X van Y kaarten": Y = session_max_cards until she extends, then the extended total. */
@@ -91,8 +102,9 @@ export function progressLabel(s: SessionState, rules: Rules): { done: number; ta
 /** Ends the session: clears the open session and records the end if it counted. */
 export async function endSession(s: SessionState, rules: Rules, now: number): Promise<SessionRecord | null> {
   await saveOpenSession(null);
-  if (s.reviewed < rules.min_reviews_to_count) return null;
-  const rec: SessionRecord = { start: new Date(s.start).toISOString(), end: new Date(now).toISOString(), reviews: s.reviewed };
+  const total = s.ratings ?? s.reviewed;
+  if (total < rules.min_reviews_to_count) return null;
+  const rec: SessionRecord = { start: new Date(s.start).toISOString(), end: new Date(now).toISOString(), reviews: total };
   await setMeta('lastSession', rec);
   return rec;
 }

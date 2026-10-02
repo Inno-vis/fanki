@@ -6,7 +6,8 @@ import { RatingBar } from '../components/RatingBar';
 import { RatingHelp } from '../components/RatingHelp';
 import { HelpButton } from '../components/Help';
 import { makeScheduler, previewOutcomes, type Outcome } from '../scheduler';
-import { modeFor, pickNextIndex, REQUEUE_WITHIN_MS, type Item } from '../session';
+import { modeFor, type Item } from '../session';
+import { afterRating } from '../sessionFlow';
 import { nextBreak } from '../breaks';
 import { subjectFor } from '../display';
 import { FlagButton } from '../components/FlagButton';
@@ -14,8 +15,7 @@ import { rate } from '../review';
 import { setState, useStore } from '../store';
 import { useOnline } from '../pwa';
 import {
-  endSession, extend, markOffered, nextStep, pauseSession, progressLabel, resumeSession, reviewed, saveOpenSession, startSession,
-  type SessionState
+  endSession, extend, markOffered, pauseSession, progressLabel, resumeSession, saveOpenSession, startSession, type SessionState
 } from '../sessionRules';
 
 type Phase = 'card' | 'offer' | 'done' | 'break';
@@ -108,16 +108,10 @@ export function Review({ items, resume, onExit }: { items: Item[]; resume?: Sess
     setBusy(true);
     const outcome = outcomes[g];
     await rate(item, outcome, shownAt.current);
-    const rest = queue.slice(1);
-    // Short (re)learning steps come back later in this same session.
-    if (outcome.intervalMs <= REQUEUE_WITHIN_MS) {
-      rest.splice(Math.min(3, rest.length), 0, { ...item, isNew: false, learning: true, progress: outcome.next });
-    }
-    // New cards wait while too many cards are still in their short steps.
-    const k = pickNextIndex(rest, s.settings.max_learning_backlog);
-    if (k > 0) rest.unshift(...rest.splice(k, 1));
-    const st = reviewed(session);
-    const step = nextStep(st, s.settings, Date.now(), rest.length);
+    const r = afterRating(queue, outcome.intervalMs, outcome.next, session, s.settings, Date.now());
+    const rest = r.queue;
+    const st = r.session;
+    const step = r.step;
     setQueue(rest);
     setRevealed(false);
     setBusy(false);

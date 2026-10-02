@@ -26,7 +26,8 @@ export function modeFor(card: Card, track: Track): Mode {
   return track === 'recog' ? 'nl_fr' : 'fr_nl';
 }
 
-export type Plan = { due: Item[]; fresh: Item[] };
+/** soon = short-step repeats (Learning/Relearning) due within learnAheadMs: part of the session, not counted. */
+export type Plan = { due: Item[]; fresh: Item[]; soon?: Item[] };
 
 /**
  * Today's work.
@@ -43,9 +44,10 @@ export function planToday(
   settings: Pick<Settings, 'new_per_day' | 'unlock_prod_stability_days'>,
   intro: Intro,
   now: Date,
-  opts: { eligible?: (c: Card) => boolean; pickNew?: (candidates: Card[], slots: number) => Card[] } = {}
+  opts: { eligible?: (c: Card) => boolean; pickNew?: (candidates: Card[], slots: number) => Card[]; learnAheadMs?: number } = {}
 ): Plan {
   const due: Item[] = [];
+  const soon: Item[] = [];
   const newMain: Card[] = [];
   const newProd: Item[] = [];
   const t = now.getTime();
@@ -58,7 +60,11 @@ export function planToday(
     for (const track of tracks) {
       const p = progress.get(progressKey(card.id, track));
       if (isStarted(p)) {
-        if (new Date(p!.due).getTime() <= t) due.push({ card, track, progress: p, isNew: false });
+        const dueAt = new Date(p!.due).getTime();
+        if (dueAt <= t) due.push({ card, track, progress: p, isNew: false });
+        else if (opts.learnAheadMs && dueAt <= t + opts.learnAheadMs && (p!.state === 'Learning' || p!.state === 'Relearning')) {
+          soon.push({ card, track, progress: p, isNew: false, learning: true });
+        }
       } else if (track === tracks[0] && !started) {
         newMain.push(card);
       } else if (card.type === 'word' && track === 'prod') {
@@ -75,7 +81,8 @@ export function planToday(
     ...picked.slice(0, mainSlots).map((card) => ({ card, track: (card.type === 'word' ? 'recog' : 'prod') as Track, isNew: true })),
     ...newProd.slice(0, prodSlots)
   ];
-  return { due, fresh };
+  soon.sort((a, b) => a.progress!.due.localeCompare(b.progress!.due));
+  return { due, fresh, soon };
 }
 
 function isStarted(p: Progress | undefined): boolean {
@@ -90,7 +97,10 @@ export function interleave(plan: Plan): Item[] {
     out.push(item);
     if ((i + 1) % 3 === 0 && fresh.length) out.push(fresh.shift()!);
   });
-  return out.concat(fresh);
+  const all = out.concat(fresh);
+  // Short-step repeats from before a pause come back early in the session, spaced out.
+  (plan.soon ?? []).forEach((item, i) => all.splice(Math.min(2 + i * 3, all.length), 0, item));
+  return all;
 }
 
 /** A (re)learning step shorter than this comes back in the same session. */

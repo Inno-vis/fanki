@@ -98,6 +98,10 @@ keys, pos and descriptions. The API maps them to internal codes (`typeCode_`/`so
   pauses (`meta.openSession`, "Doorgaan", expires after session_resume_minutes without a pause). The session
   ENDS on Stoppen / extension done / no cards left; with ≥ min_reviews_to_count reviews it stores
   `meta.lastSession` and home blocks "Starten" until end + cooldown_minutes.
+- Short-step repeats (a card rated into a ≤ 20 min step) never count toward "X van Y" and the session never
+  offers/ends while one is pending — they are shown first, past the card/minute cap and the extension
+  (`afterRating` in src/sessionFlow.ts, `nextStep` → 'repeat'). After a pause, Learning/Relearning cards due
+  within 20 min rejoin the session (`planToday` learnAheadMs). max_learning_backlog still holds new cards back.
 
 ## Study by topic, new-card pacing, breaks
 

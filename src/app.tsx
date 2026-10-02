@@ -9,7 +9,7 @@ import { UpdateBanner } from './components/Banners';
 import { HelpButton } from './components/Help';
 import { Home } from './screens/Home';
 import { Review } from './screens/Review';
-import { interleave, planToday, todaysIntro, type Item } from './session';
+import { interleave, planToday, REQUEUE_WITHIN_MS, todaysIntro, type Item } from './session';
 import { curriculumStatus, makePicker } from './curriculum';
 import { Topics } from './screens/Topics';
 import { Marked } from './screens/Marked';
@@ -60,7 +60,11 @@ export function App() {
     const picker = makePicker(s.curriculum, status, s.settings.curriculum_only);
     const topics = new Set(s.studyTags);
     const eligible = topics.size ? (c: Card) => c.tags.some((tg) => topics.has(tg)) : undefined;
-    return planToday(s.cards, s.progress, s.settings, todaysIntro(s.intro), now, { pickNew: picker.pickNew, eligible });
+    return planToday(s.cards, s.progress, s.settings, todaysIntro(s.intro), now, {
+      pickNew: picker.pickNew,
+      eligible,
+      learnAheadMs: REQUEUE_WITHIN_MS // short-step cards (e.g. "10 min") stay part of a resumed session
+    });
   }, [s.cards, s.progress, s.settings, s.intro, s.curriculum, s.studyTags, tick, screen.name]);
 
   if (screen.name === 'review') {

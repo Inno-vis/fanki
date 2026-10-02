@@ -154,8 +154,17 @@ test('topics, pause and the one-time break prompt', async ({ page }) => {
   await page.getByRole('button', { name: 'Doorgaan (2 van 3 kaarten)' }).click();
   await expect(page.getByText('2 van 3 kaarten')).toBeVisible();
 
-  // Third card reaches the cap → offer → Stoppen ends the session → pause + break prompt.
-  await reviewCards(page, 1);
+  // From here rate 😎 Makkelijk until the offer. The 10-minute repeats of the cards rated ✅ Goed before the
+  // pause are shown first and never count: the label never goes past "3 van 3 kaarten".
+  const offer = page.getByText('Sessie voltooid! Wil je doorgaan?');
+  for (let i = 0; i < 10; i++) {
+    await expect(page.getByRole('button', { name: 'Antwoord tonen' }).or(offer)).toBeVisible();
+    if (await offer.isVisible()) break;
+    await page.getByRole('button', { name: 'Antwoord tonen' }).click();
+    await page.getByRole('button', { name: /^Makkelijk, / }).click();
+    await expect(page.getByText(/^[0-3] van 3 kaarten$/)).toBeVisible();
+  }
+  await expect(page.getByText('3 van 3 kaarten')).toBeVisible();
   await expect(page.getByText('Sessie voltooid! Wil je doorgaan?')).toBeVisible();
   await page.getByRole('button', { name: 'Stoppen' }).click();
   await expect(page.getByText('Sessie voltooid!')).toBeVisible();

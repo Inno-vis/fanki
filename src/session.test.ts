@@ -87,3 +87,20 @@ describe('new cards wait for the learning backlog (option 1)', () => {
     expect(pickNextIndex([mk('n1', true), mk('n2', true)], 0)).toBe(0);
   });
 });
+
+describe('short-step cards after a pause ("Doorgaan")', () => {
+  it('Learning/Relearning cards due within the next 20 min are included as repeats; Review cards are not', () => {
+    const cards = [card('l1'), card('r1'), card('l2')];
+    const soonDue = new Date(now.getTime() + 8 * 60_000).toISOString();
+    const lateDue = new Date(now.getTime() + 40 * 60_000).toISOString();
+    const progress = new Map([
+      [progressKey('l1', 'recog'), { ...prog('l1', 'recog', soonDue), state: 'Learning' as const }],
+      [progressKey('r1', 'recog'), prog('r1', 'recog', soonDue)],
+      [progressKey('l2', 'recog'), { ...prog('l2', 'recog', lateDue), state: 'Learning' as const }]
+    ]);
+    const plan = planToday(cards, progress, settings, empty(), now, { learnAheadMs: 20 * 60_000 });
+    expect(plan.soon?.map((i) => [i.card.id, i.learning])).toEqual([['l1', true]]);
+    expect(plan.due).toEqual([]);
+    expect(interleave(plan).map((i) => i.card.id)).toEqual(['l1']);
+  });
+});

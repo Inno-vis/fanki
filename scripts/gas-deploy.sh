@@ -22,6 +22,8 @@ desc="$(git rev-parse --short HEAD 2>/dev/null || echo local) $(date -u +%Y-%m-%
 tmp="$(cd "$(mktemp -d "${TMPDIR:-/tmp}/fanki-teacher.XXXXXX")" && pwd -P)"
 trap 'rm -rf "$tmp"' EXIT
 cp apps-script/*.gs apps-script/*.html "$tmp/"
+# Build label shown in the review page header (to check which version a browser really gets).
+printf "var REVIEW_BUILD = '%s';\n" "$desc" > "$tmp/Build.gs"
 access="$(cfg teacherAccess)"; access="${access:-ANYONE}"
 node -e '
 const m = require("./apps-script/appsscript.json");

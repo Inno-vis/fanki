@@ -89,6 +89,7 @@ function reviewBootstrap() {
   var email = requireTeacher_();
   return {
     env: env_(),
+    build: typeof REVIEW_BUILD === 'string' ? REVIEW_BUILD : 'repo',
     email: email,
     tags: readTable_(sheet_('Tags')).rows.map(function (r) {
       return { tag: String(r.tag).trim().toLowerCase(), label: String(r.label_nl || r.tag) };

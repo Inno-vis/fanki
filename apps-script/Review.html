@@ -50,7 +50,7 @@
   <h1>Fanki – controleren <span class="env" id="env"></span></h1>
   <div class="seg" id="source"><button data-v="inbox" class="on">Inbox</button><button data-v="cards">Kaarten</button></div>
   <div class="seg" id="mode"><button data-v="one" class="on">Eén voor één</button><button data-v="list">Lijst (5)</button></div>
-  <div class="stats"><span id="progress"></span> · goedgekeurd <b id="nApproved">0</b> · afgewezen <b id="nRejected">0</b> · <span id="who"></span></div>
+  <div class="stats"><span id="progress"></span> · goedgekeurd <b id="nApproved">0</b> · afgewezen <b id="nRejected">0</b> · <span id="who"></span> · <span id="build" title="versie van deze pagina"></span></div>
 </header>
 <main>
   <div class="bar" id="inboxBar">
@@ -289,7 +289,7 @@ document.addEventListener('keydown', function (e) {
 });
 
 run('reviewBootstrap').then(function (b) {
-  S.boot = b; $('env').textContent = b.env; $('who').textContent = b.email;
+  S.boot = b; $('env').textContent = b.env; $('who').textContent = b.email; $('build').textContent = 'versie ' + b.build;
   b.tags.forEach(function (t) { $('tagFilter').appendChild(el('option', { value: t.tag, text: t.label })); });
   load();
 }, function (e) { $('view').innerHTML = ''; $('view').appendChild(el('p', { 'class': 'empty', text: (e && e.message) || String(e) })); });

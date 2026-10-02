@@ -5,6 +5,9 @@
 | DEV  | `main`    | https://inno-vis.github.io/fanki/dev/ | "Dutch DEV"  | "Dutch DEV"  |
 | PROD | `release` | https://inno-vis.github.io/fanki/     | "Dutch PROD" | "Dutch PROD" |
 
+Teacher review page: DEV and PROD links in docs/SHEET.md › Teacher review page (PROD:
+https://script.google.com/macros/s/AKfycbypjhtKIajEpMxdfqjjmEh0dINaUVlysplSX4A76Q2E6dE8zZbsV476lplSwn8d5b2z/exec?page=review).
+
 Every push to `main` or `release` rebuilds **both** apps into one Pages artifact
 (`.github/workflows/deploy.yml`).
 

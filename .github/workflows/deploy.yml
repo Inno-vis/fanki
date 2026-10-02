@@ -71,6 +71,7 @@ jobs:
 
       - name: DEV — end-to-end offline test (Playwright)
         working-directory: main
+        timeout-minutes: 15
         run: |
           npx playwright install --with-deps chromium
           npm run e2e

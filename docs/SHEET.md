@@ -155,8 +155,8 @@ winkelen, tijd, app, klok-1 ("klok niveau 1"), klok-2 ("klok niveau 2"), klok-3 
 A web page in your browser, no tools needed: review the Inbox and edit Cards.
 
 - **DEV link:** https://script.google.com/macros/s/AKfycbzVIZa0_jQFiWZLehSn1ZPIrCTRn041Kto218MK-QMVklJclsyTATwae96EP77e__4d/exec?page=review
-  (PROD gets its own link when it is released; it is printed by `npm run gas:deploy:prod` and saved in
-  `deploy.config.json` → `teacherDeploymentId`).
+- **PROD link:** https://script.google.com/macros/s/AKfycbypjhtKIajEpMxdfqjjmEh0dINaUVlysplSX4A76Q2E6dE8zZbsV476lplSwn8d5b2z/exec?page=review
+  (both are saved in `deploy.config.json` → `teacherDeploymentId`; `npm run gas:deploy:<env>` keeps them).
 - **Who can open it:** a Google login is required. The page runs **as the teacher who opens it**, so the teacher
   needs edit access to this spreadsheet (Share it with them), AND their address must be on the allowlist:
   `node scripts/admin.mjs <env> setTeachers '{"emails":"a@x.be, b@y.be"}'` (or `{"domain":"school.be"}` for a
@@ -219,8 +219,15 @@ All settings are read by the phone on every sync — change them here, no redepl
 the rules decide again. With Settings `curriculum_only` = TRUE (default), topics that have NO row here
 (huishouden, reizen…) and cards without a tag are locked too — add a row (e.g. `altijd open`) to open one.
 
-Seed: 1 app · 2 klok-1 · 3 klok-2 · 4 klok-3. The app row has `unlock_threshold` 0, so klok-1 is open
-from the start (app keeps priority for new cards); klok-2 and klok-3 open one by one.
+**Current setup (DEV and PROD, 2026-10-02):** 1 app · 2 emoji · 3 klok-1 — all three `altijd open` with
+`unlock_threshold` 0 · 4 klok-2 · 5 klok-3 (automatisch, 0.8, 21 days). Because klok-1's threshold is 0, klok-2 is
+open too; klok-3 opens when 80 % of klok-2 is bekend or 21 days after her first klok-2 card. Topics without a row
+(huishouden, reizen…) stay locked (`curriculum_only`). New cards come from app first, then emoji, klok-1, klok-2.
+
+**How the columns work together:** `unlock_threshold` of a row decides when the NEXT row opens (share of this
+row's cards that must be bekend; 0 = next opens right away; `max_wait_days` = open anyway that many days after her
+first card of this row). `open` decides the row ITSELF: automatisch (follow the row above), altijd open (open now),
+dicht (closed now, and every automatisch row below it too).
 
 **Algorithm** (phone: `src/curriculum.ts`; the Dashboard mirrors it in `apps-script/Curriculum.gs`):
 

@@ -13,7 +13,9 @@ Two spreadsheets, created by `setup()` in their Apps Script projects:
 descriptions are Dutch. The API translates types/tags_source to fixed internal codes, so only these
 spellings matter. The text columns (nl, fr, examples) are plain text, so "7:15" stays "7:15".
 
-Row 1 is always the header row (frozen). The API reads columns **by header name**, so columns can be
+Row 1 is always the header row (frozen). Setup sets readable column widths and wraps long text on every
+tab (`apps-script/Layout.gs`), so you don't need to resize — the Log tab is protected (the app writes it), so
+Google asks for confirmation if you resize or edit there; that is expected and safe to accept for widths. The API reads columns **by header name**, so columns can be
 reordered, but never rename a header. `setup()` is idempotent: re-running it repairs headers,
 validation and the Dashboard, seeds only empty tabs, and seeds Cards only in DEV.
 

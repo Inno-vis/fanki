@@ -4,6 +4,7 @@
     "teacherDeploymentId": "AKfycbzVIZa0_jQFiWZLehSn1ZPIrCTRn041Kto218MK-QMVklJclsyTATwae96EP77e__4d"
   },
   "prod": {
-    "deploymentId": "AKfycbwDFyDTCSRAlbRMT1cdJMPBwVbHxWBJbEzyXd6dOz6vakkeKxWIfhpJ5kWVzXTNz-Qw"
+    "deploymentId": "AKfycbwDFyDTCSRAlbRMT1cdJMPBwVbHxWBJbEzyXd6dOz6vakkeKxWIfhpJ5kWVzXTNz-Qw",
+    "teacherDeploymentId": "AKfycbypjhtKIajEpMxdfqjjmEh0dINaUVlysplSX4A76Q2E6dE8zZbsV476lplSwn8d5b2z"
   }
 }

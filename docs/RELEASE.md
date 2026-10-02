@@ -26,7 +26,9 @@ Applies to a `release` push, `npm run gas:deploy:prod`, `admin prod setup`, and 
 4. **Dry run** anything that changes Cards (`replaceKlok`, migrations) and show the result before applying.
 5. **Verify after:** `npm run smoke:prod` (cleans up its own rows), run `npm run backup:prod` again and
    compare: Log and Progress counts must be ≥ before (only her own new reviews may add rows). Open the live
-   PROD app and check it shows the new build and syncs.
+   PROD app and check it shows the new build AND a feature of this release (the footer's build ID is the commit
+   actually built; when `main` and `release` deploy close together, Pages can keep the older artifact — then run
+   `gh workflow run deploy.yml --ref main`, which rebuilds both apps from their branches).
 6. Never reset, reseed or test-review against PROD.
 7. Anything that would break her progress (changing ids of studied cards, deleting Progress/Log rows, replacing
    studied cards) needs the teacher's explicit permission first. DEV progress does not matter.

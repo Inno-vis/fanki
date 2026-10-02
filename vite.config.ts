@@ -66,7 +66,7 @@ export default defineConfig(({ mode, command }) => {
       __API_URL__: JSON.stringify(env[`API_URL_${ENV}`] ?? ''),
       __LEARNER_TOKEN__: JSON.stringify(env[`LEARNER_TOKEN_${ENV}`] ?? ''),
       __APP_ENV__: JSON.stringify(ENV),
-      __BUILD_ID__: JSON.stringify(process.env.GITHUB_SHA?.slice(0, 7) ?? new Date().toISOString().slice(0, 16))
+      __BUILD_ID__: JSON.stringify(process.env.FANKI_BUILD_ID ?? new Date().toISOString().slice(0, 16))
     },
     build: {
       outDir: process.env.FANKI_OUT_DIR ?? (isProd ? 'dist' : 'dist/dev'),

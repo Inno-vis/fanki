@@ -60,6 +60,8 @@ jobs:
           API_URL_DEV: ${{ secrets.API_URL_DEV }}
           LEARNER_TOKEN_DEV: ${{ secrets.LEARNER_TOKEN_DEV }}
         run: |
+          # Build label = the commit actually built (not the commit that triggered this run).
+          export FANKI_BUILD_ID="$(git rev-parse --short HEAD)"
           npm ci
           npm run typecheck
           npm test
@@ -80,6 +82,7 @@ jobs:
           API_URL_PROD: ${{ secrets.API_URL_PROD }}
           LEARNER_TOKEN_PROD: ${{ secrets.LEARNER_TOKEN_PROD }}
         run: |
+          export FANKI_BUILD_ID="$(git rev-parse --short HEAD)"
           npm ci
           npm run build:prod
 

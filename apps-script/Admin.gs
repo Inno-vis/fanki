@@ -35,8 +35,11 @@ function adminTags_(add) {
   return { tags: tags, added: added };
 }
 
-/** updates = [{id, tags: [..]}]. Writes tags_source=automatisch. Never touches handmatig rows. */
-function adminSetTags_(updates) {
+/**
+ * updates = [{id, tags: [..]}]. Writes tags_source=automatisch and never touches handmatig rows — unless
+ * manual:true (the teacher's own choice): then any row is updated and marked handmatig.
+ */
+function adminSetTags_(updates, manual) {
   if (!Array.isArray(updates)) throw apiError_('bad_request', 'updates[] required');
   return withLock_(function () {
     var sh = sheet_('Cards');
@@ -49,33 +52,39 @@ function adminSetTags_(updates) {
     updates.forEach(function (u) {
       var r = byId[String(u && u.id)];
       if (!r) { skipped.push({ id: u && u.id, reason: 'not_found' }); return; }
-      if (sourceCode_(r.tags_source) === 'manual') { skipped.push({ id: r.id, reason: 'manual' }); return; }
+      if (!manual && sourceCode_(r.tags_source) === 'manual') { skipped.push({ id: r.id, reason: 'manual' }); return; }
       var tags = (u.tags || []).map(function (x) { return String(x).trim().toLowerCase(); }).filter(function (x) { return x; });
       var unknown = tags.filter(function (x) { return known.indexOf(x) === -1; });
       if (unknown.length) { skipped.push({ id: r.id, reason: 'unknown_tags:' + unknown.join(',') }); return; }
       if (tags.length > 3) { skipped.push({ id: r.id, reason: 'too_many_tags' }); return; }
-      sh.getRange(r._row, tagsCol, 1, 2).setValues([[tags.join(', '), sourceNl_('auto')]]);
+      sh.getRange(r._row, tagsCol, 1, 2).setValues([[tags.join(', '), sourceNl_(manual ? 'manual' : 'auto')]]);
       updated.push(r.id);
     });
     return { updated: updated, skipped: skipped };
   });
 }
 
-/** rows = [{type, nl, article, pos, fr, example_nl, example_fr, tags, flags}] → Inbox, status=proposed. */
+/**
+ * rows = [{type, nl, article, pos, fr, example_nl, example_fr, tags, tags_source?, flags}] → Inbox, status=proposed.
+ * tags_source is kept when given (handmatig/automatisch or manual/auto), else automatisch when there are tags.
+ */
 function adminAppendInbox_(rows) {
   if (!Array.isArray(rows) || !rows.length) throw apiError_('bad_request', 'rows[] required');
   return withLock_(function () {
     var sh = sheet_('Inbox');
     var today = new Date(); today.setHours(0, 0, 0, 0);
     var headers = SCHEMA.Inbox;
-    // Idempotent: skip anything whose (type, nl) already exists in Cards or Inbox.
-    var key = function (type, nl) { return (typeCode_(type) || 'word') + '|' + String(nl || '').trim().toLowerCase(); };
+    // Idempotent: skip anything whose (type, nl, article) already exists in Cards or Inbox. The article is part
+    // of the key so homographs stay apart ("het haar" ≠ "haar").
+    var key = function (type, nl, article) {
+      return (typeCode_(type) || 'word') + '|' + String(nl || '').trim().toLowerCase() + '|' + String(article || '').trim().toLowerCase();
+    };
     var seen = {};
     readTable_(sheet_('Cards')).rows.concat(readTable_(sh).rows)
-      .forEach(function (r) { if (r.nl) seen[key(r.type, r.nl)] = true; });
+      .forEach(function (r) { if (r.nl) seen[key(r.type, r.nl, r.article)] = true; });
     var skipped = [];
     rows = rows.filter(function (r) {
-      var k = key(r.type, r.nl);
+      var k = key(r.type, r.nl, r.article);
       if (!String(r.nl || '').trim() || seen[k]) { skipped.push(r.nl); return false; }
       seen[k] = true;
       return true;
@@ -89,7 +98,8 @@ function adminAppendInbox_(rows) {
         article: r.article === 'de' || r.article === 'het' ? r.article : '', pos: posNl_(r.pos),
         fr: String(r.fr || ''), example_nl: String(r.example_nl || ''), example_fr: String(r.example_fr || ''),
         answer: String(r.answer || ''),
-        tags: tagsNl_(tags), tags_source: tags ? sourceNl_('auto') : '', flags: flags, added: today, active: true, status: STATUS_NL.proposed
+        tags: tagsNl_(tags), tags_source: tags ? sourceNl_(sourceCode_(r.tags_source) || 'auto') : '', flags: flags,
+        added: today, active: true, status: STATUS_NL.proposed
       });
     });
     sh.getRange(nextRow_(sh, 3), 1, out.length, headers.length).setValues(out);

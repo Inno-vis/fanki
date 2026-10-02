@@ -228,7 +228,10 @@ npm run ui-vocab         # UI words not yet taught (warning)
 
 Slash commands in `.claude/commands/` (all go through `scripts/admin.mjs`, default env dev):
 - `/retag` — propose 0–3 existing tags per untagged card (new tag only if ≥ 3 cards use it), table, wait
-  for OK, `setTags` (tags_source automatisch; handmatig rows are refused by the API).
+  for OK, `setTags` (tags_source automatisch; handmatig rows are refused unless `manual:true`, the teacher's own
+  choice, which keeps them handmatig).
+- Word lists from files: parse, merge duplicates (tags combined), `appendInbox` (keeps tags_source; dedupes on
+  type + nl + article). Source lists stay out of git (`.gitignore`, e.g. docs/klim-op-woordenlijst-frans.csv).
 - `/addwords <theme, n, level>` — dedupe against Cards + Inbox, table, wait for OK, `appendInbox`
   (status voorgesteld). Never writes Cards.
 - `/promote` — show `goedgekeurd` Inbox rows, wait for OK, `promoteInbox`.

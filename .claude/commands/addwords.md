@@ -37,5 +37,6 @@ Steps:
    duplicates. STOP and wait for my OK (I may remove or change rows).
 4. After OK: write `{"rows":[{type,nl,article,pos,fr,example_nl,example_fr,tags:[…],flags:[…],answer}]}` to a
    scratch file and run `node scripts/admin.mjs <env> appendInbox @<file>`. The API gives each row an id,
-   status `voorgesteld`, converts to Dutch sheet values, and skips rows already in Cards or Inbox.
+   status `voorgesteld`, converts to Dutch sheet values, and skips rows whose (type, nl, article) is already in
+   Cards or Inbox (so homographs like "het haar" / "haar" stay apart). A given `tags_source` is kept.
 5. Report appended/skipped and remind me: set status to `goedgekeurd` in the Inbox, then run /promote.

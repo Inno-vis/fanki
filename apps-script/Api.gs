@@ -43,7 +43,7 @@ function doPost(e) {
       case 'listCards': return adminListCards_();
       case 'listUntagged': return adminListUntagged_();
       case 'tags': return adminTags_(body.add);
-      case 'setTags': return adminSetTags_(body.updates);
+      case 'setTags': return adminSetTags_(body.updates, body.manual === true);
       case 'appendInbox': return adminAppendInbox_(body.rows);
       case 'listInbox': return adminListInbox_();
       case 'appendBreaks': return adminAppendBreaks_(body.lines);

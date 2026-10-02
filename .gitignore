@@ -13,3 +13,6 @@ test-results/
 .DS_Store
 e2e-dist/
 backups/
+
+# Teacher word lists (copyrighted source material; never commit)
+docs/klim-op-woordenlijst-frans.csv

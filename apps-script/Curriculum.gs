@@ -39,7 +39,7 @@ function curriculumStatus_(rows, cards, progressByKey, matureDays, now) {
     var mature = 0, firstShown = null;
     tagged.forEach(function (c) {
       var p = progressByKey[c.id + '|' + (c.type === 'word' ? 'recog' : 'prod')];
-      if (!p || (String(p.state) === 'New' && !Number(p.reps))) return; // never studied, or reset (/resettag)
+      if (!p) return;
       if (Number(p.stability) >= matureDays && Number(p.reps) >= row.min_reviews) mature++;
       var f = toDate_(p.first_review) || toDate_(p.last_review);
       if (f && (!firstShown || f < firstShown)) firstShown = f;

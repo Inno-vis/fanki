@@ -41,8 +41,8 @@ The repo is **public** and hosted on GitHub Pages.
   → `{accepted, duplicate, rejected}`. Idempotent on `event_id`.
 - Admin-only (ADMIN_TOKEN): `listCards, listUntagged, tags, setTags, appendInbox, listInbox,
   promoteInbox, rebuildProgress, setup, readTab, reseedDev (DEV only), purgeSmoke, appendBreaks,
-  setCurriculum, curriculumStatus, migrateToDutch, userInfo, replaceKlok, seedEmoji, resetTag (all three dry
-  run unless dryRun:false; seedEmoji is DEV only)`. Open items: docs/todo.md.
+  setCurriculum, curriculumStatus, migrateToDutch, userInfo, replaceKlok, seedEmoji (both dry run unless
+  dryRun:false; seedEmoji is DEV only)`. Open items: docs/todo.md.
 - All writes are inside `LockService`. All actions are idempotent, so clients **retry** on
   `no_action` (POST body lost on Google's redirect), `busy`, or non-JSON responses.
 - Deploy with `npm run gas:deploy:<env>` — keeps the same deployment ID so the /exec URL never changes.
@@ -179,4 +179,3 @@ Slash commands in `.claude/commands/` (all go through `scripts/admin.mjs`, defau
   (status voorgesteld). Never writes Cards.
 - `/promote` — show `goedgekeurd` Inbox rows, wait for OK, `promoteInbox`.
 - `/addbreaks <n>` — new varied Breaks lines (axes + ≤ ~20 % rule), wait for OK, `appendBreaks`.
-- `/resettag <tag>` — dry run, wait for OK (PROD: backup first), `resetTag`: the tag's cards become new again.

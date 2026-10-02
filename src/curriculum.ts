@@ -51,7 +51,7 @@ export function curriculumStatus(
     let firstShown: string | null = null;
     for (const c of tagged) {
       const p = progress.get(progressKey(c.id, primaryTrack(c)));
-      if (!p || (p.state === 'New' && !p.reps)) continue; // never studied, or reset to new (/resettag)
+      if (!p) continue;
       if (isMature(p, matureDays, row.min_reviews)) mature++;
       const f = p.first_review || p.last_review;
       if (f && (!firstShown || f < firstShown)) firstShown = f;

@@ -41,7 +41,6 @@ function doPost(e) {
       case 'appendInbox': return adminAppendInbox_(body.rows);
       case 'listInbox': return adminListInbox_();
       case 'appendBreaks': return adminAppendBreaks_(body.lines);
-      case 'resetTag': return adminResetTag_(body.tag, body.dryRun !== false);
       case 'seedEmoji': return adminSeedEmoji_(body.dryRun !== false, body.allowProd === true);
       case 'replaceKlok': return adminReplaceKlok_(body.dryRun !== false);
       case 'userInfo': return { rows: writeUserInfo_(ss_(), env_()) };

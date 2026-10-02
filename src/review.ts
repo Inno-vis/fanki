@@ -23,9 +23,7 @@ export async function rate(item: Item, outcome: Outcome, shownAt: number, now = 
     if (!list.includes(item.card.id)) list.push(item.card.id);
   }
   const prev = s.progress.get(outcome.next.key);
-  const fresh = !prev || (prev.state === 'New' && !prev.reps); // never studied, or reset with /resettag
-  const first = fresh ? now.toISOString() : prev.first_review || prev.last_review || now.toISOString();
-  const next = { ...outcome.next, last_review: now.toISOString(), first_review: first };
+  const next = { ...outcome.next, last_review: now.toISOString(), first_review: prev?.first_review || prev?.last_review || now.toISOString() };
   const event: ReviewEvent = {
     event_id: uuid(),
     card_id: item.card.id,

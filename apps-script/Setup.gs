@@ -317,10 +317,10 @@ function buildDashboard_(sh) {
   sh.getRange('A2:B30').clearContent();
   var rows = [
     ['Te herhalen (alle richtingen)', '=COUNTIFS(Progress!D2:D,"<="&NOW())'],
-    ['Goed onthouden (30 dagen)', '=IFERROR(COUNTIFS(Log!E2:E,">1",Log!D2:D,">="&NOW()-30)/COUNTIFS(Log!E2:E,">=1",Log!D2:D,">="&NOW()-30),"—")'],
-    ['Herhalingen deze week', '=COUNTIFS(Log!E2:E,">=1",Log!D2:D,">="&(TODAY()-WEEKDAY(TODAY(),3)))'],
+    ['Goed onthouden (30 dagen)', '=IFERROR(COUNTIFS(Log!E2:E,">1",Log!D2:D,">="&NOW()-30)/COUNTIFS(Log!D2:D,">="&NOW()-30),"—")'],
+    ['Herhalingen deze week', '=COUNTIFS(Log!D2:D,">="&(TODAY()-WEEKDAY(TODAY(),3)))'],
     ['Actieve kaarten', '=COUNTIF(Cards!N2:N,TRUE)'],
-    ['Laatst gesynchroniseerd', '=IF(COUNTIFS(Log!E2:E,">=1")=0,"—",MAXIFS(Log!D2:D,Log!E2:E,">=1"))'],
+    ['Laatst gesynchroniseerd', '=IF(COUNT(Log!D2:D)=0,"—",MAX(Log!D2:D))'],
     ['', ''],
     ['Vaakst vergeten (nl | richting | keer vergeten)', '']
   ];

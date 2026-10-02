@@ -153,14 +153,3 @@ describe('open column and curriculum_only', () => {
     expect(isTopicLocked('b', r, s, true)).toBe(false);
   });
 });
-
-describe('cards reset with /resettag', () => {
-  it('a reset card (state New, reps 0) is not "shown" and not mature', () => {
-    const cards = [card('a1', ['a'])];
-    const reset = new Map([prog('a1', 0, 0, daysAgo(400))]);
-    reset.get(progressKey('a1', 'prod'))!.state = 'New';
-    const [a] = curriculumStatus([row(1, 'a'), row(2, 'b')], cards, reset, 21, now);
-    expect(a.firstShown).toBeNull();
-    expect(a.mature).toBe(0);
-  });
-});

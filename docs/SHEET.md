@@ -120,14 +120,6 @@ Above each card the app shows `subject_nl` of the FIRST tag on the card that has
   The curriculum uses it as "first shown".
 - To rebuild exactly: `npm run admin -- dev rebuildProgress` (latest Log snapshot per card+track).
 
-### Reset a tag (start its cards again from zero)
-
-`/resettag <tag>` in Claude Code (or `node scripts/admin.mjs <env> resetTag '{"tag":"klok-1"}'`, dry run by
-default; add `"dryRun":false` to apply). Every Progress row of a card with that tag becomes state New, reps 0,
-`last_review` = now (so the phone takes it at its next sync) and `first_review` empty; one Log row per reset is
-added with mode `reset` and rating 0 (the Dashboard doesn't count those as reviews). Earlier reviews stay in Log.
-Cards she has an unsent review for on the phone keep that review (it is newer).
-
 ## Log — review events (append-only, written by the API)
 
 `event_id, card_id, track, ts, rating, mode, duration_ms, snapshot`

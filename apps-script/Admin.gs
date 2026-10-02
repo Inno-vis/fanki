@@ -139,9 +139,7 @@ function adminRebuildProgress_() {
       var key = r.card_id + '|' + r.track;
       var ts = toDate_(r.ts);
       if (!ts) return;
-      // first review since the last reset (/resettag writes mode "reset" rows)
-      if (String(r.mode) === 'reset') first[key] = '';
-      else if (!first[key] || ts < first[key]) first[key] = ts;
+      if (!first[key] || ts < first[key]) first[key] = ts;
       if (latest[key] && latest[key].ts >= ts) return;
       var snap;
       try { snap = JSON.parse(r.snapshot); } catch (e) { return; }
@@ -149,7 +147,7 @@ function adminRebuildProgress_() {
     });
     var rows = Object.keys(latest).map(function (k) {
       var x = latest[k];
-      return [x.card_id, x.track, x.s.state, new Date(x.s.due), x.s.stability, x.s.difficulty, x.s.reps, x.s.lapses, x.ts, first[k] || ''];
+      return [x.card_id, x.track, x.s.state, new Date(x.s.due), x.s.stability, x.s.difficulty, x.s.reps, x.s.lapses, x.ts, first[k]];
     });
     var sh = sheet_('Progress');
     if (sh.getLastRow() > 1) sh.getRange(2, 1, sh.getLastRow() - 1, SCHEMA.Progress.length).clearContent();
@@ -322,47 +320,6 @@ function adminSeedEmoji_(dryRun, allowProd) {
       data.sort({ column: 1, ascending: true });
     }
     if (add.length) writeCardRows_(cards, add);
-    updateCurriculumDashboard_(true);
-    return report;
-  });
-}
-
-/**
- * Resets every card with `tag` to "new": Progress rows become state New / reps 0 / last_review now
- * (newer than the phone's copy, so the next sync applies it), first_review is cleared, and one Log row
- * per reset is appended (mode "reset", rating 0 — not counted as a review). Review history stays in Log.
- * dryRun (default) only reports.
- */
-function adminResetTag_(tag, dryRun) {
-  tag = String(tag || '').trim().toLowerCase();
-  if (!tag) throw apiError_('bad_request', 'tag required');
-  return withLock_(function () {
-    var cards = readTable_(sheet_('Cards')).rows.filter(function (r) { return splitTags_(r.tags).indexOf(tag) !== -1; });
-    var ids = {};
-    cards.forEach(function (r) { ids[String(r.id)] = text_(r.nl); });
-    var prog = sheet_('Progress');
-    var pt = readTable_(prog);
-    var rows = pt.rows.filter(function (r) {
-      return ids.hasOwnProperty(String(r.card_id)) && !(String(r.state) === 'New' && !Number(r.reps));
-    });
-    var report = {
-      dryRun: dryRun, tag: tag, cards: cards.length, toReset: rows.length,
-      rows: rows.map(function (r) { return ids[String(r.card_id)] + ' (' + r.track + ', ' + r.state + ', ' + r.reps + ' herhalingen)'; })
-    };
-    if (dryRun || !rows.length) return report;
-    var now = new Date();
-    var snap = { state: 'New', due: now.toISOString(), stability: 0, difficulty: 0, reps: 0, lapses: 0, learning_steps: 0, scheduled_days: 0 };
-    var h = pt.headers;
-    rows.forEach(function (r) {
-      var o = { card_id: r.card_id, track: r.track, state: 'New', due: now, stability: 0, difficulty: 0, reps: 0, lapses: 0,
-        last_review: now, first_review: '' };
-      prog.getRange(r._row, 1, 1, h.length).setValues([h.map(function (k) { return o.hasOwnProperty(k) ? o[k] : r[k]; })]);
-    });
-    var log = sheet_('Log');
-    var logRows = rows.map(function (r) {
-      return ['reset-' + Utilities.getUuid(), String(r.card_id), String(r.track), now, 0, 'reset', 0, JSON.stringify(snap)];
-    });
-    log.getRange(log.getLastRow() + 1, 1, logRows.length, logRows[0].length).setValues(logRows);
     updateCurriculumDashboard_(true);
     return report;
   });

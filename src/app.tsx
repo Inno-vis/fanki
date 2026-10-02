@@ -16,6 +16,7 @@ import { Marked } from './screens/Marked';
 import { Toast } from './components/Toast';
 import type { Card } from './types';
 import { resumable, type SessionState } from './sessionRules';
+import { resetCooldownOnNewDevBuild } from './devReset';
 
 type Screen = { name: 'home' } | { name: 'topics' } | { name: 'marked' } | { name: 'review'; items: Item[]; resume: SessionState | null };
 
@@ -26,7 +27,10 @@ export function App() {
 
   // Load what's on the phone first (works offline), then refresh from the sheet when online.
   useEffect(() => {
-    loadFromDb().then(() => navigator.onLine && syncNow());
+    resetCooldownOnNewDevBuild()
+      .catch(() => false)
+      .then(() => loadFromDb())
+      .then(() => navigator.onLine && syncNow());
   }, []);
   useEffect(() => {
     if (!online || !s.loaded) return;

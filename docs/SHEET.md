@@ -86,6 +86,8 @@ still read.
   - Hour with TWO digits (10–23, or `00` for midnight — always "00:MMu", never "0:MMu") → append
     " of <spoken form> 's <dagdeel>": "15:15u of kwart over drie 's middags", "00:45u of kwart voor één 's nachts",
     "10:00u of tien uur 's ochtends".
+  - In sums the prompt time uses the same number of hour digits as the answer: "09:40u + 20 min = ..." →
+    "10:00u of tien uur 's ochtends" (not "9:40u").
   - Reading cards ("Het is 11:23u. Hoe laat is het?") follow the digit count of the time in the PROMPT; their
     answer is already spoken, so it only gets " 's <dagdeel>" ("zeven voor half twaalf 's ochtends").
   - Dagdeel: 06:00–11:59 's ochtends · 12:00–17:59 's middags · 18:00–23:59 's avonds · 00:00–05:59 's nachts.

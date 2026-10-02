@@ -149,6 +149,13 @@ keys, pos and descriptions. The API maps them to internal codes (`typeCode_`/`so
 - Tests: `src/queue.test.ts` (idempotent push, lost replies, merge) and `e2e/offline.spec.ts` (Playwright:
   online load → offline reload → review → reconnect with a lost reply → exactly-once on the mock server).
 
+## Deploy rules (standing instructions)
+
+- **DEV deploy → cooldown reset**: `src/devReset.ts` clears `meta.lastSession` the first time a DEV build with a
+  new BUILD_ID starts. PROD never resets.
+- **PROD deploy → keep her progress**: follow the "PROD safety checklist" in docs/RELEASE.md every time
+  (`npm run backup:prod` before and after, additive changes only, dry runs, verify counts and the live app).
+
 ## Commands
 
 ```bash
@@ -158,6 +165,7 @@ npm run e2e              # builds e2e-dist (mock API) + Playwright offline test
 npm run build            # prod + dev into dist/
 npm run gas:deploy:dev   # push + redeploy Apps Script (same URL)
 npm run smoke:dev        # curl smoke test of the deployed API
+npm run backup:prod      # Log/Progress/Cards → backups/ (git-ignored) before & after any PROD change
 npm run admin -- dev listUntagged
 npm run ui-strings       # regenerate docs/UI-STRINGS.md
 npm run ui-vocab         # UI words not yet taught (warning)

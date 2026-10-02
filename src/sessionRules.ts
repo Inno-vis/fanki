@@ -108,6 +108,6 @@ export function minutesLeft(until: number | null, now: number): number {
   return until === null || now >= until ? 0 : Math.ceil((until - now) / 60_000);
 }
 
-export function loadLastSession(): Promise<SessionRecord | undefined> {
+export function loadLastSession(): Promise<SessionRecord | null | undefined> {
   return getMeta('lastSession');
 }

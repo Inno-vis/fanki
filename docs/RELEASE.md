@@ -8,6 +8,27 @@
 Every push to `main` or `release` rebuilds **both** apps into one Pages artifact
 (`.github/workflows/deploy.yml`).
 
+## PROD safety checklist (every PROD change — the learner's progress must survive)
+
+Applies to a `release` push, `npm run gas:deploy:prod`, `admin prod setup`, and any write to the PROD sheet.
+
+1. **Back up first:** `npm run backup:prod` → `backups/prod-<time>.json` (Log, Progress, Cards; git-ignored —
+   it is the learner's data). Note the counts it prints.
+2. **Only additive / migration-safe changes:**
+   - IndexedDB: bump the version and ADD stores/indexes in `upgrade(d, oldVersion)`; never delete or
+     recreate an existing store (her progress and unsent reviews live there).
+   - Sheet: new columns are inserted by `ensureHeaders_` (data moves with them); never rename a header,
+     never delete Log or Progress rows (except `purgeSmoke` test rows).
+   - Never change the `id` of a card she has studied (Progress/Log are keyed by card_id). Replacing cards is
+     only OK for ids without Progress rows — check first.
+3. **Order:** release the app first when the sheet starts sending something the old app can't show; the new
+   app must handle both old and new sheet values.
+4. **Dry run** anything that changes Cards (`replaceKlok`, migrations) and show the result before applying.
+5. **Verify after:** `npm run smoke:prod` (cleans up its own rows), run `npm run backup:prod` again and
+   compare: Log and Progress counts must be ≥ before (only her own new reviews may add rows). Open the live
+   PROD app and check it shows the new build and syncs.
+6. Never reset, reseed or test-review against PROD.
+
 ## 1. Promote the web app
 
 ```bash
@@ -19,6 +40,9 @@ git checkout main
 
 If `--ff-only` fails, someone committed to `release` directly: merge `release` back into `main`
 first, then retry. The learner sees "Nouvelle version disponible" the next time she opens the app.
+
+DEV is different on purpose: every DEV deploy resets the session cooldown on the phone (new build → the DEV
+app clears `meta.lastSession`), so you can test immediately.
 
 ## 2. Promote the Apps Script (only if `apps-script/` changed)
 

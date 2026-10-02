@@ -213,7 +213,15 @@ var APP_SEED_CARDS = [
   'word|vier||num|quatre|Ik heb vier boeken.|J\'ai quatre livres.|app|manual|',
   'word|voltooid||adj|terminé, achevé|De sessie is voltooid.|La séance est terminée.|app|manual|',
   'word|zojuist||adv|à l\'instant|Ik ben zojuist thuisgekomen.|Je viens de rentrer.|app|manual|',
-  'word|dicht||adj|fermé|De deur is dicht.|La porte est fermée.|app|manual|'
+  'word|dicht||adj|fermé|De deur is dicht.|La porte est fermée.|app|manual|',
+  // Added 2026-10-02: words of the 🚩 "Gemarkeerd" screens
+  'word|markeren||verb|marquer|Ik markeer een moeilijk woord.|Je marque un mot difficile.|app|manual|',
+  'word|notitie|de|noun|la note|Ik schrijf een notitie.|J\'écris une note.|app|manual|',
+  'word|delen||verb|partager|Ik deel de lijst met mijn leraar.|Je partage la liste avec mon professeur.|app|manual|',
+  'word|kopiëren||verb|copier|Kopieer de tekst.|Copie le texte.|app|manual|',
+  'word|klembord|het|noun|le presse-papiers|De tekst staat op het klembord.|Le texte est dans le presse-papiers.|app|manual|',
+  'word|leeg||adj|vide|Het glas is leeg.|Le verre est vide.|app|manual|',
+  'word|oplossen||verb (separable)|résoudre|Ik los het probleem op.|Je résous le problème.|app|manual|separable'
 ];
 
 // Clock course (replaces the L1-/L2-/L3- set of 2026-09-29). Fixed ids, added 2026-09-30.
@@ -225,6 +233,7 @@ var APP_SEED_CARDS = [
 // DAGDEEL RULE for clock times: an answer "HH:MMu" with a TWO-digit hour (10–23, or 00 for midnight — never
 // "0:MMu") gets " of <spoken> 's <dagdeel>"; one-digit hours (1–9) stay as they are. A reading card
 // ("Het is 11:23u. …") follows the digit count of the time in the prompt and only gets " 's <dagdeel>".
+// In sums the prompt time uses the same number of hour digits as the answer: "09:40u + 20 min" → "10:00u …".
 // 06–11:59 's ochtends · 12–17:59 's middags · 18–23:59 's avonds · 00–05:59 's nachts.
 var KLOK_SEED_ADDED = '2026-09-30';
 var KLOK_SEED_CARDS = [
@@ -243,7 +252,7 @@ var KLOK_SEED_CARDS = [
   'K2-03|word|over||prep|après (l\'heure), et|Het is tien over acht.|Il est huit heures dix.|klok-2||',
   'K2-04|oneway|Het is 5:45u. Hoe laat is het?||klok||||klok-2||kwart voor zes',
   'K2-05|oneway|Het is 8:15u. Hoe laat is het?||klok||||klok-2||kwart over acht',
-  'K2-06|oneway|9:40u + 20 min = ...||klok||||klok-2||10:00u of tien uur \'s ochtends',
+  'K2-06|oneway|09:40u + 20 min = ...||klok||||klok-2||10:00u of tien uur \'s ochtends',
   'K2-07|oneway|11:55u + 15 min = ...||klok||||klok-2||12:10u of tien over twaalf \'s middags',
   'K2-08|oneway|Een kwartier = ... min||klok||||klok-2||15 min',
   'K2-09|oneway|45 min = ... kwartier||klok||||klok-2||3 kwartier',

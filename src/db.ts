@@ -32,7 +32,8 @@ export type Meta = {
   intro: Intro; // new cards introduced today
   curriculum: CurriculumRow[];
   breaks: string[]; // Dutch off-screen prompts shown when a pause starts
-  lastSession: SessionRecord; // for the cooldown
+  lastSession: SessionRecord | null; // for the cooldown
+  lastBuild: string; // DEV: build that last reset the cooldown
   studyTags: string[]; // tag filter ("Kies een onderwerp"); [] = everything
   openSession: SessionState | null; // a paused session she can continue ("Doorgaan")
 };

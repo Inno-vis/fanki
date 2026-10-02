@@ -242,17 +242,23 @@ function adminReplaceKlok_(dryRun) {
     var existing = {};
     t.rows.forEach(function (r) { existing[String(r.id)] = true; });
     var add = klokRows_().filter(function (r) { return !existing[r[0]]; });
-    // Existing K-cards whose answer differs from the seed (e.g. the dagdeel rule) get the new answer.
-    var seedAnswer = {};
-    klokRows_().forEach(function (r) { seedAnswer[r[0]] = r[11]; });
-    var update = t.rows.filter(function (r) {
-      return seedAnswer.hasOwnProperty(String(r.id)) && text_(r.answer) !== seedAnswer[String(r.id)];
-    });
+    // Existing K-cards whose prompt (nl) or answer differs from the seed get the seed's text.
+    var seedAnswer = {}, seedNl = {};
+    klokRows_().forEach(function (r) { seedAnswer[r[0]] = r[11]; seedNl[r[0]] = r[2]; });
+    var differs = function (r) {
+      var id = String(r.id);
+      return seedAnswer.hasOwnProperty(id) && (text_(r.answer) !== seedAnswer[id] || text_(r.nl) !== seedNl[id]);
+    };
+    var update = t.rows.filter(differs);
     var report = {
       dryRun: dryRun,
       remove: remove.map(function (r) { return String(r.id) + ' | ' + text_(r.fr) + ' → ' + text_(r.nl); }),
       add: add.map(function (r) { return r[0] + ' | ' + r[1] + ' | ' + r[2] + (r[11] ? ' → ' + r[11] : ''); }),
-      update: update.map(function (r) { return String(r.id) + ' | ' + text_(r.nl) + ' | ' + text_(r.answer) + ' → ' + seedAnswer[String(r.id)]; }),
+      update: update.map(function (r) {
+        var id = String(r.id);
+        return id + ' | ' + text_(r.nl) + (text_(r.nl) !== seedNl[id] ? ' → ' + seedNl[id] : '') + ' | ' +
+          text_(r.answer) + (text_(r.answer) !== seedAnswer[id] ? ' → ' + seedAnswer[id] : '');
+      }),
       minuut: minuut ? String(minuut.id) + ': ' + minuut.tags + ' → ' + (splitTags_(minuut.tags).indexOf('klok-3') === -1 ? minuut.tags + ', klok-3' : '(already)') : 'not found'
     };
     if (dryRun) return report;
@@ -263,11 +269,11 @@ function adminReplaceKlok_(dryRun) {
       sh.getRange(fresh._row, CARD_COLS.indexOf('tags') + 1).setValue(splitTags_(minuut.tags).concat(['klok-3']).join(', '));
     }
     if (update.length) {
-      var ansCol = CARD_COLS.indexOf('answer') + 1;
+      var ansCol = CARD_COLS.indexOf('answer') + 1, nlCol = CARD_COLS.indexOf('nl') + 1;
       readTable_(sh).rows.forEach(function (r) {
-        if (seedAnswer.hasOwnProperty(String(r.id)) && text_(r.answer) !== seedAnswer[String(r.id)]) {
-          sh.getRange(r._row, ansCol).setNumberFormat('@').setValue(seedAnswer[String(r.id)]);
-        }
+        if (!differs(r)) return;
+        sh.getRange(r._row, nlCol).setNumberFormat('@').setValue(seedNl[String(r.id)]);
+        sh.getRange(r._row, ansCol).setNumberFormat('@').setValue(seedAnswer[String(r.id)]);
       });
     }
     if (add.length) writeCardRows_(sh, add);

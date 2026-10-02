@@ -49,6 +49,7 @@ function doPost(e) {
       case 'appendBreaks': return adminAppendBreaks_(body.lines);
       case 'seedEmoji': return adminSeedEmoji_(body.dryRun !== false, body.allowProd === true);
       case 'replaceKlok': return adminReplaceKlok_(body.dryRun !== false);
+      case 'setCheck': return adminSetCheck_(body.updates, body.dryRun !== false);
       case 'enableApproval': return adminEnableApproval_(body.dryRun !== false, body.approveStudied !== false);
       case 'setTeachers': return adminSetTeachers_(body.emails, body.domain);
       case 'userInfo': return { rows: writeUserInfo_(ss_(), env_()) };

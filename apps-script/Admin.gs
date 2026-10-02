@@ -375,3 +375,36 @@ function adminEnableApproval_(dryRun, approveStudied) {
     return report;
   });
 }
+
+/**
+ * Sets Cards.controle for many cards: {updates:[{id, controle:'goedgekeurd'|'afgekeurd'|''}]} (e.g. to copy
+ * PROD approvals to DEV). Clears 🚩 nakijken on approved/rejected cards. Dry run unless dryRun:false.
+ */
+function adminSetCheck_(updates, dryRun) {
+  return withLock_(function () {
+    var sh = sheet_('Cards');
+    var t = readTable_(sh);
+    var cc = t.headers.indexOf('controle'), fc = t.headers.indexOf('nakijken');
+    if (cc < 0 || fc < 0) throw apiError_('setup_needed', 'Cards.controle / nakijken missing: run setup first');
+    var byId = {};
+    t.rows.forEach(function (r) { byId[String(r.id)] = r; });
+    var n = Math.max(sh.getLastRow() - 1, 1); // whole columns, so blank rows keep their place
+    var col = sh.getRange(2, cc + 1, n, 1).getValues(), flag = sh.getRange(2, fc + 1, n, 1).getValues();
+    var changed = 0, unknown = [], bad = [];
+    (updates || []).forEach(function (u) {
+      var r = byId[String(u.id)];
+      if (!r) { unknown.push(u.id); return; }
+      var code = checkCode_(u.controle);
+      if (u.controle && !code) { bad.push(u.id + ': ' + u.controle); return; }
+      var v = code ? CHECK_NL[code] : '';
+      var i = r._row - 2;
+      if (String(col[i][0] || '') !== v) { col[i][0] = v; changed++; }
+      if (v) flag[i][0] = false;
+    });
+    var report = { dryRun: dryRun, updates: (updates || []).length, changed: changed, unknown: unknown, bad: bad };
+    if (dryRun) return report;
+    sh.getRange(2, cc + 1, col.length, 1).setValues(col);
+    sh.getRange(2, fc + 1, flag.length, 1).setValues(flag);
+    return report;
+  });
+}

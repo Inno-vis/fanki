@@ -226,18 +226,21 @@ var APP_SEED_CARDS = [
   'word|installeren||verb|installer|Ik installeer de app.|J\'installe l\'appli.|app|manual|'
 ];
 
-// Abbreviations used in the app and the cards (enkel), tag `app`, added 2026-09-26 — older than every other
-// card, so they come first among her new cards. Front = "<afk> (- afkorting)". Format: id|front|answer
+// Abbreviations (enkel cards with the badge "afkorting" = flag `abbreviation`). Each sits in the category where it
+// is first used, directly before the first card that uses it (same `added` date, the row just above it in the
+// sheet). Without a "before" card they go first in `app` (added 2026-09-26): d/wk/mnd/jr appear on the rating
+// buttons from the very first review; ev/mv are not used yet.
+// Format: id|front|answer|tag|beforeId
 var ABBREV_SEED_ADDED = '2026-09-26';
 var ABBREV_SEED_CARDS = [
-  'A-01|min (- afkorting)|de minuut, de minuten — minute(s)',
-  'A-02|u (- afkorting)|het uur — heure (3:00u = drie uur)',
-  'A-03|d (- afkorting)|de dag, de dagen — jour(s)',
-  'A-04|wk (- afkorting)|de week, de weken — semaine(s)',
-  'A-05|mnd (- afkorting)|de maand, de maanden — mois',
-  'A-06|jr (- afkorting)|het jaar — an(s), année(s)',
-  'A-07|ev (- afkorting)|het enkelvoud — singulier',
-  'A-08|mv (- afkorting)|het meervoud — pluriel'
+  'A-01|min|de minuut, de minuten — minute(s)|klok-1|K1-07',
+  'A-02|u|het uur — heure (3:00u = drie uur)|klok-1|K1-05',
+  'A-03|d|de dag, de dagen — jour(s)|app|',
+  'A-04|wk|de week, de weken — semaine(s)|app|',
+  'A-05|mnd|de maand, de maanden — mois|app|',
+  'A-06|jr|het jaar — an(s), année(s)|app|',
+  'A-07|ev|het enkelvoud — singulier|app|',
+  'A-08|mv|het meervoud — pluriel|app|'
 ];
 
 // Clock course (replaces the L1-/L2-/L3- set of 2026-09-29). Fixed ids, added 2026-09-30.

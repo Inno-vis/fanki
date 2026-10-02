@@ -220,6 +220,9 @@ test('enkel/emoji card, 🔊 without a Dutch voice, and 🚩 flags (flag, note, 
   await expect(page.getByText('Geen Nederlandse stem op deze telefoon.')).toBeVisible();
 
   // 🚩 flag this card with a note; the review goes on.
+  // Marked 3 times (it happens): still ONE card in the list and in the count.
+  await page.getByRole('button', { name: 'Kaart markeren' }).click();
+  await page.getByRole('button', { name: 'Kaart markeren' }).click();
   await page.getByRole('button', { name: 'Kaart markeren' }).click();
   await expect(page.getByText('Gemarkeerd', { exact: true })).toBeVisible();
   await page.getByRole('button', { name: '+ notitie' }).click();
@@ -228,9 +231,13 @@ test('enkel/emoji card, 🔊 without a Dutch voice, and 🚩 flags (flag, note, 
   await page.getByRole('button', { name: /^Makkelijk, / }).click();
   await page.getByRole('button', { name: /Terug/ }).click();
 
-  // Home badge → Gemarkeerd screen → copy text → Opgelost.
-  await page.getByRole('button', { name: 'Gemarkeerd' }).click();
+  // Menu (tap "Fanki") → Gemarkeerd → copy text → Opgelost.
+  await page.getByRole('button', { name: 'Menu openen' }).click();
+  await expect(page.getByRole('menuitem', { name: /Gemarkeerd/ })).toContainText('1');
+  await page.getByRole('menuitem', { name: /Gemarkeerd/ }).click();
   await expect(page.getByText('🛏️ (het bed)')).toBeVisible();
+  await expect(page.locator('.mark-item')).toHaveCount(1);
+  await expect(page.locator('.mark-times')).toHaveText(' 3×');
   await expect(page.getByText('“waarom geen emoji?”')).toBeVisible();
   await page.getByRole('button', { name: 'Kopieer naar klembord' }).click();
   const copied = await page.evaluate(() => navigator.clipboard.readText());
@@ -239,5 +246,6 @@ test('enkel/emoji card, 🔊 without a Dutch voice, and 🚩 flags (flag, note, 
   await page.getByRole('button', { name: 'Opgelost' }).click();
   await expect(page.getByText('Opgelost (1)')).toBeVisible();
   await page.getByRole('button', { name: 'Klaar' }).click();
-  await expect(page.getByRole('button', { name: 'Gemarkeerd' })).toHaveText('🚩 0');
+  await page.getByRole('button', { name: 'Menu openen' }).click();
+  await expect(page.getByRole('menuitem', { name: /Gemarkeerd/ })).toHaveText(/^🚩 Gemarkeerd$/);
 });

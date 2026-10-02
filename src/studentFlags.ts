@@ -58,11 +58,50 @@ export function flagCardLabel(card: Card | undefined, card_id: string): string {
   return back ? `${nl} (${back})` : nl;
 }
 
-/** Plain text for "Delen": a title, then one line per open flag: date · word · note. */
+/** All flags of one card, shown as ONE row (a card marked 3 times is listed once, "3×"). */
+export type FlagGroup = {
+  card_id: string;
+  flags: StudentFlag[]; // newest first
+  open: StudentFlag[]; // unresolved ones
+  resolved: boolean; // true when none is open
+  ts: string; // newest flag
+  notes: string[]; // non-empty notes, newest first, no duplicates
+};
+
+export function groupFlags(flags: StudentFlag[]): FlagGroup[] {
+  const by = new Map<string, StudentFlag[]>();
+  for (const f of [...flags].sort((a, b) => b.ts.localeCompare(a.ts))) {
+    by.set(f.card_id, [...(by.get(f.card_id) ?? []), f]);
+  }
+  return [...by.entries()]
+    .map(([card_id, list]) => {
+      const open = list.filter((f) => !f.resolved);
+      return {
+        card_id, flags: list, open, resolved: open.length === 0, ts: list[0].ts,
+        notes: [...new Set(list.map((f) => f.note).filter(Boolean))]
+      };
+    })
+    .sort((a, b) => b.ts.localeCompare(a.ts));
+}
+
+/** Cards with at least one open 🚩 (home/menu count, lit 🚩 in review). */
+export function openFlagCards(flags: StudentFlag[]): Set<string> {
+  return new Set(flags.filter((f) => !f.resolved).map((f) => f.card_id));
+}
+
+/** "Opgelost" on a card resolves all its open flags; undoing reopens the newest one. */
+export async function setCardResolved(group: FlagGroup, resolved: boolean, now?: Date): Promise<void> {
+  if (resolved) for (const f of group.open) await setFlagResolved(f.id, true, now);
+  else if (group.flags[0]) await setFlagResolved(group.flags[0].id, false, now);
+}
+
+/** Plain text for "Delen": a title, then one line per card with an open flag: date · word · notes. */
 export function exportText(flags: StudentFlag[], cards: Map<string, Card>, title: string): string {
-  const lines = flags
-    .filter((f) => !f.resolved)
+  // Only the OPEN flags of each card count here (their newest date, their notes).
+  const lines = groupFlags(flags)
+    .filter((g) => !g.resolved)
+    .map((g) => ({ g, ts: g.open[0].ts, notes: [...new Set(g.open.map((f) => f.note).filter(Boolean))] }))
     .sort((a, b) => b.ts.localeCompare(a.ts))
-    .map((f) => [localDay(f.ts), flagCardLabel(cards.get(f.card_id), f.card_id), f.note].filter(Boolean).join(' · '));
+    .map(({ g, ts, notes }) => [localDay(ts), flagCardLabel(cards.get(g.card_id), g.card_id), notes.join(' / ')].filter(Boolean).join(' · '));
   return [title, ...lines].join('\n');
 }

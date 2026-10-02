@@ -1,7 +1,7 @@
 import 'fake-indexeddb/auto';
 import { beforeEach, describe, expect, it } from 'vitest';
 import { _resetDb } from './db';
-import { createFlag, exportText, flagCardLabel, listFlags, setFlagNote, setFlagResolved, splitFlags } from './studentFlags';
+import { createFlag, exportText, flagCardLabel, groupFlags, listFlags, openFlagCards, setCardResolved, setFlagNote, setFlagResolved, splitFlags } from './studentFlags';
 import type { Card } from './types';
 
 const card = (id: string, over: Partial<Card> = {}): Card => ({
@@ -76,5 +76,36 @@ describe('export text for "Delen"', () => {
 
   it('a card that no longer exists is named by its id', () => {
     expect(flagCardLabel(undefined, 'c_gone')).toBe('c_gone');
+  });
+});
+
+describe('one card marked several times counts once', () => {
+  it('groups by card: one row, all notes, open while any flag is open', async () => {
+    await createFlag('min', '', at(9));
+    await createFlag('min', 'waarom "min"?', at(10));
+    await createFlag('min', '', at(11));
+    await createFlag('huis', '', at(12));
+    const groups = groupFlags(await listFlags());
+    expect(groups.map((g) => [g.card_id, g.flags.length, g.resolved])).toEqual([['huis', 1, false], ['min', 3, false]]);
+    expect(groups[1].notes).toEqual(['waarom "min"?']);
+    expect(openFlagCards(await listFlags()).size).toBe(2);
+  });
+
+  it('Opgelost resolves every open flag of the card; undo reopens it', async () => {
+    await createFlag('min', '', at(9));
+    await createFlag('min', '', at(10));
+    let [g] = groupFlags(await listFlags());
+    await setCardResolved(g, true, at(11));
+    [g] = groupFlags(await listFlags());
+    expect(g.resolved).toBe(true);
+    expect(openFlagCards(await listFlags()).size).toBe(0);
+    await setCardResolved(g, false, at(12));
+    expect(groupFlags(await listFlags())[0].resolved).toBe(false);
+  });
+
+  it('shared text has one line per card', () => {
+    const f = (id: string, card_id: string, h: number, note = '') => ({ id, card_id, ts: at(h).toISOString(), note, resolved: false, updated_ts: '' });
+    const text = exportText([f('1', 'c_1', 9, 'een'), f('2', 'c_1', 10, 'twee'), f('3', 'c_1', 11)], new Map([['c_1', card('c_1')]]), 'T');
+    expect(text).toBe('T\n2026-09-30 · het huis (la maison) · twee / een');
   });
 });

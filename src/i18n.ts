@@ -48,13 +48,16 @@ export const UI = {
   'home.topicAll': { nl: 'Onderwerp: alle', fr: 'Thème : tous' },
   'home.topic': { nl: 'Onderwerp: {list}', fr: 'Thème : {list}' },
 
+  // Menu (tap "Fanki")
+  'menu.open': { nl: 'Menu openen', fr: 'Ouvrir le menu (progression, cartes marquées)' },
+  'menu.title': { nl: 'Menu', fr: 'Menu' },
+
   // Voortgang (progress overview)
   'progress.title': { nl: 'Voortgang', fr: 'Ma progression' },
   'progress.learned': { nl: 'kaarten geoefend (van {n})', fr: 'cartes déjà travaillées (sur {n} en tout)' },
   'progress.known': { nl: 'kaarten gekend', fr: 'cartes bien sues (elles reviennent dans 3 semaines ou plus)' },
   'progress.week': { nl: 'herhalingen deze week', fr: 'révisions ces 7 derniers jours' },
   'progress.streak': { nl: 'dagen op rij', fr: 'jours de suite avec au moins une révision' },
-  'progress.chart': { nl: 'Herhalingen per dag', fr: 'Révisions par jour (7 derniers jours)' },
   'progress.dueToday': { nl: 'vandaag', fr: 'cartes à revoir aujourd’hui' },
   'progress.dueTomorrow': { nl: 'morgen', fr: 'cartes à revoir demain' },
   'progress.due7': { nl: 'deze week', fr: 'cartes à revoir dans les 7 prochains jours' },
@@ -91,6 +94,7 @@ export const UI = {
   'mark.shareTitle': { nl: 'Fanki: gemarkeerde kaarten', fr: 'Fanki : cartes marquées' },
 
   // Card flags (key = value in the Cards.flags column)
+  'flag.abbreviation': { nl: 'afkorting', fr: 'abréviation : forme courte d’un mot (min = minuten)' },
   'flag.false-friend': { nl: 'valse vriend', fr: 'faux ami : ressemble à un mot français, mais le sens est différent' },
 
   // Relative time
@@ -135,6 +139,7 @@ export const HELP = {
   home: {
     nl: 'Hier zie je je kaarten voor vandaag. Tik op Starten.',
     fr:
+      'Touche « Fanki » en haut pour le menu : « Voortgang » (ta progression) et « Gemarkeerd » (cartes marquées 🚩). ' +
       'Cet écran montre combien de cartes tu dois revoir aujourd’hui (« te herhalen ») et combien de nouvelles ' +
       'cartes t’attendent (« nieuw vandaag »). Touche « Starten » pour commencer. L’appli fonctionne aussi sans ' +
       'internet : tes réponses sont gardées sur le téléphone et envoyées à la prochaine connexion. ' +
@@ -146,8 +151,8 @@ export const HELP = {
     nl: 'Hier zie je je voortgang.',
     fr:
       'Ta progression : « kaarten geoefend » = cartes déjà travaillées, « kaarten gekend » = cartes bien sues, ' +
-      '« herhalingen deze week » = révisions des 7 derniers jours, « dagen op rij » = jours de suite. Le graphique ' +
-      'montre tes révisions par jour. En bas : combien de cartes reviennent aujourd’hui (vandaag), demain (morgen) ' +
+      '« herhalingen deze week » = révisions des 7 derniers jours, « dagen op rij » = jours de suite. ' +
+      'En bas : combien de cartes reviennent aujourd’hui (vandaag), demain (morgen) ' +
       'et cette semaine (deze week).'
   },
   marked: {
@@ -178,7 +183,7 @@ export const HELP = {
       'honnêtement comment ça s’est passé : ❌ Opnieuw = je ne savais pas, 😅 Moeilijk = j’ai hésité, ' +
       '✅ Goed = bien, 😎 Makkelijk = très facile. Sous chaque bouton : quand la carte reviendra ' +
       '(min = minutes, u = heures, d = jours, wk = semaines, mnd = mois, jr = ans). Les noms montrent toujours ' +
-      '« de » ou « het ». Badge « valse vriend » = faux ami. ' +
+      '« de » ou « het ». Badges : « valse vriend » = faux ami, « afkorting » = abréviation. ' +
       'La barre en haut montre ta séance (« 9 van 15 kaarten » = 9 cartes sur 15). À la fin, ' +
       '« Nog 10 kaarten, graag! » = encore 10 cartes, « Stoppen » = arrêter. « Terug » = retour. ' +
       '🔊 = écouter le mot en néerlandais. Parfois la carte commence seulement par le son (« Wat hoor je? ») : ' +

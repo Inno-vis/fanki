@@ -15,6 +15,7 @@ import { Topics } from './screens/Topics';
 import { Marked } from './screens/Marked';
 import { ProgressScreen } from './screens/ProgressScreen';
 import { Toast } from './components/Toast';
+import { Menu } from './components/Menu';
 import type { Card } from './types';
 import { resumable, type SessionState } from './sessionRules';
 import { resetCooldownOnNewDevBuild } from './devReset';
@@ -94,16 +95,9 @@ export function App() {
       <UpdateBanner />
       <Toast />
       <header class="topbar">
-        <h1>
-          Fanki {APP_ENV === 'DEV' && <span class="env-badge">DEV</span>}
-        </h1>
+        <Menu go={(name) => setScreen(name === 'marked' ? { name: 'marked' } : { name: 'progress' })} />
         <div class="topbar-right">
           {!online && <span class="offline-badge">{t('status.offline')}</span>}
-          {screen.name === 'home' && s.flagsTotal > 0 && (
-            <button class="mark-badge" onClick={() => setScreen({ name: 'marked' })} aria-label={t('mark.title')}>
-              {t('mark.badge', { n: s.flagsOpen })}
-            </button>
-          )}
           <HelpButton screen={screen.name === 'home' ? 'home' : screen.name} />
         </div>
       </header>
@@ -114,7 +108,7 @@ export function App() {
       ) : screen.name === 'progress' ? (
         <ProgressScreen onDone={() => setScreen({ name: 'home' })} />
       ) : (
-      <Home onProgress={() => setScreen({ name: 'progress' })} onTopics={() => setScreen({ name: 'topics' })} due={plan.due.length} newToday={plan.fresh.length} onStart={() => setScreen({ name: 'review', items: sessionItems(), resume: resumable(s.openSession, s.settings, Date.now()) })} />
+      <Home onTopics={() => setScreen({ name: 'topics' })} due={plan.due.length} newToday={plan.fresh.length} onStart={() => setScreen({ name: 'review', items: sessionItems(), resume: resumable(s.openSession, s.settings, Date.now()) })} />
       )}
       <footer class="footer muted">
         {APP_ENV} · {BUILD_ID}

@@ -161,6 +161,36 @@ function reviewApprove(id, fields) {
   });
 }
 
+/** Keur alle goed: approves several Inbox rows in one go (rows marked "nakijken" are skipped). */
+function reviewApproveMany(ids) {
+  requireTeacher_();
+  var results = [];
+  (ids || []).forEach(function (id) {
+    var row = findById_(sheet_('Inbox'), id);
+    if (row && statusCode_(row.status) === 'review') { results.push({ id: id, ok: false, errors: ['gemarkeerd om na te kijken'] }); return; }
+    try {
+      var r = reviewApprove(id, null);
+      results.push({ id: id, ok: r.ok, errors: r.errors || [] });
+    } catch (e) {
+      results.push({ id: id, ok: false, errors: [String(e.message || e)] });
+    }
+  });
+  return results;
+}
+
+/** 🚩 Nakijken: mark an Inbox row to check later (status nakijken) or unmark it (voorgesteld). */
+function reviewSetFlag(id, flagged) {
+  requireTeacher_();
+  return withLock_(function () {
+    var inbox = sheet_('Inbox');
+    var row = findById_(inbox, id);
+    if (!row) throw new Error('Rij niet gevonden (al verplaatst?)');
+    var col = readTable_(inbox).headers.indexOf('status') + 1;
+    inbox.getRange(row._row, col).setValue(flagged ? STATUS_NL.review : STATUS_NL.proposed);
+    return reviewRow_(findById_(inbox, id), true);
+  });
+}
+
 /** Afwijzen: delete the Inbox row. */
 function reviewReject(id) {
   requireTeacher_();

@@ -2,13 +2,15 @@ import { useRef, useState } from 'preact/hooks';
 import { t } from '../i18n';
 import { createFlag, setFlagNote } from '../studentFlags';
 import { showToast } from './Toast';
-import { refreshFlagCount } from '../store';
+import { refreshFlagCount, useStore } from '../store';
 
 /**
  * 🚩 in the corner of every card. Tap = flag now (+ "Gemarkeerd" toast with "+ notitie").
  * Long-press = flag and open the note field. Never blocks the review: the toast is non-modal.
  */
 export function FlagButton({ cardId }: { cardId: string }) {
+  const s = useStore();
+  const lit = s.flaggedCards.includes(cardId);
   const [noteFor, setNoteFor] = useState<string | null>(null);
   const [note, setNote] = useState('');
   const timer = useRef<ReturnType<typeof setTimeout>>();
@@ -47,7 +49,7 @@ export function FlagButton({ cardId }: { cardId: string }) {
   return (
     <>
       <button
-        class="flag-btn"
+        class={`flag-btn${lit ? ' lit' : ''}`}
         aria-label={t('mark.button')}
         onPointerDown={down}
         onPointerUp={up}

@@ -71,6 +71,8 @@ The repo is **public** and hosted on GitHub Pages.
 - `doGet ?page=review` serves the page only when the visitor's email is in Script Properties TEACHER_EMAILS /
   TEACHER_DOMAIN (`admin <env> setTeachers`). The anonymous API deployment has no userinfo scope → never
   serves it. Page ↔ server via google.script.run (`review*` functions, each `requireTeacher_()`); no token.
+- Inbox status `nakijken` (🚩 per row / F key): stays in the Inbox, skipped by "Keur alle 5 goed"
+  (`reviewApproveMany`), filter "alleen 🚩 nakijken".
 
 ## Listening and Voortgang
 
@@ -149,7 +151,9 @@ keys, pos and descriptions. The API maps them to internal codes (`typeCode_`/`so
   Every tap is a new entry; resolving never deletes. Stable field names so a future sync could push them,
   but there is NO sync: they leave the phone only via her "Delen" (Web Share) or "Kopieer naar klembord".
 - UI: 🚩 on every card in review (`FlagButton`: tap = flag + "Gemarkeerd" toast with "+ notitie";
-  long-press = flag + note field), "Gemarkeerd" screen (`screens/Marked.tsx`) via the 🚩 badge on home.
+  long-press = flag + note field; lit when the card has an open flag). "Gemarkeerd" screen (`screens/Marked.tsx`)
+  shows ONE row per card (`groupFlags`: "3×", all notes; Opgelost resolves all its open flags); counts are cards.
+- Menu: tap "Fanki" (`components/Menu.tsx`) → 📈 Voortgang, 🚩 Gemarkeerd (count; red dot on the title).
 - Strings use the `mark.*` i18n keys. Never mix up with `Card.flags` / `flag.*` (sheet content markers:
   false-friend, separable).
 
@@ -166,6 +170,8 @@ keys, pos and descriptions. The API maps them to internal codes (`typeCode_`/`so
   unlocked `prod` track has its own cap of the same size. Today's introductions are stored (`meta.intro`).
 - Each rating = progress + outbox event + intro list in ONE IndexedDB transaction (`recordReview`).
   Pushed a few seconds later when online, and on every sync; removed only when the server confirms.
+- Abbreviations (`ABBREV_SEED_CARDS`, enkel, flag `abbreviation` → badge "afkorting"): setup places each one in the
+  category where it is first used, in the row directly above the first card that uses it (same `added`).
 - Nouns always show de/het. Sheet flag `false-friend` shows the badge "valse vriend"; `separable` is NOT shown
   (`HIDDEN_FLAGS` in src/display.ts) — it stays in the sheet as teacher metadata.
 - Compliments (Dutch lines from the Compliments tab): every 3rd correct answer per session, counter never
@@ -192,6 +198,8 @@ keys, pos and descriptions. The API maps them to internal codes (`typeCode_`/`so
   new BUILD_ID starts. PROD never resets.
 - **PROD deploy → keep her progress**: follow the "PROD safety checklist" in docs/RELEASE.md every time
   (`npm run backup:prod` before and after, additive changes only, dry runs, verify counts and the live app).
+  Any change that would break PROD progress needs the teacher's explicit permission first.
+- **DEV progress is expendable**: DEV cards may be moved/replaced/reset without asking.
 
 ## Commands
 

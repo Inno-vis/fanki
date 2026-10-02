@@ -2,7 +2,7 @@ import { useEffect, useMemo, useState } from 'preact/hooks';
 import { t } from '../i18n';
 import { useStore, refreshFlagCount } from '../store';
 import type { StudentFlag } from '../db';
-import { exportText, flagCardLabel, listFlags, setFlagResolved, splitFlags } from '../studentFlags';
+import { exportText, flagCardLabel, groupFlags, listFlags, setCardResolved, type FlagGroup } from '../studentFlags';
 import { showToast } from '../components/Toast';
 
 function day(iso: string): string {
@@ -17,12 +17,14 @@ export function Marked({ onDone }: { onDone: () => void }) {
   useEffect(() => void load(), []);
 
   const cards = useMemo(() => new Map(s.cards.map((c) => [c.id, c])), [s.cards]);
-  const { open, resolved } = splitFlags(flags);
+  const groups = groupFlags(flags);
+  const open = groups.filter((g) => !g.resolved);
+  const resolved = groups.filter((g) => g.resolved);
   const text = exportText(flags, cards, t('mark.shareTitle'));
   const canShare = typeof navigator !== 'undefined' && typeof navigator.share === 'function';
 
-  const toggle = async (f: StudentFlag) => {
-    await setFlagResolved(f.id, !f.resolved);
+  const toggle = async (g: FlagGroup) => {
+    await setCardResolved(g, !g.resolved);
     await load();
     await refreshFlagCount();
   };
@@ -43,17 +45,22 @@ export function Marked({ onDone }: { onDone: () => void }) {
     }
   };
 
-  const row = (f: StudentFlag) => (
-    <li key={f.id} class={`mark-item${f.resolved ? ' resolved' : ''}`}>
+  const row = (g: FlagGroup) => (
+    <li key={g.card_id} class={`mark-item${g.resolved ? ' resolved' : ''}`}>
       <div class="mark-main">
         <span class="mark-card" lang="nl">
-          {flagCardLabel(cards.get(f.card_id), f.card_id)}
+          {flagCardLabel(cards.get(g.card_id), g.card_id)}
+          {g.flags.length > 1 && <span class="mark-times"> {g.flags.length}×</span>}
         </span>
-        {f.note && <span class="mark-note">“{f.note}”</span>}
-        <span class="mark-date">{day(f.ts)}</span>
+        {g.notes.map((n) => (
+          <span class="mark-note" key={n}>
+            “{n}”
+          </span>
+        ))}
+        <span class="mark-date">{day(g.ts)}</span>
       </div>
-      <button class={`mark-toggle${f.resolved ? ' on' : ''}`} aria-pressed={f.resolved} onClick={() => void toggle(f)}>
-        {f.resolved ? '✓ ' : ''}
+      <button class={`mark-toggle${g.resolved ? ' on' : ''}`} aria-pressed={g.resolved} onClick={() => void toggle(g)}>
+        {g.resolved ? '✓ ' : ''}
         {t('mark.resolve')}
       </button>
     </li>

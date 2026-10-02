@@ -128,7 +128,7 @@ function nextRow_(sh, col) {
 var TYPE_NL = { word: 'dubbel', oneway: 'enkel', sentence: 'zin', question: 'vraag' };
 var TYPE_ALIASES = { woord: 'word', calc: 'oneway' }; // older sheet values, still read
 var SOURCE_NL = { manual: 'handmatig', auto: 'automatisch' };
-var STATUS_NL = { proposed: 'voorgesteld', approved: 'goedgekeurd' };
+var STATUS_NL = { proposed: 'voorgesteld', review: 'nakijken', approved: 'goedgekeurd' };
 // Old English tag keys → Dutch keys (used by the one-time migration and to convert seed lines).
 var TAG_RENAME = { household: 'huishouden', family: 'familie', travel: 'reizen', food: 'eten', work: 'werk',
   health: 'gezondheid', shopping: 'winkelen', time: 'tijd' };

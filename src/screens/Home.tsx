@@ -9,7 +9,7 @@ import { cooldownUntil, minutesLeft, progressLabel, resumable } from '../session
 import { useInstallPrompt } from '../installPrompt';
 import { isStandalone } from '../pwa';
 
-export function Home({ due, newToday, onStart, onTopics, onProgress }: { due: number; newToday: number; onStart: () => void; onTopics: () => void; onProgress: () => void }) {
+export function Home({ due, newToday, onStart, onTopics }: { due: number; newToday: number; onStart: () => void; onTopics: () => void }) {
   const s = useStore();
   const online = useOnline();
   const empty = s.loaded && s.cards.length === 0;
@@ -48,9 +48,6 @@ export function Home({ due, newToday, onStart, onTopics, onProgress }: { due: nu
             </div>
           </section>
           {s.loaded && !canStart && <p class="center done-line">{t('home.allDone')}</p>}
-          <button class="btn btn-secondary topic-btn" onClick={onProgress}>
-            📈 {t('progress.title')}
-          </button>
           <button class="btn btn-secondary topic-btn" onClick={onTopics}>
             {s.studyTags.length === 0
               ? t('home.topicAll')

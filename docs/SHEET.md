@@ -47,7 +47,7 @@ from `apps-script/UserInfo.gs` (your own edits in the tab are then replaced).
 | example_nl / example_fr | text | optional example shown after the answer |
 | tags | `huishouden, school` | comma-separated keys from the Tags tab; may be empty |
 | tags_source | `handmatig` \| `automatisch` \| blank | `handmatig` = the teacher chose; `/retag` never touches these. `automatisch` = set by `/retag`. |
-| flags | `false-friend`, `separable` | comma-separated content markers. `false-friend` shows the badge "valse vriend"; `separable` is for you only (not shown to her). |
+| flags | `false-friend`, `separable`, `abbreviation` | comma-separated content markers. `false-friend` shows the badge "valse vriend", `abbreviation` the badge "afkorting"; `separable` is for you only (not shown to her). |
 | answer | text | **enkel only**: the back of the card, shown after "Antwoord tonen". Display text — never checked. |
 | added | date | New cards are introduced in `added` order. Filled with today if blank. |
 | active | checkbox | Untick to hide a card without deleting it (progress is kept). |
@@ -61,9 +61,11 @@ from `apps-script/UserInfo.gs` (your own edits in the tab are then replaced).
 - DEV only (for now): the emoji course — 58 `enkel` cards (ids `E-01`…`E-58`, front = emoji, back = the Dutch word
   with de/het), tag `emoji`, Curriculum order 3, added 2026-10-02. Added with `node scripts/admin.mjs dev seedEmoji
   '{"dryRun":false}'` (dry run by default; refuses PROD unless `allowProd`), not by setup.
-- DEV **and** PROD (setup): 8 abbreviation cards (`enkel`, ids `A-01`…`A-08`, tag `app`, added 2026-09-26 so they come
-  before every other new card): front "min (- afkorting)", "u", "d", "wk", "mnd", "jr", "ev", "mv"; back = the full
-  word(s) + French.
+- DEV **and** PROD (setup): 8 abbreviation cards (`enkel`, ids `A-01`…`A-08`, badge "afkorting" = flag
+  `abbreviation`, back = full word(s) + French). Each sits in the category where it is first used, directly before
+  the first card that uses it: `min` in klok-1 just above "5 min + 5 min" (K1-07), `u` in klok-1 just above
+  "Het is 3:00u" (K1-05). `d`, `wk`, `mnd`, `jr` (rating buttons) and `ev`, `mv` (not used yet) go first in `app`
+  (added 2026-09-26). New abbreviations: add a line to ABBREV_SEED_CARDS with the card it must precede.
 - DEV **and** PROD: the 50 interface words (tag `app`, `tags_source` manual, `added` 2026-09-27 so they are
   introduced before everything else). `setup()` adds any that are missing and never duplicates.
 
@@ -165,13 +167,15 @@ A web page in your browser, no tools needed: review the Inbox and edit Cards.
   - **Afwijzen** (R): deletes the Inbox row. **Opslaan** (S): saves, stays `voorgesteld`.
 - **Kaarten**: search / filter by tag, 50 per page; **Opslaan** writes back to Cards; **Terug naar Inbox** moves a
   card back (it disappears from the app until approved again; same id, so her progress returns).
-- **Eén voor één** (full form, keys A/R/S, J next, K previous, ⌘/Ctrl+Enter save & next) or **Lijst (5)** to
-  scan quickly, with "Detail" to open a row. The header shows "12 van 47" and the session's approved/rejected.
+- **Eén voor één** (full form, keys A/R/S, F 🚩 nakijken, J next, K previous, ⌘/Ctrl+Enter save & next) or
+  **Lijst (5)** to scan quickly: "Detail" opens a row, ⚐/🚩 marks it "nakijken", and **Keur alle 5 goed** (between
+  "‹ Vorige 5" and "Volgende 5 ›") approves the visible rows except the 🚩 ones. Filter "alleen 🚩 nakijken". The header shows "12 van 47" and the session's approved/rejected.
 - The public card API never serves this page and the browser never gets a token.
 
 ## Inbox — proposed new cards
 
-Same columns as Cards plus `status` (`voorgesteld` | `goedgekeurd`). `/addwords` writes rows here as
+Same columns as Cards plus `status` (`voorgesteld` | `nakijken` | `goedgekeurd`; `nakijken` = marked with 🚩 on the
+review page to check later — it stays in the Inbox and is skipped by "Keur alle 5 goed"). `/addwords` writes rows here as
 `voorgesteld`. Review them, set `status` to `goedgekeurd` (edit anything you like), then run `/promote`
 to move them into Cards. Nothing is ever written to Cards by `/addwords`.
 

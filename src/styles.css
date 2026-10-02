@@ -686,6 +686,10 @@ body {
   touch-action: manipulation;
 }
 
+.flag-btn.lit {
+  opacity: 1;
+}
+
 .flag-btn:active {
   opacity: 1;
   transform: scale(1.1);
@@ -793,6 +797,11 @@ body {
   overflow-wrap: anywhere;
 }
 
+.mark-times {
+  color: var(--muted);
+  font-weight: 600;
+}
+
 .mark-note {
   font-style: italic;
 }
@@ -891,6 +900,62 @@ body {
 .week-day {
   font-size: 12px;
   color: var(--muted);
+}
+
+.title-btn {
+  appearance: none;
+  border: 0;
+  background: none;
+  color: inherit;
+  font: inherit;
+  padding: 0;
+  min-height: 48px;
+  cursor: pointer;
+}
+
+.menu-caret {
+  font-size: 14px;
+  color: var(--muted);
+}
+
+.menu-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--again);
+  align-self: flex-start;
+}
+
+.menu-sheet {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.menu-item {
+  appearance: none;
+  border: 0;
+  border-radius: 14px;
+  background: var(--surface-2);
+  color: var(--text);
+  font: inherit;
+  font-size: 19px;
+  font-weight: 700;
+  min-height: 60px;
+  padding: 0 16px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  text-align: left;
+}
+
+.menu-count {
+  margin-left: auto;
+  background: var(--again);
+  color: #fff;
+  border-radius: 999px;
+  font-size: 14px;
+  padding: 2px 10px;
 }
 
 .card-subject {

@@ -28,6 +28,8 @@ Applies to a `release` push, `npm run gas:deploy:prod`, `admin prod setup`, and 
    compare: Log and Progress counts must be ≥ before (only her own new reviews may add rows). Open the live
    PROD app and check it shows the new build and syncs.
 6. Never reset, reseed or test-review against PROD.
+7. Anything that would break her progress (changing ids of studied cards, deleting Progress/Log rows, replacing
+   studied cards) needs the teacher's explicit permission first. DEV progress does not matter.
 
 ## Device test pass (every stage, before "go PROD")
 

@@ -93,7 +93,7 @@ function applyCardValidation_(sh, isInbox) {
   sh.getRange('F2:H').setNumberFormat('@');
   sh.getRange('L2:L').setNumberFormat('@').clearDataValidations(); // answer
   sh.getRange('N2:N').setDataValidation(SpreadsheetApp.newDataValidation().requireCheckbox().build());
-  if (isInbox) sh.getRange('O2:O').setDataValidation(list([STATUS_NL.proposed, STATUS_NL.approved]));
+  if (isInbox) sh.getRange('O2:O').setDataValidation(list([STATUS_NL.proposed, STATUS_NL.review, STATUS_NL.approved]));
 }
 
 function seedSettings_(sh) {
@@ -196,15 +196,45 @@ function writeCardRows_(sh, rows) {
   sh.getRange(start, 1, rows.length, rows[0].length).setValues(rows);
 }
 
-/** Abbreviation cards (enkel, tag app), keyed by fixed ids. Never deletes. */
+/**
+ * Abbreviation cards: inserted (or moved, same id — progress stays) to the row directly above the first card
+ * that uses them, with that card's tag and `added` date; otherwise first in `app`. Front, answer, tag and the
+ * `abbreviation` flag are kept in sync with ABBREV_SEED_CARDS. Idempotent.
+ */
 function seedAbbrevCards_(sh) {
-  var have = {};
-  readTable_(sh).rows.forEach(function (r) { have[String(r.id)] = true; });
   var parts = ABBREV_SEED_ADDED.split('-');
-  var added = new Date(Number(parts[0]), Number(parts[1]) - 1, Number(parts[2]));
-  var rows = ABBREV_SEED_CARDS.map(function (l) { return l.split('|'); }).filter(function (f) { return !have[f[0]]; })
-    .map(function (f) { return [f[0], typeNl_('oneway'), f[1], '', 'afkorting', '', '', '', 'app', sourceNl_('manual'), '', f[2], added, true]; });
-  if (rows.length) writeCardRows_(sh, rows);
+  var appAdded = new Date(Number(parts[0]), Number(parts[1]) - 1, Number(parts[2]));
+  ABBREV_SEED_CARDS.forEach(function (line) {
+    var f = line.split('|'), id = f[0], beforeId = f[4];
+    var t = readTable_(sh);
+    var byId = {};
+    t.rows.forEach(function (r) { byId[String(r.id)] = r; });
+    var cur = byId[id];
+    var target = beforeId ? byId[beforeId] : null;
+    var o = {};
+    CARD_COLS.forEach(function (h) { o[h] = cur ? cur[h] : ''; });
+    o.id = id; o.type = typeNl_('oneway'); o.nl = f[1]; o.pos = 'afkorting'; o.answer = f[2]; o.tags = f[3];
+    o.tags_source = sourceNl_('manual'); o.flags = 'abbreviation';
+    o.added = target ? target.added : appAdded;
+    if (!cur || cur.active === '' ) o.active = true;
+    var row = rowFromObject_(CARD_COLS, o);
+    var inPlace = cur && (!target || cur._row === target._row - 1);
+    if (inPlace) {
+      sh.getRange(cur._row, 1, 1, CARD_COLS.length).setValues([row]);
+      return;
+    }
+    if (cur) sh.deleteRow(cur._row);
+    if (target) {
+      var at = findById_(sh, beforeId)._row;
+      sh.insertRowBefore(at);
+      sh.getRange(at, 3).setNumberFormat('@');
+      sh.getRange(at, 6, 1, 3).setNumberFormat('@');
+      sh.getRange(at, 12).setNumberFormat('@');
+      sh.getRange(at, 1, 1, CARD_COLS.length).setValues([row]);
+    } else {
+      writeCardRows_(sh, [row]);
+    }
+  });
 }
 
 function seedCurriculum_(sh) {

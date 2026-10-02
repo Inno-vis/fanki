@@ -25,8 +25,9 @@ export type State = {
   studyTags: string[];
   openSession: SessionState | null;
   dayCounts: Record<string, number>; // reviews per local day (Voortgang)
-  flagsOpen: number; // 🚩 unresolved student flags
-  flagsTotal: number;
+  flagsOpen: number; // cards with an open 🚩 (a card marked 3× counts once)
+  flagsTotal: number; // cards ever marked
+  flaggedCards: string[]; // ids of cards with an open 🚩 (lit 🚩 in review)
 };
 
 let state: State = {
@@ -47,7 +48,8 @@ let state: State = {
   openSession: null,
   dayCounts: {},
   flagsOpen: 0,
-  flagsTotal: 0
+  flagsTotal: 0,
+  flaggedCards: []
 };
 const listeners = new Set<(s: State) => void>();
 
@@ -114,7 +116,8 @@ export async function loadFromDb(): Promise<void> {
 
 /** Recounts the 🚩 student flags (home badge). */
 export async function refreshFlagCount(): Promise<void> {
-  const { listFlags } = await import('./studentFlags');
+  const { listFlags, openFlagCards } = await import('./studentFlags');
   const all = await listFlags();
-  setState({ flagsTotal: all.length, flagsOpen: all.filter((f) => !f.resolved).length });
+  const open = openFlagCards(all);
+  setState({ flagsTotal: new Set(all.map((f) => f.card_id)).size, flagsOpen: open.size, flaggedCards: [...open] });
 }

@@ -202,7 +202,7 @@ to move them into Cards. Nothing is ever written to Cards by `/addwords`.
 | session_extra_cards | 10 | Cards added by "Nog 10 kaarten, graag!" (fewer if fewer are left) |
 | cooldown_minutes | 60 | Pause after a session before "Starten" works again (0 = no pause) |
 | min_reviews_to_count | 3 | A session shorter than this does not start a pause |
-| require_approval | FALSE | ☑ = the app gets only Cards with `controle` = goedgekeurd. Turn on with `admin <env> enableApproval` (dry run first; on PROD it first approves + 🚩 the cards she has studied). DEV: on since 2026-10-02 |
+| require_approval | FALSE | ☑ = the app gets only Cards with `controle` = goedgekeurd. Turn on with `admin <env> enableApproval` (dry run first; `approveStudied` approves + 🚩 the cards she has studied, default on). On in DEV and PROD since 2026-10-02 |
 | curriculum_only | TRUE | New cards only from open Curriculum topics; other topics and untagged cards stay locked (reviews of started cards continue) |
 | listen_share | 0.3 | Share of word-recognition reviews that start with only the sound (🔊 "Wat hoor je?"); 0 = off. Only on phones with a Dutch voice |
 | session_resume_minutes | 30 | After "Terug" (or leaving the app) she can continue the same session this long ("Doorgaan"); after that it expires WITHOUT a pause |

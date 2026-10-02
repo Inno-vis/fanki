@@ -6,7 +6,6 @@ Most important first. Every PROD item follows the PROD safety checklist in docs/
    on (DEV + PROD since 2026-10-02) only goedgekeurd cards reach the app.
    DEV Inbox: 1011 Klim op words (2026-10-02) to review; then add their tags (kennismaken, hoe-gaat-het,
    dagelijkse-activiteiten, afspreken, boodschappen, familie, tijd, eten, winkelen, gezondheid) to the Curriculum.
-   PROD: decide whether klok cards also get tag `tijd` (done on DEV + seeds).
 2. Review the 13 DEV Inbox proposals (reject "kennen"); then add them to APP_SEED_CARDS for PROD.
 3. Compliment toast: every 3rd correct answer, random Dutch line from Compliments, never twice in a row.
 4. In-app backup: export progress and flags as a JSON file, and import it again.

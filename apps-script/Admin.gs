@@ -418,3 +418,65 @@ function adminSetCheck_(updates, dryRun) {
     return report;
   });
 }
+
+/**
+ * Adds Curriculum rows: {rows:[{order, tag, unlock_threshold, min_reviews, max_wait_days, active, open}]}.
+ * Skips tags that already have a row; refuses tags missing from the Tags tab. Dry run unless dryRun:false.
+ */
+function adminAddCurriculum_(rows, dryRun) {
+  if (!Array.isArray(rows) || !rows.length) throw apiError_('bad_request', 'rows[] required');
+  return withLock_(function () {
+    var sh = sheet_('Curriculum');
+    var have = readTable_(sh).rows.map(function (r) { return String(r.tag).trim().toLowerCase(); });
+    var known = readTable_(sheet_('Tags')).rows.map(function (r) { return String(r.tag).trim().toLowerCase(); });
+    var add = [], skipped = [];
+    rows.forEach(function (r) {
+      var tag = String(r.tag || '').trim().toLowerCase();
+      if (have.indexOf(tag) !== -1) { skipped.push(tag + ': already in Curriculum'); return; }
+      if (known.indexOf(tag) === -1) { skipped.push(tag + ': not in Tags'); return; }
+      var th = r.unlock_threshold === undefined ? 0.8 : Number(r.unlock_threshold);
+      if (!(th >= 0 && th <= 1)) { skipped.push(tag + ': unlock_threshold must be 0–1'); return; }
+      add.push(rowFromObject_(SCHEMA.Curriculum, {
+        order: Number(r.order), tag: tag, unlock_threshold: th,
+        min_reviews: r.min_reviews === undefined ? 2 : Number(r.min_reviews),
+        max_wait_days: r.max_wait_days === undefined ? 21 : r.max_wait_days === '' ? '' : Number(r.max_wait_days),
+        active: r.active === undefined ? true : bool_(r.active), open: OPEN_NL[openCode_(r.open || 'auto')]
+      }));
+      have.push(tag);
+    });
+    var report = { dryRun: dryRun, add: add.map(function (r) { return r.join(' | '); }), skipped: skipped };
+    if (dryRun || !add.length) return report;
+    sh.getRange(nextRow_(sh, 2), 1, add.length, SCHEMA.Curriculum.length).setValues(add);
+    updateCurriculumDashboard_(true);
+    return report;
+  });
+}
+
+/**
+ * Removes tags everywhere: {tags:[...]} → out of Cards.tags and Inbox.tags, their Curriculum rows and Tags rows.
+ * Dry run unless dryRun:false.
+ */
+function adminRemoveTags_(tags, dryRun) {
+  var drop = (tags || []).map(function (t) { return String(t).trim().toLowerCase(); }).filter(function (t) { return t; });
+  if (!drop.length) throw apiError_('bad_request', 'tags[] required');
+  return withLock_(function () {
+    var report = { dryRun: dryRun, tags: drop, Cards: 0, Inbox: 0, Curriculum: 0, Tags: 0 };
+    ['Cards', 'Inbox'].forEach(function (tab) {
+      var sh = sheet_(tab), t = readTable_(sh), col = t.headers.indexOf('tags') + 1;
+      t.rows.forEach(function (r) {
+        var cur = splitTags_(r.tags), keep = cur.filter(function (x) { return drop.indexOf(x) === -1; });
+        if (keep.length === cur.length) return;
+        report[tab]++;
+        if (!dryRun) sh.getRange(r._row, col).setValue(keep.join(', '));
+      });
+    });
+    ['Curriculum', 'Tags'].forEach(function (tab) {
+      var sh = sheet_(tab);
+      var rows = readTable_(sh).rows.filter(function (r) { return drop.indexOf(String(r.tag).trim().toLowerCase()) !== -1; });
+      report[tab] = rows.length;
+      if (!dryRun) rows.sort(function (a, b) { return b._row - a._row; }).forEach(function (r) { sh.deleteRow(r._row); });
+    });
+    if (!dryRun) updateCurriculumDashboard_(true);
+    return report;
+  });
+}

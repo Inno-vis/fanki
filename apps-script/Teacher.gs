@@ -148,14 +148,16 @@ function reviewListCards(offset, limit, query, tag, check) {
     .map(function (r) { return reviewRow_(r, false); });
   var counts = { unchecked: 0, review: 0, approved: 0, rejected: 0, all: cards.length };
   cards.forEach(function (c) { counts[c.check || 'unchecked']++; if (c.review) counts.review++; });
+  var tagCounts = {};
   var all = cards.filter(function (c) {
     if (check === 'review' ? !c.review : check !== 'all' && (c.check || 'unchecked') !== check) return false;
+    c.tags.forEach(function (t) { tagCounts[t] = (tagCounts[t] || 0) + 1; });
     if (tag && c.tags.indexOf(tag) === -1) return false;
     return !q || (c.nl + ' ' + c.fr + ' ' + c.answer).toLowerCase().indexOf(q) !== -1;
   });
   offset = Math.max(0, Number(offset) || 0);
   limit = Math.min(200, Math.max(1, Number(limit) || 50));
-  return { total: all.length, offset: offset, rows: all.slice(offset, offset + limit), counts: counts };
+  return { total: all.length, offset: offset, rows: all.slice(offset, offset + limit), counts: counts, tagCounts: tagCounts };
 }
 
 /** Kaarten: one cell per card, under the lock. */

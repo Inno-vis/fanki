@@ -115,7 +115,7 @@ function adminListInbox_() {
   };
 }
 
-/** Moves every status=approved Inbox row into Cards (added = today, active). */
+/** Moves every status=approved Inbox row into Cards (added = today, active, controle goedgekeurd). */
 function adminPromoteInbox_() {
   return withLock_(function () {
     var inbox = sheet_('Inbox');
@@ -132,9 +132,10 @@ function adminPromoteInbox_() {
       if (!o.id || existingIds[String(o.id)]) o.id = newId_('c_');
       o.added = today;
       o.active = true;
-      return rowFromObject_(CARD_COLS, o);
+      o.controle = CHECK_NL.approved; // the teacher approved it in the Inbox
+      return rowFromObject_(SCHEMA.Cards, o);
     });
-    cards.getRange(nextRow_(cards, 3), 1, rows.length, CARD_COLS.length).setValues(rows);
+    cards.getRange(nextRow_(cards, 3), 1, rows.length, SCHEMA.Cards.length).setValues(rows);
     approved.map(function (r) { return r._row; }).sort(function (a, b) { return b - a; })
       .forEach(function (n) { inbox.deleteRow(n); });
     return { promoted: rows.map(function (r) { return { id: r[0], nl: r[2], fr: r[5] }; }) };
@@ -477,6 +478,77 @@ function adminRemoveTags_(tags, dryRun) {
       if (!dryRun) rows.sort(function (a, b) { return b._row - a._row; }).forEach(function (r) { sh.deleteRow(r._row); });
     });
     if (!dryRun) updateCurriculumDashboard_(true);
+    return report;
+  });
+}
+
+/** Deletes every Cards row with controle = afgekeurd. DEV only (PROD progress is keyed by card id). Dry run unless dryRun:false. */
+function adminDeleteRejected_(dryRun) {
+  if (env_() === 'PROD') throw apiError_('forbidden', 'deleteRejected is DEV only');
+  return withLock_(function () {
+    var sh = sheet_('Cards');
+    var gone = readTable_(sh).rows.filter(function (r) { return checkCode_(r.controle) === 'rejected'; });
+    var report = { dryRun: dryRun, delete: gone.map(function (r) { return r.id + ' | ' + (r.article ? r.article + ' ' : '') + r.nl; }) };
+    if (dryRun) return report;
+    gone.sort(function (a, b) { return b._row - a._row; }).forEach(function (r) { sh.deleteRow(r._row); });
+    return report;
+  });
+}
+
+/**
+ * Appends cards straight to Cards: {rows:[{id?, type, nl, article, pos, fr, example_nl, example_fr, tags, tags_source,
+ * flags, answer, added?, active?, controle}]} (e.g. DEV → PROD). Keeps the id when free; skips a row whose id or
+ * (type, nl, article) is already in Cards. Dry run unless dryRun:false.
+ */
+function adminImportCards_(rows, dryRun) {
+  if (!Array.isArray(rows) || !rows.length) throw apiError_('bad_request', 'rows[] required');
+  return withLock_(function () {
+    var sh = sheet_('Cards');
+    var key = function (type, nl, article) {
+      return (typeCode_(type) || 'word') + '|' + String(nl || '').trim().toLowerCase() + '|' + String(article || '').trim().toLowerCase();
+    };
+    var ids = {}, keys = {};
+    readTable_(sh).rows.forEach(function (r) { ids[String(r.id)] = true; keys[key(r.type, r.nl, r.article)] = true; });
+    var today = new Date(); today.setHours(0, 0, 0, 0);
+    var out = [], skipped = [];
+    rows.forEach(function (r) {
+      var k = key(r.type, r.nl, r.article);
+      if (!String(r.nl || '').trim() || keys[k] || (r.id && ids[String(r.id)])) { skipped.push(r.nl); return; }
+      var code = checkCode_(r.controle);
+      var id = r.id && !ids[String(r.id)] ? String(r.id) : newId_('c_');
+      var added = r.added ? new Date(String(r.added) + 'T00:00:00') : today;
+      out.push(rowFromObject_(SCHEMA.Cards, {
+        id: id, type: typeNl_(typeCode_(r.type) || 'word'), nl: String(r.nl), article: r.article === 'de' || r.article === 'het' ? r.article : '',
+        pos: posNl_(r.pos), fr: String(r.fr || ''), example_nl: String(r.example_nl || ''), example_fr: String(r.example_fr || ''),
+        tags: tagsNl_(Array.isArray(r.tags) ? r.tags.join(', ') : String(r.tags || '')),
+        tags_source: sourceNl_(sourceCode_(r.tags_source) || 'manual'),
+        flags: Array.isArray(r.flags) ? r.flags.join(', ') : String(r.flags || ''), answer: String(r.answer || ''),
+        added: isNaN(added) ? today : added, active: r.active === undefined ? true : bool_(r.active),
+        controle: code ? CHECK_NL[code] : '', nakijken: false
+      }));
+      ids[id] = true; keys[k] = true;
+    });
+    var report = { dryRun: dryRun, add: out.length, skipped: skipped };
+    if (dryRun || !out.length) return report;
+    writeCardRows_(sh, out);
+    return report;
+  });
+}
+
+/** Moves cards back to the Inbox (status voorgesteld, same id): {ids:[...]}. Dry run unless dryRun:false. */
+function adminCardsToInbox_(ids, dryRun) {
+  if (!Array.isArray(ids) || !ids.length) throw apiError_('bad_request', 'ids[] required');
+  return withLock_(function () {
+    var cards = sheet_('Cards'), inbox = sheet_('Inbox');
+    var rows = ids.map(function (id) { return findById_(cards, id); }).filter(function (r) { return r; });
+    var report = { dryRun: dryRun, move: rows.map(function (r) { return r.id + ' | ' + r.nl; }), notFound: ids.length - rows.length };
+    if (dryRun || !rows.length) return report;
+    var out = rows.map(function (r) {
+      var o = {}; CARD_COLS.forEach(function (h) { o[h] = r[h]; }); o.status = STATUS_NL.proposed;
+      return rowFromObject_(SCHEMA.Inbox, o);
+    });
+    inbox.getRange(nextRow_(inbox, 3), 1, out.length, SCHEMA.Inbox.length).setValues(out);
+    rows.sort(function (a, b) { return b._row - a._row; }).forEach(function (r) { cards.deleteRow(r._row); });
     return report;
   });
 }

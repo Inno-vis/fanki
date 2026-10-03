@@ -41,7 +41,7 @@ The repo is **public** and hosted on GitHub Pages.
   → `{accepted, duplicate, rejected}`. Idempotent on `event_id`.
 - Admin-only (ADMIN_TOKEN): `listCards, listUntagged, tags, setTags, appendInbox, listInbox,
   promoteInbox, rebuildProgress, setup, readTab, reseedDev (DEV only), purgeSmoke, appendBreaks,
-  setCurriculum, addCurriculum, curriculumStatus, migrateToDutch, userInfo, setTeachers, enableApproval, setCheck, removeTags, replaceKlok, seedEmoji (dry run unless
+  setCurriculum, addCurriculum, curriculumStatus, migrateToDutch, userInfo, setTeachers, enableApproval, setCheck, removeTags, deleteRejected (DEV only), importCards, cardsToInbox, replaceKlok, seedEmoji (dry run unless
   dryRun:false; seedEmoji is DEV only)`. Open items: docs/todo.md.
 - All writes are inside `LockService`. All actions are idempotent, so clients **retry** on
   `no_action` (POST body lost on Google's redirect), `busy`, or non-JSON responses.

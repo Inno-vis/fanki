@@ -55,6 +55,9 @@ function doPost(e) {
       case 'userInfo': return { rows: writeUserInfo_(ss_(), env_()) };
       case 'addCurriculum': return adminAddCurriculum_(body.rows, body.dryRun !== false);
       case 'removeTags': return adminRemoveTags_(body.tags, body.dryRun !== false);
+      case 'deleteRejected': return adminDeleteRejected_(body.dryRun !== false);
+      case 'importCards': return adminImportCards_(body.rows, body.dryRun !== false);
+      case 'cardsToInbox': return adminCardsToInbox_(body.ids, body.dryRun !== false);
       case 'setCurriculum': return adminSetCurriculum_(body.tag, body.field, body.value);
       case 'promoteInbox': return adminPromoteInbox_();
       case 'rebuildProgress': return adminRebuildProgress_();

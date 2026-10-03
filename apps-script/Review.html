@@ -54,6 +54,7 @@
 </header>
 <main>
   <div class="bar" id="inboxBar">
+    <select id="inboxTag"><option value="">Alle tags</option></select>
     <label><input type="checkbox" id="onlyFlagged"> alleen 🚩 nakijken (<span id="nFlagged">0</span>)</label>
   </div>
   <div class="bar" id="cardsBar" hidden>
@@ -77,7 +78,7 @@
 
 <script>
 var S = { source: 'inbox', mode: 'one', items: [], idx: 0, listStart: 0, boot: null, approved: 0, rejected: 0,
-          cards: { offset: 0, total: 0, q: '', tag: '', check: 'unchecked', counts: null }, busy: false, onlyFlagged: false, all: [] };
+          cards: { offset: 0, total: 0, q: '', tag: '', check: 'unchecked', counts: null }, busy: false, onlyFlagged: false, inboxTag: '', all: [] };
 var $ = function (id) { return document.getElementById(id); };
 
 function run(fn) {
@@ -107,7 +108,20 @@ function load() {
 }
 
 function applyFilter() {
-  S.items = S.onlyFlagged ? S.all.filter(function (x) { return x.status === 'review'; }) : S.all.slice();
+  S.items = S.all.filter(function (x) {
+    return (!S.onlyFlagged || x.status === 'review') && (!S.inboxTag || x.tags.indexOf(S.inboxTag) !== -1);
+  });
+}
+/** Inbox tag menu: every tag that still has rows, with its count. */
+function fillInboxTags() {
+  if (!S.boot) return;
+  var n = {}; S.all.forEach(function (x) { x.tags.forEach(function (t) { n[t] = (n[t] || 0) + 1; }); });
+  var sel = $('inboxTag'), opts = [['', 'Alle tags (' + S.all.length + ')']];
+  S.boot.tags.forEach(function (t) { if (n[t.tag] || t.tag === S.inboxTag) opts.push([t.tag, t.label + ' (' + (n[t.tag] || 0) + ')']); });
+  var key = opts.map(function (o) { return o.join('='); }).join('|');
+  if (sel.dataset.key === key) return;
+  sel.dataset.key = key; sel.innerHTML = '';
+  opts.forEach(function (o) { var e = el('option', { value: o[0], text: o[1] }); if (o[0] === S.inboxTag) e.selected = true; sel.appendChild(e); });
 }
 function syncAll() { // keep the unfiltered list in step with edits
   var byId = {}; S.items.forEach(function (x) { byId[x.id] = x; });
@@ -316,6 +330,7 @@ function render() {
   $('cardsBar').hidden = S.source !== 'cards';
   $('inboxBar').hidden = S.source !== 'inbox';
   $('nFlagged').textContent = S.all.filter(function (x) { return x.status === 'review'; }).length;
+  if (S.source === 'inbox') fillInboxTags();
   var total = S.source === 'cards' ? S.cards.total : S.items.length;
   $('progress').textContent = S.items.length ? (S.mode === 'one'
     ? (S.idx + 1 + (S.source === 'cards' ? S.cards.offset : 0)) + ' van ' + total
@@ -331,7 +346,7 @@ function render() {
   if (S.source === 'cards') $('pageInfo').textContent = 'kaarten ' + (S.cards.offset + 1) + '–' + Math.min(S.cards.offset + 50, S.cards.total) + ' van ' + S.cards.total;
   var view = $('view'); view.innerHTML = '';
   if (!S.boot) return;
-  if (!S.items.length) { view.appendChild(el('p', { 'class': 'empty', text: S.busy ? 'Laden…' : (S.source === 'inbox' ? 'De Inbox is leeg. 🎉' : 'Geen kaarten gevonden.') })); return; }
+  if (!S.items.length) { view.appendChild(el('p', { 'class': 'empty', text: S.busy ? 'Laden…' : (S.source === 'inbox' ? (S.all.length ? 'Niets meer met dit filter (nog ' + S.all.length + ' in de Inbox).' : 'De Inbox is leeg. 🎉') : 'Geen kaarten gevonden.') })); return; }
   if (S.mode === 'one') renderOne(view); else renderList(view);
 }
 
@@ -405,6 +420,8 @@ function syncSeg() {
 // ---------- events ----------
 $('source').addEventListener('click', function (e) { var v = e.target.dataset.v; if (!v || v === S.source) return; S.source = v; S.idx = 0; syncSeg(); load(); });
 $('mode').addEventListener('click', function (e) { var v = e.target.dataset.v; if (!v) return; S.mode = v; if (v === 'list') S.listStart = Math.floor(S.idx / 5) * 5; syncSeg(); render(); });
+$('inboxTag').addEventListener('change', function () { S.inboxTag = $('inboxTag').value; applyFilter(); S.idx = 0; S.listStart = 0; render(); });
+$('tagFilter').addEventListener('change', function () { $('search').click(); });
 $('onlyFlagged').addEventListener('change', function (e) { S.onlyFlagged = e.target.checked; applyFilter(); S.idx = 0; S.listStart = 0; render(); });
 $('checkFilter').addEventListener('change', function () { S.cards.check = $('checkFilter').value; S.cards.offset = 0; S.idx = 0; load(); });
 $('search').addEventListener('click', function () { S.cards.q = $('q').value; S.cards.tag = $('tagFilter').value; S.cards.offset = 0; S.idx = 0; load(); });

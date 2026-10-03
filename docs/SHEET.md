@@ -177,7 +177,7 @@ A web page in your browser, no tools needed: review the Inbox and edit Cards.
   progress returns).
 - **Eén voor één** (full form, keys A/R/S, F 🚩 nakijken, J next, K previous, ⌘/Ctrl+Enter save & next) or
   **Lijst (5)** to scan quickly: "Detail" opens a row, ⚐/🚩 marks it "nakijken", and **Keur alle 5 goed** (between
-  "‹ Vorige 5" and "Volgende 5 ›") approves the visible rows except the 🚩 ones. Filter "alleen 🚩 nakijken". The header shows "12 van 47" and the session's approved/rejected.
+  "‹ Vorige 5" and "Volgende 5 ›") approves the visible rows except the 🚩 ones. Inbox filters: tag (with counts) and "alleen 🚩 nakijken". In Kaarten the tag menu applies at once. The header shows "12 van 47" and the session's approved/rejected.
 - The public card API never serves this page and the browser never gets a token.
 
 ## Inbox — proposed new cards

@@ -2,12 +2,10 @@
 
 Most important first. Every PROD item follows the PROD safety checklist in docs/RELEASE.md.
 
-1. Approve or reject the remaining cards on the teacher page (Kaarten → "Nog niet goedgekeurd"). With require_approval
-   on (DEV + PROD since 2026-10-02) only goedgekeurd cards reach the app.
-   DEV Inbox: Klim op sentences H1–H6 + Signaalwoorden to review; copy approved DEV cards to PROD with
-   `importCards` (skips what PROD has). PROD: tags huishouden/school/wiskunde/reizen/tijd have no Curriculum row,
-   so with curriculum_only those cards are never introduced — add rows or leave them locked.
-2. Review the 13 DEV Inbox proposals (reject "kennen"); then add them to APP_SEED_CARDS for PROD.
+1. PROD release (needs the teacher's OK): cooldown + Breaks removed, bigger subject label (live on DEV since
+   2026-10-04). Then `gas:deploy:prod` + `admin prod setup` (removes the cooldown_minutes row).
+2. DEV Inbox: review the H1–H6 sentences, Signaalwoorden and 3 untagged words (gaan, alsjeblieft, "Hoe heet je?";
+   tag them first, or they are never introduced). Then copy approved DEV cards to PROD (`importCards`).
 3. Compliment toast: every 3rd correct answer, random Dutch line from Compliments, never twice in a row.
 4. In-app backup: export progress and flags as a JSON file, and import it again.
 5. Docs: remove "typed" wording for the FR→NL track; every card is self-rated.

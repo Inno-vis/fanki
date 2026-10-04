@@ -38,6 +38,3 @@ export function useUiSettings(): UiSettings {
   return s;
 }
 
-export function useShowFrenchHelp(): boolean {
-  return useUiSettings().show_french_help;
-}

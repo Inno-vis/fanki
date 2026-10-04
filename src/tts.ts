@@ -28,6 +28,14 @@ export function dutchSpeech(card: Card): string {
  * Is this word-recognition review a listening card? Deterministic per card and review number, so the same
  * card is not always audio, and about `share` of them are.
  */
+/**
+ * Is this review a listening card? Only when listening is on (a Dutch voice exists and she did not switch it off
+ * in Instellingen), for word recognition, and for about listen_share of those reviews.
+ */
+export function listenMode(card: Card, track: string, reps: number, s: { listening: boolean; listen_share: number }): boolean {
+  return s.listening && track === 'recog' && isListeningReview(card, reps, s.listen_share);
+}
+
 export function isListeningReview(card: Card, reps: number, share: number): boolean {
   if (card.type !== 'word' || share <= 0) return false;
   let h = 2166136261;

@@ -35,9 +35,22 @@ She sees **nl**. **fr** is hidden help: shown only in the "Hulp" panel and the o
 | `tags.locked` | nog dicht | pas encore ouvert : il s’ouvre quand le thème précédent est bien su |
 | `home.topicAll` | Onderwerp: alle | Thème : tous |
 | `home.topic` | Onderwerp: {list} | Thème : {list} |
-| `menu.open` | Menu openen | Ouvrir le menu (progression, cartes marquées) |
+| `menu.open` | Menu openen | Ouvrir le menu (progression, cartes marquées, réglages) |
 | `menu.title` | Menu | Menu |
 | `progress.title` | Voortgang | Ma progression |
+| `settings.title` | Instellingen | Réglages |
+| `settings.newPerDay` | Max. aantal nieuwe woorden per dag | Nombre maximum de nouveaux mots par jour |
+| `settings.default` | Standaard ({n}) | Par défaut ({n}) |
+| `settings.listening` | Luisteroefeningen | Exercices d’écoute |
+| `settings.on` | Aan | Activé |
+| `settings.off` | Uit | Désactivé |
+| `settings.noVoice` | Geen Nederlandse stem op dit toestel. | Pas de voix néerlandaise sur cet appareil. |
+| `backup.title` | Back-up | Sauvegarde |
+| `backup.save` | Back-up opslaan | Enregistrer une sauvegarde (fichier) |
+| `backup.load` | Back-up terugzetten | Restaurer une sauvegarde (fichier) |
+| `backup.done` | Back-up teruggezet. | Sauvegarde restaurée. |
+| `backup.bad` | Dit is geen Fanki-back-up. | Ce fichier n’est pas une sauvegarde Fanki. |
+| `backup.otherApp` | Deze back-up is van een andere versie van de app. | Cette sauvegarde vient d’une autre version de l’appli (DEV/PROD). |
 | `progress.learned` | kaarten geoefend (van {n}) | cartes déjà travaillées (sur {n} en tout) |
 | `progress.known` | kaarten bekend | cartes bien sues (elles reviennent dans 3 semaines ou plus) |
 | `progress.week` | herhalingen deze week | révisions ces 7 derniers jours |
@@ -113,6 +126,7 @@ She sees **nl**. **fr** is hidden help: shown only in the "Hulp" panel and the o
 | screen | fr (shown in the panel) |
 |---|---|
 | home | Touche « Fanki » en haut pour le menu : « Voortgang » (ta progression) et « Gemarkeerd » (cartes marquées 🚩). Cet écran montre combien de cartes tu dois revoir aujourd’hui (« te herhalen ») et combien de nouvelles cartes t’attendent (« nieuw vandaag »). La barre « Vandaag » montre ton travail du jour ; « Nog 5 kaarten » = encore 5 cartes. Touche « Starten » pour commencer ; tu peux t’arrêter quand tu veux (« Terug »), tout est gardé. « Klaar voor nu! » = fini pour le moment ; « Volgende kaart over ± 7 min » = une carte revient dans environ 7 minutes. L’appli fonctionne aussi sans internet : tes réponses sont gardées sur le téléphone et envoyées à la prochaine connexion. « Synchroniseren » télécharge les nouvelles cartes quand tu as internet. |
+| settings | Ces réglages restent sur ton téléphone. « Max. aantal nieuwe woorden per dag » = combien de nouveaux mots au maximum chaque jour (« Standaard » = le choix de ton professeur). « Luisteroefeningen » = parfois la carte commence seulement par le son ; « Uit » = jamais. « Back-up opslaan » enregistre ta progression dans un fichier ; « Back-up terugzetten » la remet depuis ce fichier (par exemple sur un nouveau téléphone). Les changements comptent tout de suite, pour la prochaine carte. |
 | progress | Ta progression : « kaarten geoefend » = cartes déjà travaillées, « kaarten bekend » = cartes bien sues, « herhalingen deze week » = révisions des 7 derniers jours, « dagen op rij » = jours de suite. En bas : combien de cartes reviennent aujourd’hui (vandaag), demain (morgen) et cette semaine (deze week). |
 | marked | Ici, les cartes que tu as marquées avec 🚩 pendant les révisions, les plus récentes en haut. « Opgelost » = résolu : la carte passe dans la liste « Opgelost » (rien n’est effacé). « Delen » = partager la liste (Messages, e-mail…) avec ton prof ou quelqu’un d’autre : c’est toi qui l’envoies, rien ne part tout seul. |
 | topics | Choisis un ou plusieurs thèmes : « Starten » ne montre plus que les cartes de ces thèmes (révisions et nouvelles cartes). « Alle onderwerpen » = tous les thèmes. 🔒 « nog dicht » = pas encore ouvert : ce thème s’ouvrira quand le précédent sera bien su. Touche « Klaar » pour revenir. |

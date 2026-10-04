@@ -1,11 +1,11 @@
 import { useState } from 'preact/hooks';
 import { HELP, t, type HelpScreen } from '../i18n';
-import { useShowFrenchHelp } from '../prefs';
+import { useSettings } from '../settings';
 import { helpSeen, isHelpUpdated, markHelpSeen } from '../helpSeen';
 
 /** "Hulp" button + panel with the French instructions for one screen. Hidden when show_french_help is off. */
 export function HelpButton({ screen }: { screen: HelpScreen }) {
-  const show = useShowFrenchHelp();
+  const show = useSettings().show_french_help;
   const [open, setOpen] = useState(false);
   const [, rerender] = useState(0);
   if (!show) return null;

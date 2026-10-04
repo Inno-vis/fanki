@@ -210,6 +210,13 @@ Removed 2026-10-04 (`admin <env> cleanSettings` deletes the rows, dry run first)
 
 All settings are read by the phone on every sync — change them here, no redeploy.
 
+**Phone-only settings (never in this Sheet):** on her phone, menu › ⚙️ Instellingen, she can override two
+things for herself. They are stored only on her device (IndexedDB `meta.userSettings`) and never sent to the
+Sheet or any server; they leave the phone only in her own JSON backup.
+- "Max. aantal nieuwe woorden per dag" (5 / 10 / 15 / 20; "Standaard (X)" = `new_per_day` from this tab when that
+  value is not one of the four). Her choice wins over `new_per_day`.
+- "Luisteroefeningen" aan/uit (default aan when the phone has a Dutch voice; without one it is off).
+
 ## Curriculum — which new cards come first
 
 `order, tag, unlock_threshold, min_reviews, max_wait_days, active, open`

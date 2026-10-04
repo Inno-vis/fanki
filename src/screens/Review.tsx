@@ -13,6 +13,7 @@ import { FlagButton } from '../components/FlagButton';
 import { markEngaged } from '../installPrompt';
 import { rate } from '../review';
 import { useStore } from '../store';
+import { useSettings } from '../settings';
 import { useOnline } from '../pwa';
 
 /** Ratings in one visit after which the Android install button may appear. */
@@ -25,13 +26,14 @@ const ENGAGED_AFTER = 3;
  */
 export function Review({ items, onExit }: { items: Item[]; onExit: () => void }) {
   const s = useStore();
+  const settings = useSettings();
   const online = useOnline();
   const [queue, setQueue] = useState<Item[]>(items);
   const [revealed, setRevealed] = useState(false);
   const [busy, setBusy] = useState(false);
   const rated = useRef(0);
   const shownAt = useRef(Date.now());
-  const sched = useMemo(() => makeScheduler(s.settings), [s.settings.desired_retention]);
+  const sched = useMemo(() => makeScheduler(settings), [settings.desired_retention]);
 
   const exit = () => {
     if (rated.current >= ENGAGED_AFTER) markEngaged(); // Android: the install button may appear from now on
@@ -54,7 +56,7 @@ export function Review({ items, onExit }: { items: Item[]; onExit: () => void })
     const outcome = outcomes[g];
     await rate(item, outcome, shownAt.current);
     rated.current++;
-    setQueue(afterRating(queue, outcome.intervalMs, outcome.next, s.settings));
+    setQueue(afterRating(queue, outcome.intervalMs, outcome.next, settings));
     setRevealed(false);
     setBusy(false);
     shownAt.current = Date.now();

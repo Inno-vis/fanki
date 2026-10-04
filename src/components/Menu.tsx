@@ -3,11 +3,11 @@ import { APP_ENV } from '../config';
 import { t } from '../i18n';
 import { useStore } from '../store';
 
-/** Tap "Fanki" → menu: Voortgang, Gemarkeerd. A dot on the title when cards are marked. */
-export function Menu({ go }: { go: (screen: 'progress' | 'marked') => void }) {
+/** Tap "Fanki" → menu: Voortgang, Gemarkeerd, Instellingen. A dot on the title when cards are marked. */
+export function Menu({ go }: { go: (screen: 'progress' | 'marked' | 'settings') => void }) {
   const s = useStore();
   const [open, setOpen] = useState(false);
-  const pick = (screen: 'progress' | 'marked') => {
+  const pick = (screen: 'progress' | 'marked' | 'settings') => {
     setOpen(false);
     go(screen);
   };
@@ -31,6 +31,9 @@ export function Menu({ go }: { go: (screen: 'progress' | 'marked') => void }) {
             <button class="menu-item" role="menuitem" onClick={() => pick('marked')}>
               <span aria-hidden="true">🚩</span> {t('mark.title')}
               {s.flagsOpen > 0 && <span class="menu-count">{s.flagsOpen}</span>}
+            </button>
+            <button class="menu-item" role="menuitem" onClick={() => pick('settings')}>
+              <span aria-hidden="true">⚙️</span> {t('settings.title')}
             </button>
             <button class="btn btn-secondary btn-block" onClick={() => setOpen(false)}>
               {t('help.close')}

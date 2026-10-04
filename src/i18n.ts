@@ -47,11 +47,26 @@ export const UI = {
   'home.topic': { nl: 'Onderwerp: {list}', fr: 'Thème : {list}' },
 
   // Menu (tap "Fanki")
-  'menu.open': { nl: 'Menu openen', fr: 'Ouvrir le menu (progression, cartes marquées)' },
+  'menu.open': { nl: 'Menu openen', fr: 'Ouvrir le menu (progression, cartes marquées, réglages)' },
   'menu.title': { nl: 'Menu', fr: 'Menu' },
 
   // Voortgang (progress overview)
   'progress.title': { nl: 'Voortgang', fr: 'Ma progression' },
+
+  // Instellingen (phone only)
+  'settings.title': { nl: 'Instellingen', fr: 'Réglages' },
+  'settings.newPerDay': { nl: 'Max. aantal nieuwe woorden per dag', fr: 'Nombre maximum de nouveaux mots par jour' },
+  'settings.default': { nl: 'Standaard ({n})', fr: 'Par défaut ({n})' },
+  'settings.listening': { nl: 'Luisteroefeningen', fr: 'Exercices d’écoute' },
+  'settings.on': { nl: 'Aan', fr: 'Activé' },
+  'settings.off': { nl: 'Uit', fr: 'Désactivé' },
+  'settings.noVoice': { nl: 'Geen Nederlandse stem op dit toestel.', fr: 'Pas de voix néerlandaise sur cet appareil.' },
+  'backup.title': { nl: 'Back-up', fr: 'Sauvegarde' },
+  'backup.save': { nl: 'Back-up opslaan', fr: 'Enregistrer une sauvegarde (fichier)' },
+  'backup.load': { nl: 'Back-up terugzetten', fr: 'Restaurer une sauvegarde (fichier)' },
+  'backup.done': { nl: 'Back-up teruggezet.', fr: 'Sauvegarde restaurée.' },
+  'backup.bad': { nl: 'Dit is geen Fanki-back-up.', fr: 'Ce fichier n’est pas une sauvegarde Fanki.' },
+  'backup.otherApp': { nl: 'Deze back-up is van een andere versie van de app.', fr: 'Cette sauvegarde vient d’une autre version de l’appli (DEV/PROD).' },
   'progress.learned': { nl: 'kaarten geoefend (van {n})', fr: 'cartes déjà travaillées (sur {n} en tout)' },
   'progress.known': { nl: 'kaarten bekend', fr: 'cartes bien sues (elles reviennent dans 3 semaines ou plus)' },
   'progress.week': { nl: 'herhalingen deze week', fr: 'révisions ces 7 derniers jours' },
@@ -141,6 +156,15 @@ export const HELP = {
       'gardé. « Klaar voor nu! » = fini pour le moment ; « Volgende kaart over ± 7 min » = une carte revient ' +
       'dans environ 7 minutes. L’appli fonctionne aussi sans internet : tes réponses sont gardées sur le téléphone ' +
       'et envoyées à la prochaine connexion. « Synchroniseren » télécharge les nouvelles cartes quand tu as internet.'
+  },
+  settings: {
+    nl: 'Hier kies je je instellingen.',
+    fr:
+      'Ces réglages restent sur ton téléphone. « Max. aantal nieuwe woorden per dag » = combien de nouveaux mots ' +
+      'au maximum chaque jour (« Standaard » = le choix de ton professeur). « Luisteroefeningen » = parfois la carte ' +
+      'commence seulement par le son ; « Uit » = jamais. « Back-up opslaan » enregistre ta progression dans un ' +
+      'fichier ; « Back-up terugzetten » la remet depuis ce fichier (par exemple sur un nouveau téléphone). ' +
+      'Les changements comptent tout de suite, pour la prochaine carte.'
   },
   progress: {
     nl: 'Hier zie je je voortgang.',

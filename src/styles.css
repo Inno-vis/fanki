@@ -983,3 +983,72 @@ body {
     animation: none !important;
   }
 }
+
+/* Instellingen */
+.setting-list {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.setting-row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px 12px;
+  background: var(--surface);
+  border-radius: 16px;
+  padding: 12px 14px;
+  min-height: 56px;
+}
+
+.setting-label {
+  flex: 1 1 60%;
+  font-size: 17px;
+}
+
+.setting-select,
+.setting-toggle {
+  font: inherit;
+  font-weight: 700;
+  min-height: 44px;
+  min-width: 96px;
+  border-radius: 12px;
+  border: 1px solid var(--surface-2);
+  background: var(--surface-2);
+  color: var(--text);
+  padding: 0 12px;
+}
+
+.setting-toggle.on {
+  background: var(--good);
+  border-color: var(--good);
+  color: #fff;
+}
+
+.setting-toggle:disabled {
+  opacity: 0.5;
+}
+
+.setting-note {
+  flex-basis: 100%;
+  margin: 0;
+  font-size: 14px;
+}
+
+.setting-head {
+  margin: 18px 0 8px;
+  font-size: 17px;
+}
+
+label.btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+label.btn.disabled {
+  opacity: 0.5;
+  pointer-events: none;
+}

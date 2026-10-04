@@ -3,6 +3,7 @@ import { allCards, allProgress, getMeta, getSettings, pendingCount } from './db'
 import { DEFAULT_SETTINGS, type Card, type CurriculumRow, type Settings, type Tag } from './types';
 import type { Progress } from './scheduler';
 import { todaysDone, type DoneToday } from './today';
+import { cleanUserSettings, EMPTY_USER_SETTINGS, type UserSettings } from './userSettings';
 import { todaysIntro, type Intro } from './session';
 
 // App-wide state loaded from IndexedDB. Components subscribe with useStore().
@@ -21,6 +22,8 @@ export type State = {
   curriculum: CurriculumRow[];
   studyTags: string[];
   doneToday: DoneToday; // items finished today ("Vandaag" bar)
+  userSettings: UserSettings; // her Instellingen (phone only); read settings via src/settings.ts, never directly
+  hasVoice: boolean; // a Dutch speech voice exists on this phone
   dayCounts: Record<string, number>; // reviews per local day (Voortgang)
   flagsOpen: number; // cards with an open 🚩 (a card marked 3× counts once)
   flagsTotal: number; // cards ever marked
@@ -40,6 +43,8 @@ let state: State = {
   curriculum: [],
   studyTags: [],
   doneToday: todaysDone(undefined),
+  userSettings: EMPTY_USER_SETTINGS,
+  hasVoice: false,
   dayCounts: {},
   flagsOpen: 0,
   flagsTotal: 0,
@@ -72,7 +77,7 @@ export function byAdded(a: Card & { order?: number }, b: Card & { order?: number
 }
 
 export async function loadFromDb(): Promise<void> {
-  const [cards, settings, tags, lastSync, progress, intro, pending, curriculum, studyTags, doneToday, dayCounts] = await Promise.all([
+  const [cards, settings, tags, lastSync, progress, intro, pending, curriculum, studyTags, doneToday, dayCounts, userSettings] = await Promise.all([
     allCards(),
     getSettings(),
     getMeta('tags'),
@@ -83,7 +88,8 @@ export async function loadFromDb(): Promise<void> {
     getMeta('curriculum'),
     getMeta('studyTags'),
     getMeta('doneToday'),
-    getMeta('dayCounts')
+    getMeta('dayCounts'),
+    getMeta('userSettings')
   ]);
   setState({
     loaded: true,
@@ -97,7 +103,8 @@ export async function loadFromDb(): Promise<void> {
     curriculum: curriculum ?? [],
     studyTags: studyTags ?? [],
     doneToday: todaysDone(doneToday),
-    dayCounts: dayCounts ?? {}
+    dayCounts: dayCounts ?? {},
+    userSettings: cleanUserSettings(userSettings)
   });
   await refreshFlagCount();
 }

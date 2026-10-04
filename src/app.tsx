@@ -2,7 +2,7 @@ import { useEffect, useMemo, useState } from 'preact/hooks';
 import { APP_ENV, BUILD_ID } from './config';
 import { useOnline } from './pwa';
 import { t } from './i18n';
-import { getState, loadFromDb, useStore } from './store';
+import { getState, loadFromDb, setState, useStore } from './store';
 import { schedulePush } from './review';
 import { syncNow } from './sync';
 import { UpdateBanner } from './components/Banners';
@@ -19,24 +19,23 @@ import { Toast, showToast } from './components/Toast';
 import { setDbBlockedHandler } from './db';
 import { Menu } from './components/Menu';
 import type { Card } from './types';
-import { isListeningReview, voicesReady } from './tts';
+import { listenMode, voicesReady } from './tts';
+import { useSettings } from './settings';
+import { SettingsScreen } from './screens/SettingsScreen';
 
-type Screen = { name: 'home' } | { name: 'topics' } | { name: 'marked' } | { name: 'progress' } | { name: 'review'; items: Item[] };
+type Screen = { name: 'home' } | { name: 'topics' } | { name: 'marked' } | { name: 'progress' } | { name: 'settings' } | { name: 'review'; items: Item[] };
 
 export function App() {
   const online = useOnline();
   const s = useStore();
   const [screen, setScreen] = useState<Screen>({ name: 'home' });
-  const [hasVoice, setHasVoice] = useState(false);
+  const settings = useSettings();
   useEffect(() => {
-    voicesReady().then((v) => setHasVoice(!!v));
+    voicesReady().then((v) => setState({ hasVoice: !!v }));
   }, []);
-  /** Today's run; with a Dutch voice, some word-recognition reviews become listening cards. */
+  /** Today's run; with listening on, some word-recognition reviews become listening cards. */
   const todayItems = () =>
-    interleave(plan).map((i) => ({
-      ...i,
-      listen: hasVoice && i.track === 'recog' && isListeningReview(i.card, i.progress?.reps ?? 0, s.settings.listen_share)
-    }));
+    interleave(plan).map((i) => ({ ...i, listen: listenMode(i.card, i.track, i.progress?.reps ?? 0, settings) }));
 
   // Load what's on the phone first (works offline), then refresh from the sheet when online.
   useEffect(() => {
@@ -67,18 +66,22 @@ export function App() {
   const plan = useMemo(() => {
     const now = new Date();
     const done = todaysDone(s.doneToday, now);
-    const status = curriculumStatus(s.curriculum, s.cards, s.progress, s.settings.mature_stability_days, now);
-    const picker = makePicker(s.curriculum, status, s.settings.curriculum_only);
+    const status = curriculumStatus(s.curriculum, s.cards, s.progress, settings.mature_stability_days, now);
+    const picker = makePicker(s.curriculum, status, settings.curriculum_only);
     const topics = new Set(s.studyTags);
     const eligible = topics.size ? (c: Card) => c.tags.some((tg) => topics.has(tg)) : undefined;
-    const p = planToday(s.cards, s.progress, s.settings, todaysIntro(s.intro, now), now, {
+    const p = planToday(s.cards, s.progress, settings, todaysIntro(s.intro, now), now, {
       pickNew: picker.pickNew,
       eligible,
       dueDone: dueDoneCount(done)
     });
     const keys = [...p.due, ...p.fresh].map((i) => `${i.card.id}|${i.track}`);
-    return { ...p, bar: todayBar(done, keys), nextMin: nextLaterTodayMin(s.cards, s.progress, s.settings, now) };
-  }, [s.cards, s.progress, s.settings, s.intro, s.curriculum, s.studyTags, s.doneToday, focus, screen.name]);
+    return { ...p, bar: todayBar(done, keys), nextMin: nextLaterTodayMin(s.cards, s.progress, settings, now) };
+  }, [
+    s.cards, s.progress, s.intro, s.curriculum, s.studyTags, s.doneToday, focus, screen.name,
+    settings.new_per_day, settings.due_window_minutes, settings.max_reviews_per_day, settings.unlock_prod_stability_days,
+    settings.curriculum_only, settings.mature_stability_days
+  ]);
 
   if (screen.name === 'review') {
     return (
@@ -95,7 +98,7 @@ export function App() {
       <UpdateBanner />
       <Toast />
       <header class="topbar">
-        <Menu go={(name) => setScreen(name === 'marked' ? { name: 'marked' } : { name: 'progress' })} />
+        <Menu go={(name) => setScreen(name === 'marked' ? { name: 'marked' } : name === 'settings' ? { name: 'settings' } : { name: 'progress' })} />
         <div class="topbar-right">
           {!online && <span class="offline-badge">{t('status.offline')}</span>}
           <HelpButton screen={screen.name === 'home' ? 'home' : screen.name} />
@@ -107,6 +110,8 @@ export function App() {
         <Marked onDone={() => setScreen({ name: 'home' })} />
       ) : screen.name === 'progress' ? (
         <ProgressScreen onDone={() => setScreen({ name: 'home' })} />
+      ) : screen.name === 'settings' ? (
+        <SettingsScreen onDone={() => setScreen({ name: 'home' })} />
       ) : (
       <Home
         onTopics={() => setScreen({ name: 'topics' })}

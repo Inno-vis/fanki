@@ -1,7 +1,7 @@
 import { useState } from 'preact/hooks';
 import { NS } from '../config';
 import { RATINGS, t } from '../i18n';
-import { useShowFrenchHelp } from '../prefs';
+import { useSettings } from '../settings';
 
 const SEEN_KEY = `${NS}:rating-help-seen`;
 
@@ -19,7 +19,7 @@ function seen(): boolean {
  * Settings.show_french_help is FALSE.
  */
 export function RatingHelp() {
-  const show = useShowFrenchHelp();
+  const show = useSettings().show_french_help;
   const [open, setOpen] = useState(() => !seen());
   if (!show) return null;
   const close = () => {

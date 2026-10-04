@@ -5,6 +5,7 @@ import { DEFAULT_SETTINGS, type Card, type CurriculumRow, type Settings, type Ta
 import type { Progress, Snapshot, Track } from './scheduler';
 import type { Intro, Mode } from './session';
 import type { DoneToday } from './today';
+import type { UserSettings } from './userSettings';
 
 /** One review, as stored in the outbox and sent to the API (Log row). */
 export type ReviewEvent = {
@@ -33,6 +34,7 @@ export type Meta = {
   curriculum: CurriculumRow[];
   studyTags: string[]; // tag filter ("Kies een onderwerp"); [] = everything
   doneToday: DoneToday; // items finished today (the "Vandaag" bar); another date counts as empty
+  userSettings: UserSettings; // her own Instellingen — phone only, never sent to the Sheet
   dayCounts: Record<string, number>; // local date (yyyy-mm-dd) → reviews that day (Voortgang screen)
 };
 

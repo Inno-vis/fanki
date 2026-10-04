@@ -79,6 +79,21 @@ The repo is **public** and hosted on GitHub Pages.
   (`reviewSetCheck`), 🚩 (`reviewSetCardFlag`). Turn on per env with `admin <env> enableApproval` (dry run;
   approveStudied keeps her studied cards). All AI-made cards started blank (2026-10-02).
 
+## Instellingen (phone only) and settings access
+
+- Menu › ⚙️ Instellingen (`screens/SettingsScreen.tsx`): rows from `SETTING_ROWS` (src/userSettings.ts) — "Max.
+  aantal nieuwe woorden per dag" (5/10/15/20, plus "Standaard (X)" when the Sheet value is not one of them) and
+  "Luisteroefeningen" (disabled + "Geen Nederlandse stem op dit toestel." without a Dutch voice). Stored in
+  IndexedDB `meta.userSettings` = {newPerDay, listeningEnabled} (null = default), saved instantly, NEVER sent to
+  the Sheet or a server.
+- ONE accessor, `src/settings.ts`: `useSettings()` (components) / `currentSettings()` (other code) merge the Sheet
+  Settings, her userSettings and `hasVoice`. `new_per_day` there is already `getNewPerDay(sheet, user)`;
+  `listening` = voice && her toggle; `listenMode()` (src/tts.ts) decides listening cards. Components never read
+  `state.settings` / `state.userSettings` directly (`useSettingControls()` / `setUserSetting()` for the page).
+- JSON backup (same page; `src/backup.ts`): export = progress, unsent reviews, 🚩 flags, intro, doneToday,
+  dayCounts, studyTags, userSettings (no cards). Import MERGES (newer progress/flag wins, reviews added, today's
+  records only from today) and refuses files of the other app (DEV/PROD). iPhone: share sheet; else a download.
+
 ## Listening and Voortgang
 
 - `src/tts.ts`: phone voices only (Web Speech API, offline with an installed voice). `pickDutchVoice` prefers

@@ -3,6 +3,7 @@ import { snapshotOf, type Outcome } from './scheduler';
 import { modeFor, type Item } from './session';
 import { getState, setState } from './store';
 import { leavesWindow, todaysDone } from './today';
+import { currentSettings } from './settings';
 import { pushQueue } from './sync';
 
 export function uuid(): string {
@@ -39,7 +40,7 @@ export async function rate(item: Item, outcome: Outcome, shownAt: number, now = 
     snapshot: snapshotOf(next)
   };
   let doneToday = todaysDone(s.doneToday, now);
-  if (leavesWindow(next.due, now, s.settings)) {
+  if (leavesWindow(next.due, now, currentSettings())) {
     const introduced = item.track === 'prod' && item.card.type === 'word' ? intro.prod : intro.main;
     const kind = introduced.includes(item.card.id) ? 'new' : 'due';
     doneToday = { ...doneToday, items: { ...doneToday.items, [next.key]: doneToday.items[next.key] ?? kind } };

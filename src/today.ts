@@ -1,14 +1,19 @@
 import type { Card, Settings } from './types';
 import { progressKey, tracksFor, type Progress } from './scheduler';
 import { localDate } from './session';
+import type { UserSettings } from './userSettings';
 
 // Today's work is ONE finite queue: due cards (due now or within due_window_minutes, capped at
 // max_reviews_per_day) + today's remaining new-card quota. No sessions, no timers. The home screen shows a
 // "Vandaag" bar: done_today / (done_today + remaining), counting unique (card, track) items.
 
-/** The ONLY place that reads the daily new-card limit (a later settings page plugs in here). */
-export function getNewPerDay(settings: Pick<Settings, 'new_per_day'>): number {
-  return settings.new_per_day;
+/**
+ * The ONLY place that decides the daily new-card limit: her own choice (Instellingen, phone only) if set, else
+ * the Sheet's Settings.new_per_day. The settings accessor (src/settings.ts) applies it, so code that gets the
+ * merged settings (e.g. planToday) receives the effective value.
+ */
+export function getNewPerDay(settings: Pick<Settings, 'new_per_day'>, user?: Pick<UserSettings, 'newPerDay'> | null): number {
+  return user?.newPerDay ?? settings.new_per_day;
 }
 
 export function dueWindowMs(settings: Pick<Settings, 'due_window_minutes'>): number {

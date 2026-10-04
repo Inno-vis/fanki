@@ -1,14 +1,16 @@
 import { useMemo } from 'preact/hooks';
 import { t } from '../i18n';
 import { useStore } from '../store';
+import { useSettings } from '../settings';
 import { overview } from '../stats';
 
 /** "Voortgang": what she has learned, this week's reviews, streak, what is coming. */
 export function ProgressScreen({ onDone }: { onDone: () => void }) {
   const s = useStore();
+  const settings = useSettings();
   const o = useMemo(
-    () => overview(s.cards, s.progress, s.dayCounts, s.settings.mature_stability_days, new Date()),
-    [s.cards, s.progress, s.dayCounts, s.settings.mature_stability_days]
+    () => overview(s.cards, s.progress, s.dayCounts, settings.mature_stability_days, new Date()),
+    [s.cards, s.progress, s.dayCounts, settings.mature_stability_days]
   );
   const tile = (value: number | string, label: string) => (
     <div class="stat">

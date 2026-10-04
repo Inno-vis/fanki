@@ -177,7 +177,16 @@ var APP_SEED_CARDS = [
   'word|klembord|het|noun|le presse-papiers|De tekst staat op het klembord.|Le texte est dans le presse-papiers.|app|manual|',
   'word|leeg||adj|vide|Het glas is leeg.|Le verre est vide.|app|manual|',
   'word|oplossen||verb (separable)|résoudre|Ik los het probleem op.|Je résous le problème.|app|manual|separable',
-  'word|installeren||verb|installer|Ik installeer de app.|J\'installe l\'appli.|app|manual|'
+  'word|installeren||verb|installer|Ik installeer de app.|J\'installe l\'appli.|app|manual|',
+  // Instellingen + back-up words (2026-10-04)
+  'word|aantal|het|noun|le nombre|Het aantal kaarten is tien.|Le nombre de cartes est dix.|app|manual|',
+  'word|maximaal||adj|maximum, au maximum (afkorting: max.)|Je krijgt maximaal tien nieuwe woorden.|Tu reçois au maximum dix nouveaux mots.|app|manual|',
+  'word|standaard||adj|par défaut, standard|Standaard krijg je tien woorden.|Par défaut, tu reçois dix mots.|app|manual|',
+  'word|luisteroefening|de|noun|l\'exercice d\'écoute|Ik doe een luisteroefening.|Je fais un exercice d\'écoute.|app|manual|',
+  'word|toestel|het|noun|l\'appareil|Mijn toestel heeft geen stem.|Mon appareil n\'a pas de voix.|app|manual|',
+  'word|back-up|de|noun|la sauvegarde|Ik maak een back-up.|Je fais une sauvegarde.|app|manual|',
+  'word|terugzetten||verb (separable)|remettre, restaurer|Ik zet de back-up terug.|Je restaure la sauvegarde.|app|manual|separable',
+  'word|ander||adj|autre (andere = autre, avec -e)|Heb je een andere dag?|Tu as un autre jour ?|app|manual|'
 ];
 
 // Abbreviations (enkel cards with the badge "afkorting" = flag `abbreviation`). Each sits in the category where it

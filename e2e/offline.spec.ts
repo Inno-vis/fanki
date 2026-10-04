@@ -223,7 +223,11 @@ test('enkel/emoji card, 🔊 without a Dutch voice, and 🚩 flags (flag, note, 
   await expect(pic).toBeVisible();
   expect(await pic.getAttribute('src')).toBe('/fanki/dev/openmoji/1F6CF.svg');
   expect(await pic.evaluate((img: HTMLImageElement) => img.complete && img.naturalWidth > 0)).toBe(true);
-  expect(await page.evaluate(async () => !!(await caches.match('/fanki/dev/openmoji/1F6CF.svg', { ignoreSearch: true })))).toBe(true);
+  // Precached for offline use (in a fresh browser the service worker may still be installing: wait for it).
+  await page.evaluate(() => navigator.serviceWorker.ready);
+  await expect
+    .poll(() => page.evaluate(async () => !!(await caches.match('/fanki/dev/openmoji/1F6CF.svg', { ignoreSearch: true }))), { timeout: 15_000 })
+    .toBe(true);
   await expect(page.getByText('het bed')).toBeHidden();
   await page.getByRole('button', { name: 'Antwoord tonen' }).click();
   const overlay = page.getByRole('dialog', { name: 'De vier knoppen' });

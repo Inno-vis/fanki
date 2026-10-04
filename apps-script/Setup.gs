@@ -59,7 +59,6 @@ function setup() {
   // 5. Seeds (only into empty tabs; Settings adds missing keys).
   seedSettings_(ss.getSheetByName('Settings'));
   seedTags_(ss.getSheetByName('Tags'));
-  seedCompliments_(ss.getSheetByName('Compliments'));
   if (env === 'DEV') seedCards_(ss.getSheetByName('Cards'));
   seedAppWords_(ss.getSheetByName('Cards'));
   seedKlokCards_(ss.getSheetByName('Cards'));
@@ -129,7 +128,7 @@ function seedSettings_(sh) {
     if (desc[r.key] && r.description !== desc[r.key]) sh.getRange(r._row, 3).setValue(desc[r.key]);
   });
   rows.forEach(function (r) {
-    if (r.key === 'compliments_enabled' || r.key === 'show_french_help' || r.key === 'curriculum_only' || r.key === 'require_approval') {
+    if (r.key === 'show_french_help' || r.key === 'curriculum_only' || r.key === 'require_approval') {
       sh.getRange(r._row, 2).setDataValidation(SpreadsheetApp.newDataValidation().requireCheckbox().build());
     }
   });
@@ -166,16 +165,6 @@ function seedTags_(sh) {
     // Fill blank subjects only; never overwrite the teacher's own.
     if (subjCol && row[4] && !String(r.subject_nl || '').trim()) sh.getRange(r._row, subjCol).setValue(row[4]);
   });
-}
-
-/** Seeds an empty tab; replaces the old French seed if it was never edited. */
-function seedCompliments_(sh) {
-  var current = readTable_(sh).rows.map(function (r) { return String(r.text).trim(); }).filter(String);
-  var untouchedOld = current.length === OLD_COMPLIMENTS_FR.length &&
-    current.every(function (x, i) { return x === OLD_COMPLIMENTS_FR[i]; });
-  if (current.length && !untouchedOld) return;
-  if (sh.getLastRow() > 1) sh.getRange(2, 1, sh.getLastRow() - 1, 1).clearContent();
-  sh.getRange(2, 1, COMPLIMENTS_SEED.length, 1).setValues(COMPLIMENTS_SEED.map(function (x) { return [x]; }));
 }
 
 /** Adds the interface vocabulary (both envs). Skips any (type, nl) already in Cards. */

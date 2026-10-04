@@ -96,7 +96,7 @@ The repo is **public** and hosted on GitHub Pages.
 - Manifest icons: 192/512 `purpose: any` + 512 `maskable` (content inside the inner ~78 %; DEV badge inside
   the safe circle) — `scripts/make-icons.mjs`.
 - `src/installPrompt.ts`: catches `beforeinstallprompt` (suppresses Chrome's banner); "⬇ App installeren"
-  shows on home only after a first counted session (`markEngaged`) and not when already installed.
+  shows on home only after she rated ≥ 3 cards in one visit (`markEngaged`) and not when already installed.
   iOS keeps the Share → "Zet op beginscherm" hint.
 - Device test pass incl. one physical Android phone: docs/RELEASE.md.
 
@@ -109,7 +109,7 @@ The repo is **public** and hosted on GitHub Pages.
 - `aria-label` = "<Dutch label>, <interval>".
 - **Every card is self-rated** (the core feature): she reads the front, taps "Antwoord tonen", then
   rates herself. There are no typed answers anywhere.
-- One-time overlay (first review session) explains the four buttons in French
+- One-time overlay (first review) explains the four buttons in French
   ("Opnieuw = je ne savais pas", "Moeilijk = j'ai hésité", "Goed = bien", "Makkelijk = très facile");
   a small `?` reopens it. This is the only place the button labels are translated.
 
@@ -125,28 +125,26 @@ keys, pos and descriptions. The API maps them to internal codes (`typeCode_`/`so
   " of <spoken> 's <dagdeel>", one-digit hours don't; midnight is "00:MMu"): docs/SHEET.md › Writing enkel.
 - Subject label above the card = `subject_nl` of the first tag that has one (`subjectFor`, src/display.ts).
 
-## Curriculum and sessions
+## Curriculum and today's work
 
 - Curriculum tab + Settings decide which NEW cards are introduced (`src/curriculum.ts`, pure, recalculated
   on every render). `apps-script/Curriculum.gs` mirrors the status for the Dashboard only — keep in sync.
   Full algorithm: docs/SHEET.md › Curriculum. Per-row `open` (automatisch|altijd open|dicht → auto|always|
   closed) overrides the chain; Settings.curriculum_only (default TRUE) locks every non-curriculum topic.
-- Sessions: `src/sessionRules.ts` (pure). One offer at session_max_cards / minutes of reviewing time
-  ("Nog 10 kaarten, graag!" / "Stoppen"), then session_extra_cards more. "Terug" or leaving the app only
-  pauses (`meta.openSession`, "Doorgaan", expires after session_resume_minutes). The session ENDS on Stoppen /
-  extension done / no cards left and she goes home; there is NO cooldown and no Breaks prompt (both removed
-  2026-10-04). A session with ≥ min_reviews_to_count ratings "counts" (`markEngaged`, Android install button).
-- Short-step repeats (a card rated into a ≤ 20 min step) never count toward "X van Y" and the session never
-  offers/ends while one is pending — they are shown first, past the card/minute cap and the extension
-  (`afterRating` in src/sessionFlow.ts, `nextStep` → 'repeat'). After a pause, Learning/Relearning cards due
-  within 20 min rejoin the session (`planToday` learnAheadMs). max_learning_backlog still holds new cards back.
+- Studying today (no sessions, no timers, no cooldown): `planToday` (src/session.ts) + `src/today.ts`. Due = started
+  cards due within `due_window_minutes`, capped at `max_reviews_per_day` (overflow rolls over, silently); new =
+  today's quota from `getNewPerDay()` — the ONLY reader of `new_per_day`. `interleave`: due first, 1 new per 3 due.
+  Steps ≤ 20 min come back in the same run (`afterRating`, src/sessionFlow.ts). Home shows the "Vandaag" bar
+  (`todayBar`, unique items; `meta.doneToday` by local date, written in `recordReview`'s transaction) and
+  "Klaar voor nu!" + static "Volgende kaart over ± N min" (`nextLaterTodayMin`). The plan is recomputed on screen
+  change and when the app regains focus — never on a timer. The review screen shows only the card.
 
 ## Study by topic, new-card pacing
 
 - "Kies een onderwerp" (`src/screens/Topics.tsx`): multi-select of tags that have cards (label_nl; 🔒 for
-  locked curriculum tags). Stored in `meta.studyTags`; sessions then use due + new cards with ANY selected
+  locked curriculum tags). Stored in `meta.studyTags`; today's work then uses due + new cards with ANY selected
   tag. Empty = everything.
-- Within a session a new card waits while ≥ `max_learning_backlog` cards are in short in-session steps
+- A new card waits while ≥ `max_learning_backlog` cards are in short learning steps
   (`pickNextIndex` in src/session.ts).
 
 ## 🚩 Student flags ("Gemarkeerd") — local only
@@ -171,7 +169,7 @@ keys, pos and descriptions. The API maps them to internal codes (`typeCode_`/`so
   sentence/question cards only `prod`. `prod` unlocks when `recog` stability ≥ `unlock_prod_stability_days`.
 - Scheduling (`src/scheduler.ts`, `src/session.ts`): ts-fsrs, fuzz on, retention from Settings. The four
   outcomes are computed once when the answer is revealed; the tapped one is applied, so the interval on
-  the button is exactly what is scheduled. Steps under 20 min come back in the same session.
+  the button is exactly what is scheduled. Steps under 20 min come back in the same run.
 - New cards per day capped by Settings.`new_per_day`, ordered by `added` (then sheet order). A word's
   unlocked `prod` track has its own cap of the same size. Today's introductions are stored (`meta.intro`).
 - Each rating = progress + outbox event + intro list in ONE IndexedDB transaction (`recordReview`).
@@ -180,16 +178,13 @@ keys, pos and descriptions. The API maps them to internal codes (`typeCode_`/`so
   category where it is first used, in the row directly above the first card that uses it (same `added`).
 - Nouns always show de/het. Sheet flag `false-friend` shows the badge "valse vriend"; `separable` is NOT shown
   (`HIDDEN_FLAGS` in src/display.ts) — it stays in the sheet as teacher metadata.
-- Compliments (Dutch lines from the Compliments tab): every 3rd correct answer per session, counter never
-  resets on a mistake, never the same twice in a row, ~1.5 s non-blocking toast, respects
-  `prefers-reduced-motion` and Settings.`compliments_enabled`.
 
 ## Offline and sync (never lose a review)
 
-- The app shell is precached by the service worker; all active cards, settings, tags, compliments,
+- The app shell is precached by the service worker; all active cards, settings, tags,
   curriculum and her Progress live in IndexedDB (`fanki-dev` / `fanki-prod`). `navigator.storage.persist()`.
 - A rating writes progress + outbox event in one transaction. The outbox is pushed ~4 s later when online,
-  immediately when the connection returns (also mid-session), and at every sync. Events leave the outbox
+  immediately when the connection returns (also during review), and at every sync. Events leave the outbox
   only when the server lists them as accepted or duplicate; the server de-duplicates on `event_id`.
 - Sync = push → pull cards/settings + Progress → merge (server wins only if newer AND no unsent local
   review) → push again. Runs at launch, when back online, when the app returns to the foreground (> 2 min

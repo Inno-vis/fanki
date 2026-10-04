@@ -538,3 +538,42 @@ function adminCardsToInbox_(ids, dryRun) {
     return report;
   });
 }
+
+/**
+ * Brings the Settings tab in line with SETTINGS_DEFAULTS: removes OBSOLETE_SETTINGS rows and adds missing keys
+ * with their default (existing values are never changed). Dry run unless dryRun:false.
+ */
+function adminCleanSettings_(dryRun) {
+  return withLock_(function () {
+    var sh = sheet_('Settings');
+    var rows = readTable_(sh).rows;
+    var keys = rows.map(function (r) { return String(r.key).trim(); });
+    var report = {
+      dryRun: dryRun,
+      remove: rows.filter(function (r) { return OBSOLETE_SETTINGS.indexOf(String(r.key).trim()) !== -1; })
+        .map(function (r) { return r.key + ' = ' + r.value; }),
+      add: SETTINGS_DEFAULTS.filter(function (d) { return keys.indexOf(d[0]) === -1; }).map(function (d) { return d[0] + ' = ' + d[1]; }),
+      keep: rows.filter(function (r) { return r.key && OBSOLETE_SETTINGS.indexOf(String(r.key).trim()) === -1; })
+        .map(function (r) { return r.key + ' = ' + r.value; })
+    };
+    if (!dryRun) seedSettings_(sh);
+    return report;
+  });
+}
+
+/** Deletes whole tabs of removed features: {tabs:['Breaks','Compliments']} only. Dry run unless dryRun:false. */
+function adminDeleteTabs_(tabs, dryRun) {
+  var allowed = ['Breaks', 'Compliments'];
+  return withLock_(function () {
+    var ss = ss_();
+    var report = { dryRun: dryRun, tabs: [] };
+    (tabs || []).forEach(function (name) {
+      if (allowed.indexOf(name) === -1) throw apiError_('bad_request', 'only ' + allowed.join(', ') + ' may be deleted');
+      var sh = ss.getSheetByName(name);
+      if (!sh) { report.tabs.push(name + ': not there'); return; }
+      report.tabs.push(name + ': ' + Math.max(0, sh.getLastRow() - 1) + ' rows');
+      if (!dryRun) ss.deleteSheet(sh);
+    });
+    return report;
+  });
+}

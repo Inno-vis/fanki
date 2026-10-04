@@ -191,21 +191,22 @@ to move them into Cards. Nothing is ever written to Cards by `/addwords`.
 
 | key | default | meaning |
 |---|---|---|
-| new_per_day | 8 | New cards introduced per day |
+| new_per_day | 10 | New cards introduced per local day. The app reads it only through `getNewPerDay()` (src/today.ts) |
 | desired_retention | 0.9 | FSRS target recall probability (0.7–0.97) |
-| compliments_enabled | TRUE | Show a compliment every 3rd correct answer |
 | unlock_prod_stability_days | 3 | When a word's `recog` stability reaches this many days, the typing (`prod`) track starts |
 | show_french_help | TRUE | Shows the "Hulp" button (French help) and the one-time rating overlay. Untick when she's ready. |
 | mature_stability_days | 21 | A card counts as "bekend" (mature) for the curriculum at this FSRS stability |
-| session_max_cards | 15 | Cards before "Sessie voltooid! Wil je doorgaan?" |
-| session_max_minutes | 8 | Minutes before the same offer (whichever comes first) |
-| session_extra_cards | 10 | Cards added by "Nog 10 kaarten, graag!" (fewer if fewer are left) |
-| min_reviews_to_count | 3 | A session counts from this many ratings (then the Android install button may appear) |
 | require_approval | FALSE | ☑ = the app gets only Cards with `controle` = goedgekeurd. Turn on with `admin <env> enableApproval` (dry run first; `approveStudied` approves + 🚩 the cards she has studied, default on). On in DEV and PROD since 2026-10-02 |
 | curriculum_only | TRUE | New cards only from open Curriculum topics; other topics and untagged cards stay locked (reviews of started cards continue) |
 | listen_share | 0.3 | Share of word-recognition reviews that start with only the sound (🔊 "Wat hoor je?"); 0 = off. Only on phones with a Dutch voice |
-| session_resume_minutes | 30 | After "Terug" (or leaving the app) she can continue the same session this long ("Doorgaan"); after that it expires WITHOUT a pause |
-| max_learning_backlog | 3 | In a session, the next NEW card waits while this many cards are still in their short "again in minutes" steps |
+| max_learning_backlog | 3 | The next NEW card waits while this many cards are still in their short "again in minutes" steps |
+| due_window_minutes | 10 | Cards due within this many minutes already count as due now (part of today's work) |
+| max_reviews_per_day | 100 | Silent cap on the due part of today's work; the rest stays due and rolls to tomorrow |
+
+Removed 2026-10-04 (`admin <env> cleanSettings` deletes the rows, dry run first): `cooldown_minutes`,
+`session_max_cards`, `session_max_minutes`, `session_extra_cards`, `session_resume_minutes`,
+`min_reviews_to_count`, `compliments_enabled`. The Breaks and Compliments tabs are gone too
+(`admin <env> deleteTabs`).
 
 All settings are read by the phone on every sync — change them here, no redeploy.
 
@@ -254,26 +255,28 @@ dicht (closed now, and every automatisch row below it too).
 6. Cards she already started keep coming back for review even if their tag is (again) locked — the
    curriculum only decides what is *new*.
 
-## Sessions (phone only)
+## Studying today (phone only)
 
-- "Starten" begins a session. A slim bar shows "9 van 15 kaarten".
-- At `session_max_cards` reviews or `session_max_minutes` (checked after each card) she sees ONE offer:
-  "Nog 10 kaarten, graag!" (adds `session_extra_cards`, or fewer if fewer are left) or "Stoppen".
-  After accepting, "Stoppen" is in the header and the session ends when those cards are done.
-- A card that comes back after a short step ("1 min", "10 min", "15 min"…) is a repeat: it does not count in
-  "X van Y" and is always shown before the session offers to continue or ends — also after 15 cards, 8 minutes
-  or the extra 10.
-- The session also ends when cards run out or on "Stoppen". "Terug" and leaving the app only PAUSE it:
-  home shows "Doorgaan (4 van 15 kaarten)"; only reviewing time counts toward `session_max_minutes`.
-  A paused session not continued within `session_resume_minutes` expires.
-- There is no cooldown: after a session ends she can press "Starten" again right away (removed 2026-10-04,
-  together with the Breaks prompts; setup deletes the old `cooldown_minutes` row; an old Breaks tab is unused).
+No sessions, no timers, no cooldown. Today's work is ONE finite queue (`src/today.ts`, `planToday` in
+src/session.ts):
 
-## Compliments
-
-`text` — one Dutch line per row (seed: "Goed zo!", "Prima!", "Top!", "Heel goed!", "Mooi gedaan!",
-"Je wordt steeds beter!", "Uitstekend!", "Fantastisch!", "Ga zo door!", "Geweldig!",
-"Ik ben trots op je!", "Perfect!", "Sterk!"). Shown as a small toast every 3rd correct answer.
+- **Due:** every started card due now or within `due_window_minutes`, oldest first, capped at
+  `max_reviews_per_day` (counting the due reviews already finished today). The overflow stays due and rolls to
+  tomorrow, silently.
+- **New:** today's remaining quota, `getNewPerDay()` (= `new_per_day`) minus the new cards introduced today
+  (counted per local day), chosen by the Curriculum rules.
+- **Order:** due cards first, one new card after every 3 due cards, then the remaining new cards. A new card
+  waits while `max_learning_backlog` cards are in short learning steps; a step of ≤ 20 min comes back later in
+  the same run.
+- **Stopping** is always allowed ("Terug" or closing the app): every rating is saved at once.
+- **"Vandaag" bar** on home: done today / (done today + remaining), unique cards, with "Nog N kaarten". A card
+  is done when its next due time is past the due window. Stored on the phone (`meta.doneToday`, by local
+  date) and reset at local midnight; reopening the app the same day shows the same bar. No timer, no streak,
+  no red, no "behind".
+- **Done:** when nothing is due and today's new cards are used up (or none are available), home shows
+  "Klaar voor nu!" instead of Starten, plus "Volgende kaart over ± 7 min" when a learning-step card comes back
+  later today. That text is static: refreshed when home opens or the app comes back to the front.
+- The review screen shows only the card (no counter, no bar, no timer).
 
 ## Dashboard (formulas, read-only)
 

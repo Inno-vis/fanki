@@ -119,7 +119,7 @@ describe('picking new cards', () => {
     progress.get(progressKey('b1', 'prod'))!.due = daysAgo(1);
     const status = curriculumStatus(rows, cards, progress, 21, now);
     const picker = makePicker(rows, status);
-    const plan = planToday(cards, progress, { new_per_day: 5, unlock_prod_stability_days: 3 }, todaysIntro(undefined, now), now, { pickNew: picker.pickNew });
+    const plan = planToday(cards, progress, { new_per_day: 5, unlock_prod_stability_days: 3, due_window_minutes: 10, max_reviews_per_day: 100 }, todaysIntro(undefined, now), now, { pickNew: picker.pickNew });
     expect(plan.due.map((i) => i.card.id)).toEqual(['b1']);
     expect(plan.fresh.map((i) => i.card.id)).toEqual(['a1']);
   });

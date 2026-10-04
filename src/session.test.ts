@@ -4,7 +4,7 @@ import { progressKey, type Progress } from './scheduler';
 import type { Card } from './types';
 
 const now = new Date('2026-09-28T10:00:00');
-const settings = { new_per_day: 3, unlock_prod_stability_days: 3 };
+const settings = { new_per_day: 3, unlock_prod_stability_days: 3, due_window_minutes: 10, max_reviews_per_day: 100 };
 const card = (id: string, type: Card['type'] = 'word', added = '2026-09-27'): Card =>
   ({ id, type, nl: id, article: '', pos: '', fr: id, example_nl: '', example_fr: '', tags: [], tags_source: '', flags: [], answer: '', added, active: true }) as Card;
 const prog = (id: string, track: 'recog' | 'prod', due: string, stability = 1): Progress => ({
@@ -88,19 +88,36 @@ describe('new cards wait for the learning backlog (option 1)', () => {
   });
 });
 
-describe('short-step cards after a pause ("Doorgaan")', () => {
-  it('Learning/Relearning cards due within the next 20 min are included as repeats; Review cards are not', () => {
-    const cards = [card('l1'), card('r1'), card('l2')];
-    const soonDue = new Date(now.getTime() + 8 * 60_000).toISOString();
-    const lateDue = new Date(now.getTime() + 40 * 60_000).toISOString();
+describe('due window and daily cap', () => {
+  const at = (min: number) => new Date(now.getTime() + min * 60_000).toISOString();
+
+  it('includes learning cards due within due_window_minutes (10), not later ones', () => {
+    const cards = [card('l1'), card('l2'), card('r1')];
     const progress = new Map([
-      [progressKey('l1', 'recog'), { ...prog('l1', 'recog', soonDue), state: 'Learning' as const }],
-      [progressKey('r1', 'recog'), prog('r1', 'recog', soonDue)],
-      [progressKey('l2', 'recog'), { ...prog('l2', 'recog', lateDue), state: 'Learning' as const }]
+      [progressKey('l1', 'recog'), { ...prog('l1', 'recog', at(8)), state: 'Learning' as const }],
+      [progressKey('l2', 'recog'), { ...prog('l2', 'recog', at(12)), state: 'Learning' as const }],
+      [progressKey('r1', 'recog'), prog('r1', 'recog', at(-60))]
     ]);
-    const plan = planToday(cards, progress, settings, empty(), now, { learnAheadMs: 20 * 60_000 });
-    expect(plan.soon?.map((i) => [i.card.id, i.learning])).toEqual([['l1', true]]);
-    expect(plan.due).toEqual([]);
-    expect(interleave(plan).map((i) => i.card.id)).toEqual(['l1']);
+    const plan = planToday(cards, progress, settings, empty(), now);
+    expect(plan.due.map((i) => [i.card.id, !!i.learning])).toEqual([['r1', false], ['l1', true]]);
+  });
+
+  it('caps the due part at max_reviews_per_day minus today’s due reviews; the overflow stays due for tomorrow', () => {
+    const cards = ['a', 'b', 'c', 'd'].map((id) => card(id));
+    const progress = new Map(cards.map((c, i) => [progressKey(c.id, 'recog'), prog(c.id, 'recog', at(-100 + i))]));
+    const capped = { ...settings, max_reviews_per_day: 3 };
+    expect(planToday(cards, progress, capped, empty(), now).due.map((i) => i.card.id)).toEqual(['a', 'b', 'c']);
+    expect(planToday(cards, progress, capped, empty(), now, { dueDone: 2 }).due.map((i) => i.card.id)).toEqual(['a']);
+    // a, b, c reviewed today (next due in days): tomorrow the cap starts again and 'd' — still due — is there.
+    for (const id of ['a', 'b', 'c']) progress.set(progressKey(id, 'recog'), prog(id, 'recog', at(5 * 24 * 60)));
+    const tomorrow = new Date(now.getTime() + 24 * 60 * 60_000);
+    expect(planToday(cards, progress, capped, todaysIntro(undefined, tomorrow), tomorrow).due.map((i) => i.card.id)).toEqual(['d']);
+  });
+
+  it('due cards come first; new cards are interleaved and never exceed the quota', () => {
+    const cards = ['d1', 'd2', 'd3', 'd4', 'd5', 'd6', 'n1', 'n2', 'n3', 'n4', 'n5'].map((id) => card(id));
+    const progress = new Map(['d1', 'd2', 'd3', 'd4', 'd5', 'd6'].map((id, i) => [progressKey(id, 'recog'), prog(id, 'recog', at(-60 + i))]));
+    const order = interleave(planToday(cards, progress, settings, empty(), now)).map((i) => i.card.id);
+    expect(order).toEqual(['d1', 'd2', 'd3', 'n1', 'd4', 'd5', 'd6', 'n2', 'n3']);
   });
 });

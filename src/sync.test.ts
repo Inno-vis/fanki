@@ -31,9 +31,10 @@ describe('cleanCard', () => {
 describe('cleanSettings', () => {
   it('fills defaults and clamps out-of-range values', () => {
     expect(cleanSettings({ new_per_day: 500, desired_retention: 2 } as never)).toMatchObject({
-      new_per_day: 100, desired_retention: 0.97, compliments_enabled: true, show_french_help: true
+      new_per_day: 100, desired_retention: 0.97, show_french_help: true, due_window_minutes: 10, max_reviews_per_day: 100
     });
-    expect(cleanSettings(undefined).new_per_day).toBe(8);
+    expect(cleanSettings(undefined).new_per_day).toBe(10);
+    expect(cleanSettings({ session_max_cards: 15, cooldown_minutes: 60 } as never)).not.toHaveProperty('session_max_cards');
     expect(cleanSettings({ show_french_help: false }).show_french_help).toBe(false);
   });
 });

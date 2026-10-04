@@ -6,7 +6,6 @@ Most important first. Every PROD item follows the PROD safety checklist in docs/
    2026-10-04). Then `gas:deploy:prod` + `admin prod setup` (removes the cooldown_minutes row).
 2. DEV Inbox: review the H1–H6 sentences, Signaalwoorden and 3 untagged words (gaan, alsjeblieft, "Hoe heet je?";
    tag them first, or they are never introduced). Then copy approved DEV cards to PROD (`importCards`).
-3. Compliment toast: every 3rd correct answer, random Dutch line from Compliments, never twice in a row.
 4. In-app backup: export progress and flags as a JSON file, and import it again.
 5. Docs: remove "typed" wording for the FR→NL track; every card is self-rated.
 6. PROD sheet: decide on the 8 unticked app words (scherm, woord, zin, vraag, …): keep off or reactivate.

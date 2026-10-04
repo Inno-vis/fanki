@@ -2,6 +2,7 @@ import { pendingCount, recordReview, type ReviewEvent } from './db';
 import { snapshotOf, type Outcome } from './scheduler';
 import { modeFor, type Item } from './session';
 import { getState, setState } from './store';
+import { leavesWindow, todaysDone } from './today';
 import { pushQueue } from './sync';
 
 export function uuid(): string {
@@ -14,7 +15,10 @@ export function uuid(): string {
   return `${h.slice(0, 8)}-${h.slice(8, 12)}-${h.slice(12, 16)}-${h.slice(16, 20)}-${h.slice(20)}`;
 }
 
-/** Stores one rating (progress + outbox event + daily intro) and schedules a background push. */
+/**
+ * Stores one rating (progress + outbox event + daily intro + done-today) and schedules a background push.
+ * The item counts as done today once its next due time is past the due window.
+ */
 export async function rate(item: Item, outcome: Outcome, shownAt: number, now = new Date()): Promise<void> {
   const s = getState();
   const intro = { ...s.intro, main: [...s.intro.main], prod: [...s.intro.prod] };
@@ -34,11 +38,17 @@ export async function rate(item: Item, outcome: Outcome, shownAt: number, now = 
     duration_ms: Math.max(0, Math.round(now.getTime() - shownAt)),
     snapshot: snapshotOf(next)
   };
-  await recordReview(next, event, intro);
+  let doneToday = todaysDone(s.doneToday, now);
+  if (leavesWindow(next.due, now, s.settings)) {
+    const introduced = item.track === 'prod' && item.card.type === 'word' ? intro.prod : intro.main;
+    const kind = introduced.includes(item.card.id) ? 'new' : 'due';
+    doneToday = { ...doneToday, items: { ...doneToday.items, [next.key]: doneToday.items[next.key] ?? kind } };
+  }
+  await recordReview(next, event, intro, doneToday);
   const progress = new Map(s.progress);
   progress.set(next.key, next);
   const dayCounts = { ...s.dayCounts, [intro.date]: (s.dayCounts[intro.date] ?? 0) + 1 };
-  setState({ progress, intro, pending: s.pending + 1, dayCounts });
+  setState({ progress, intro, pending: s.pending + 1, dayCounts, doneToday });
   schedulePush();
 }
 

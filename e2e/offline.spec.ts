@@ -41,7 +41,7 @@ function mockServer(
               { tag: 'reizen', label_nl: 'reizen', label_fr: 'voyages' },
               { tag: 'emoji', label_nl: 'emoji', label_fr: 'emoji', subject_nl: 'Wat is dit?' }
             ],
-            compliments: ['Goed zo!'], curriculum: []
+            curriculum: []
           });
         }
         posts++;
@@ -65,6 +65,16 @@ function mockServer(
   };
 }
 
+/** Rates n cards 😎 Makkelijk (days away: each one leaves today's queue). */
+async function rateEasy(page: Page, n: number) {
+  for (let i = 0; i < n; i++) {
+    await page.getByRole('button', { name: 'Antwoord tonen' }).click();
+    const overlay = page.getByRole('dialog', { name: 'De vier knoppen' });
+    if (await overlay.isVisible()) await overlay.getByRole('button', { name: 'Klaar' }).click();
+    await page.getByRole('button', { name: /^Makkelijk, / }).click();
+  }
+}
+
 async function reviewCards(page: Page, n: number) {
   for (let i = 0; i < n; i++) {
     await page.getByRole('button', { name: 'Antwoord tonen' }).click();
@@ -81,7 +91,7 @@ test('offline: review without internet, reconnect, every review reaches the serv
   // 1. First launch online: cards are downloaded and the service worker caches the app.
   await page.goto('/fanki/dev/');
   await expect(page.getByText('Laatst gesynchroniseerd: zojuist')).toBeVisible({ timeout: 20_000 });
-  await expect(page.getByText('5 kaarten')).toBeVisible();
+  await expect(page.getByText('· 5 kaarten')).toBeVisible();
   await page.evaluate(() => navigator.serviceWorker.ready);
 
   // 2. No internet, and the app is reopened: it still loads, with the cards.
@@ -92,9 +102,7 @@ test('offline: review without internet, reconnect, every review reaches the serv
 
   // 3. Review 3 cards offline.
   await page.getByRole('button', { name: 'Starten' }).click();
-  await expect(page.getByText('0 van 15 kaarten')).toBeVisible();
   await reviewCards(page, 3);
-  await expect(page.getByText('3 van 15 kaarten')).toBeVisible();
   await page.getByRole('button', { name: /Terug/ }).click();
   await expect(page.getByText('3 antwoorden nog niet gesynchroniseerd')).toBeVisible();
   expect(server.log.size).toBe(0);
@@ -132,8 +140,9 @@ test('offline: review without internet, reconnect, every review reaches the serv
   expect(stored).toEqual({ progress: 3, queue: 0 });
 });
 
-test('topics, pause/Doorgaan, and no cooldown after Stoppen', async ({ page }) => {
-  const server = mockServer({ new_per_day: 5, min_reviews_to_count: 2, session_max_cards: 3, show_french_help: true });
+test("topics, the Vandaag bar, stop and resume, and Klaar voor nu (no sessions, no timers)", async ({ page }) => {
+  // unlock_prod_stability_days high: a Makkelijk word does not open its FR→NL side today (keeps the numbers simple).
+  const server = mockServer({ new_per_day: 5, unlock_prod_stability_days: 365, show_french_help: true });
   await server.install(page);
   await page.goto('/fanki/dev/');
   await expect(page.getByText('Laatst gesynchroniseerd: zojuist')).toBeVisible({ timeout: 20_000 });
@@ -144,38 +153,33 @@ test('topics, pause/Doorgaan, and no cooldown after Stoppen', async ({ page }) =
   await page.getByRole('button', { name: 'Klaar' }).click();
   await expect(page.getByRole('button', { name: 'Onderwerp: huishouden' })).toBeVisible();
   await expect(page.locator('.stat').nth(1)).toContainText('2');
-
-  // Back to all topics, do 3 cards, stop → straight back home, Starten works again.
   await page.getByRole('button', { name: 'Onderwerp: huishouden' }).click();
   await page.getByRole('button', { name: 'Alle onderwerpen' }).click();
   await page.getByRole('button', { name: 'Klaar' }).click();
-  // "Terug" after 2 cards only pauses: no countdown, "Doorgaan" continues the same session.
+
+  // Home: "Vandaag" bar with what is left today (5 new cards).
+  await expect(page.getByText('Vandaag', { exact: true })).toBeVisible();
+  await expect(page.getByText('Nog 5 kaarten')).toBeVisible();
+
+  // The review screen shows only the card: no progress bar, no "X van Y", no timer, no Stoppen.
   await page.getByRole('button', { name: 'Starten' }).click();
-  await reviewCards(page, 2);
+  await expect(page.getByRole('progressbar')).toHaveCount(0);
+  await expect(page.getByText(/ van \d+ kaarten|minuut|minuten|Stoppen/)).toHaveCount(0);
+  await rateEasy(page, 2);
   await page.getByRole('button', { name: /Terug/ }).click();
-  await expect(page.getByRole('button', { name: 'Doorgaan (2 van 3 kaarten)' })).toBeEnabled();
-  await expect(page.getByText(/Volgende sessie/)).toBeHidden();
-  await page.reload(); // also after closing the app
-  await page.getByRole('button', { name: 'Doorgaan (2 van 3 kaarten)' }).click();
-  await expect(page.getByText('2 van 3 kaarten')).toBeVisible();
+  await expect(page.getByText('Nog 3 kaarten')).toBeVisible();
+  await expect(page.getByRole('progressbar')).toHaveAttribute('aria-valuenow', '40');
 
-  // From here rate 😎 Makkelijk until the offer. The 10-minute repeats of the cards rated ✅ Goed before the
-  // pause are shown first and never count: the label never goes past "3 van 3 kaarten".
-  const offer = page.getByText('Sessie voltooid! Wil je doorgaan?');
-  for (let i = 0; i < 10; i++) {
-    await expect(page.getByRole('button', { name: 'Antwoord tonen' }).or(offer)).toBeVisible();
-    if (await offer.isVisible()) break;
-    await page.getByRole('button', { name: 'Antwoord tonen' }).click();
-    await page.getByRole('button', { name: /^Makkelijk, / }).click();
-    await expect(page.getByText(/^[0-3] van 3 kaarten$/)).toBeVisible();
-  }
-  await expect(page.getByText('3 van 3 kaarten')).toBeVisible();
-  await expect(page.getByText('Sessie voltooid! Wil je doorgaan?')).toBeVisible();
-  await page.getByRole('button', { name: 'Stoppen' }).click();
+  // Closing and reopening the app the same day resumes the same bar.
+  await page.reload();
+  await expect(page.getByText('Nog 3 kaarten')).toBeVisible();
 
-  // Home right away: no countdown, Starten is available.
-  await expect(page.getByRole('button', { name: 'Starten' })).toBeEnabled();
-  await expect(page.getByText(/Volgende sessie/)).toBeHidden();
+  // Finish the rest: back home on its own, "Klaar voor nu!" instead of Starten.
+  await page.getByRole('button', { name: 'Starten' }).click();
+  await rateEasy(page, 3);
+  await expect(page.getByText('Klaar voor nu!')).toBeVisible();
+  await expect(page.getByRole('button', { name: 'Starten' })).toHaveCount(0);
+  await expect(page.getByRole('progressbar')).toHaveAttribute('aria-valuenow', '100');
 });
 
 test('enkel/emoji card, 🔊 without a Dutch voice, and 🚩 flags (flag, note, list, copy, resolve)', async ({ page, context }) => {
@@ -240,3 +244,4 @@ test('enkel/emoji card, 🔊 without a Dutch voice, and 🚩 flags (flag, note, 
   await page.getByRole('button', { name: 'Menu openen' }).click();
   await expect(page.getByRole('menuitem', { name: /Gemarkeerd/ })).toHaveText(/^🚩 Gemarkeerd$/);
 });
+

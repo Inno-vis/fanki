@@ -39,7 +39,7 @@ r="$(get "action=cards&token=$LT")"
 n="$(q "$r" 'j.ok ? j.cards.length : -1')"
 gate="$(q "$r" 'j.ok && j.settings.require_approval === true')"
 min=1; [[ "$E" == "PROD" || "$gate" == "true" ]] && min=0   # PROD starts empty; with require_approval only approved cards
-[[ "$n" -ge "$min" ]] && ok "cards → $n active cards, $(q "$r" 'j.tags.length') tags, $(q "$r" 'j.compliments.length') compliments" || bad "cards: $(q "$r" 'j.error')"
+[[ "$n" -ge "$min" ]] && ok "cards → $n active cards, $(q "$r" 'j.tags.length') tags" || bad "cards: $(q "$r" 'j.error')"
 if [[ "$E" == "DEV" && "$gate" != "true" ]]; then
   [[ "$(q "$r" '["huis","opstaan","Ik {woon} in een klein huis.","Hoe heet je?"].every(x=>j.cards.some(c=>c.nl===x))')" == "true" ]] && ok "seed cards present (word, separable, cloze, question)" || bad "seed cards missing"
 fi

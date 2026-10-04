@@ -2,7 +2,7 @@ import { useEffect, useState } from 'preact/hooks';
 import { allCards, allProgress, getMeta, getSettings, pendingCount } from './db';
 import { DEFAULT_SETTINGS, type Card, type CurriculumRow, type Settings, type Tag } from './types';
 import type { Progress } from './scheduler';
-import type { SessionState } from './sessionRules';
+import { todaysDone, type DoneToday } from './today';
 import { todaysIntro, type Intro } from './session';
 
 // App-wide state loaded from IndexedDB. Components subscribe with useStore().
@@ -13,7 +13,6 @@ export type State = {
   cards: Card[];
   settings: Settings;
   tags: Tag[];
-  compliments: string[];
   lastSync: string | null;
   sync: SyncStatus;
   progress: Map<string, Progress>;
@@ -21,7 +20,7 @@ export type State = {
   pending: number; // reviews not yet sent
   curriculum: CurriculumRow[];
   studyTags: string[];
-  openSession: SessionState | null;
+  doneToday: DoneToday; // items finished today ("Vandaag" bar)
   dayCounts: Record<string, number>; // reviews per local day (Voortgang)
   flagsOpen: number; // cards with an open 🚩 (a card marked 3× counts once)
   flagsTotal: number; // cards ever marked
@@ -33,7 +32,6 @@ let state: State = {
   cards: [],
   settings: DEFAULT_SETTINGS,
   tags: [],
-  compliments: [],
   lastSync: null,
   sync: 'idle',
   progress: new Map(),
@@ -41,7 +39,7 @@ let state: State = {
   pending: 0,
   curriculum: [],
   studyTags: [],
-  openSession: null,
+  doneToday: todaysDone(undefined),
   dayCounts: {},
   flagsOpen: 0,
   flagsTotal: 0,
@@ -74,18 +72,17 @@ export function byAdded(a: Card & { order?: number }, b: Card & { order?: number
 }
 
 export async function loadFromDb(): Promise<void> {
-  const [cards, settings, tags, compliments, lastSync, progress, intro, pending, curriculum, studyTags, openSession, dayCounts] = await Promise.all([
+  const [cards, settings, tags, lastSync, progress, intro, pending, curriculum, studyTags, doneToday, dayCounts] = await Promise.all([
     allCards(),
     getSettings(),
     getMeta('tags'),
-    getMeta('compliments'),
     getMeta('lastSync'),
     allProgress(),
     getMeta('intro'),
     pendingCount(),
     getMeta('curriculum'),
     getMeta('studyTags'),
-    getMeta('openSession'),
+    getMeta('doneToday'),
     getMeta('dayCounts')
   ]);
   setState({
@@ -93,14 +90,13 @@ export async function loadFromDb(): Promise<void> {
     cards: cards.sort(byAdded),
     settings,
     tags: tags ?? [],
-    compliments: compliments ?? [],
     lastSync: lastSync ?? null,
     progress,
     intro: todaysIntro(intro),
     pending,
     curriculum: curriculum ?? [],
     studyTags: studyTags ?? [],
-    openSession: openSession ?? null,
+    doneToday: todaysDone(doneToday),
     dayCounts: dayCounts ?? {}
   });
   await refreshFlagCount();

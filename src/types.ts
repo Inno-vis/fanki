@@ -22,18 +22,14 @@ export type Card = {
 export type Tag = { tag: string; label_nl: string; label_fr: string; subject_nl?: string };
 
 export type Settings = {
-  new_per_day: number;
+  new_per_day: number; // read only through getNewPerDay() (src/today.ts)
   desired_retention: number;
-  compliments_enabled: boolean;
   unlock_prod_stability_days: number;
   mature_stability_days: number;
   show_french_help: boolean;
-  session_max_cards: number;
-  session_max_minutes: number;
-  session_extra_cards: number;
-  min_reviews_to_count: number;
   max_learning_backlog: number;
-  session_resume_minutes: number;
+  due_window_minutes: number; // cards due within this many minutes count as due now
+  max_reviews_per_day: number; // silent cap on the due part of today's work; overflow rolls to tomorrow
   curriculum_only: boolean;
   listen_share: number; // share of word-recognition reviews done as listening cards (0 = off)
 };
@@ -50,18 +46,14 @@ export type CurriculumRow = {
 };
 
 export const DEFAULT_SETTINGS: Settings = {
-  new_per_day: 8,
+  new_per_day: 10,
   desired_retention: 0.9,
-  compliments_enabled: true,
   unlock_prod_stability_days: 3,
   mature_stability_days: 21,
   show_french_help: true,
-  session_max_cards: 15,
-  session_max_minutes: 8,
-  session_extra_cards: 10,
-  min_reviews_to_count: 3,
   max_learning_backlog: 3,
-  session_resume_minutes: 30,
+  due_window_minutes: 10,
+  max_reviews_per_day: 100,
   curriculum_only: true,
   listen_share: 0.3
 };
@@ -72,6 +64,5 @@ export type CardsResponse = {
   cards: Card[];
   settings: Partial<Settings>;
   tags: Tag[];
-  compliments: string[];
   curriculum?: CurriculumRow[];
 };

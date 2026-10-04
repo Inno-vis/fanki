@@ -335,11 +335,6 @@ body {
   margin: auto 0;
 }
 
-.done-line {
-  font-size: 18px;
-  font-weight: 600;
-}
-
 .sync-box {
   display: flex;
   flex-direction: column;
@@ -356,23 +351,12 @@ body {
   padding-bottom: 8px;
 }
 
-.review-progress {
-  text-align: center;
-  margin: 0;
-  font-size: 15px;
-}
-
 .review-actions {
   margin-top: auto;
 }
 
-.review-actions .btn,
-.review-done .btn {
+.review-actions .btn {
   width: 100%;
-}
-
-.review-done {
-  justify-content: flex-end;
 }
 
 .done-big {
@@ -464,37 +448,45 @@ body {
   color: var(--primary-text);
 }
 
-.btn-stop {
-  appearance: none;
-  border: 0;
-  border-radius: 999px;
-  background: var(--again);
-  color: #fff;
-  font: inherit;
-  font-weight: 700;
-  min-height: 44px;
-  padding: 0 18px;
-}
-
-.session-progress {
+/* "Vandaag" bar on home: calm, never red, no timer */
+.today {
   display: flex;
   flex-direction: column;
-  gap: 4px;
-  margin-bottom: 8px;
+  gap: 6px;
 }
 
-.session-bar {
-  height: 6px;
-  border-radius: 3px;
+.today-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  font-size: 16px;
+}
+
+.today-label {
+  font-weight: 700;
+}
+
+.today-left {
+  color: var(--muted);
+}
+
+.today-bar {
+  height: 10px;
+  border-radius: 5px;
   background: var(--surface-2);
   overflow: hidden;
 }
 
-.session-fill {
+.today-fill {
   height: 100%;
   background: var(--good);
-  border-radius: 3px;
-  transition: width 0.25s ease;
+  border-radius: 5px;
+}
+
+.all-done {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
 }
 
 .topics {
@@ -562,16 +554,6 @@ body {
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
-}
-
-.offer-actions {
-  display: flex;
-  flex-direction: column;
-  gap: 12px;
-}
-
-.offer-actions .btn {
-  width: 100%;
 }
 
 /* Rating buttons: 4 equal columns, fit an iPhone SE (320 px) */

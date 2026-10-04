@@ -14,7 +14,11 @@ export const UI = {
   'home.cards': { nl: '{n} kaarten', fr: '{n} cartes en tout' },
   'home.empty': { nl: 'Nog geen kaarten. Tik op Synchroniseren.', fr: 'Pas encore de cartes. Touche « Synchroniseren ».' },
   'home.emptyOffline': { nl: 'Nog geen kaarten. Zet het internet aan.', fr: 'Pas encore de cartes. Connecte-toi à internet.' },
-  'home.allDone': { nl: 'Klaar voor vandaag!', fr: 'Fini pour aujourd’hui !' },
+  'home.allDone': { nl: 'Klaar voor nu!', fr: 'Fini pour le moment !' },
+  'home.nextCard': { nl: 'Volgende kaart over ± {n} min', fr: 'Prochaine carte dans environ {n} minutes' },
+  'today.label': { nl: 'Vandaag', fr: 'Aujourd’hui' },
+  'today.left': { nl: 'Nog {n} kaarten', fr: 'Encore {n} cartes aujourd’hui' },
+  'today.left1': { nl: 'Nog 1 kaart', fr: 'Encore 1 carte aujourd’hui' },
 
   'db.blocked': {
     nl: 'Fanki is nog open in een ander venster. Sluit het en open de app opnieuw.',
@@ -32,16 +36,7 @@ export const UI = {
 
   // Review
   'review.back': { nl: 'Terug', fr: 'Retour' },
-  'review.progress': { nl: '{done} van {target} kaarten', fr: '{done} cartes sur {target} dans cette séance' },
   'review.show': { nl: 'Antwoord tonen', fr: 'Montrer la réponse' },
-  'review.done': { nl: 'Klaar voor vandaag!', fr: 'Fini pour aujourd’hui !' },
-  'review.count': { nl: '{n} kaarten herhaald', fr: '{n} cartes révisées' },
-
-  // Sessions
-  'session.offer': { nl: 'Sessie voltooid! Wil je doorgaan?', fr: 'Séance terminée ! Tu veux continuer ?' },
-  'session.more': { nl: 'Nog {n} kaarten, graag!', fr: 'Encore {n} cartes, s’il te plaît !' },
-  'session.stop': { nl: 'Stoppen', fr: 'Arrêter' },
-  'home.resume': { nl: 'Doorgaan ({done} van {target} kaarten)', fr: 'Continuer ta séance ({done} cartes sur {target})' },
 
   // Topics (tag filter)
   'tags.title': { nl: 'Kies een onderwerp', fr: 'Choisis un ou plusieurs thèmes' },
@@ -141,10 +136,11 @@ export const HELP = {
     fr:
       'Touche « Fanki » en haut pour le menu : « Voortgang » (ta progression) et « Gemarkeerd » (cartes marquées 🚩). ' +
       'Cet écran montre combien de cartes tu dois revoir aujourd’hui (« te herhalen ») et combien de nouvelles ' +
-      'cartes t’attendent (« nieuw vandaag »). Touche « Starten » pour commencer. L’appli fonctionne aussi sans ' +
-      'internet : tes réponses sont gardées sur le téléphone et envoyées à la prochaine connexion. ' +
-      '« Synchroniseren » télécharge les nouvelles cartes quand tu as internet. Si tu reviens en ' +
-      'arrière pendant une séance, « Doorgaan » te permet de la continuer.'
+      'cartes t’attendent (« nieuw vandaag »). La barre « Vandaag » montre ton travail du jour ; « Nog 5 kaarten » = ' +
+      'encore 5 cartes. Touche « Starten » pour commencer ; tu peux t’arrêter quand tu veux (« Terug »), tout est ' +
+      'gardé. « Klaar voor nu! » = fini pour le moment ; « Volgende kaart over ± 7 min » = une carte revient ' +
+      'dans environ 7 minutes. L’appli fonctionne aussi sans internet : tes réponses sont gardées sur le téléphone ' +
+      'et envoyées à la prochaine connexion. « Synchroniseren » télécharge les nouvelles cartes quand tu as internet.'
   },
   progress: {
     nl: 'Hier zie je je voortgang.',
@@ -165,7 +161,7 @@ export const HELP = {
   topics: {
     nl: 'Kies een of meer onderwerpen. Tik dan op Klaar.',
     fr:
-      'Choisis un ou plusieurs thèmes : les prochaines séances ne montrent que les cartes de ces thèmes ' +
+      'Choisis un ou plusieurs thèmes : « Starten » ne montre plus que les cartes de ces thèmes ' +
       '(révisions et nouvelles cartes). « Alle onderwerpen » = tous les thèmes. 🔒 « nog dicht » = pas encore ' +
       'ouvert : ce thème s’ouvrira quand le précédent sera bien su. Touche « Klaar » pour revenir.'
   },
@@ -177,8 +173,7 @@ export const HELP = {
       '✅ Goed = bien, 😎 Makkelijk = très facile. Sous chaque bouton : quand la carte reviendra ' +
       '(min = minutes, u = heures, d = jours, wk = semaines, mnd = mois, jr = ans). Les noms montrent toujours ' +
       '« de » ou « het ». Badges : « valse vriend » = faux ami, « afkorting » = abréviation. ' +
-      'La barre en haut montre ta séance (« 9 van 15 kaarten » = 9 cartes sur 15). À la fin, ' +
-      '« Nog 10 kaarten, graag! » = encore 10 cartes, « Stoppen » = arrêter. « Terug » = retour. ' +
+      '« Terug » = retour à l’accueil : tu peux t’arrêter quand tu veux, tout est gardé. ' +
       '🔊 = écouter le mot en néerlandais. Parfois la carte commence seulement par le son (« Wat hoor je? ») : ' +
       'écoute, devine, puis « Antwoord tonen ». S’il n’y a pas de voix néerlandaise sur ton téléphone : ' +
       'iPhone : Réglages › Accessibilité › Contenu énoncé › Voix › Néerlandais ; Android : Paramètres › ' +

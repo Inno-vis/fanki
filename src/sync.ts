@@ -37,18 +37,14 @@ export function cleanSettings(raw: Partial<Settings> | undefined): Settings {
     return Number.isFinite(n) ? Math.min(hi, Math.max(lo, n)) : d;
   };
   return {
-    new_per_day: Math.round(num(s.new_per_day, 8, 0, 100)),
+    new_per_day: Math.round(num(s.new_per_day, 10, 0, 100)),
     desired_retention: num(s.desired_retention, 0.9, 0.7, 0.97),
-    compliments_enabled: s.compliments_enabled !== false,
     unlock_prod_stability_days: num(s.unlock_prod_stability_days, 3, 0, 365),
     mature_stability_days: num(s.mature_stability_days, 21, 1, 3650),
     show_french_help: s.show_french_help !== false,
-    session_max_cards: Math.round(num(s.session_max_cards, 15, 1, 500)),
-    session_max_minutes: num(s.session_max_minutes, 8, 1, 240),
-    session_extra_cards: Math.round(num(s.session_extra_cards, 10, 1, 100)),
-    min_reviews_to_count: Math.round(num(s.min_reviews_to_count, 3, 0, 100)),
     max_learning_backlog: Math.round(num(s.max_learning_backlog, 3, 1, 100)),
-    session_resume_minutes: num(s.session_resume_minutes, 30, 1, 24 * 60),
+    due_window_minutes: num(s.due_window_minutes, 10, 0, 24 * 60),
+    max_reviews_per_day: Math.round(num(s.max_reviews_per_day, 100, 1, 10_000)),
     curriculum_only: s.curriculum_only !== false,
     listen_share: num(s.listen_share, 0.3, 0, 1)
   };
@@ -137,13 +133,12 @@ export function syncNow(): Promise<boolean> {
       await saveSnapshot(cards, {
         settings,
         tags: (res.tags ?? []).filter((t) => t && t.tag),
-        compliments: (res.compliments ?? []).filter(Boolean),
         curriculum: cleanCurriculum(res.curriculum)
       });
       await mergeServerProgress(state.progress.map(cleanProgress).filter((p): p is Progress => !!p));
       await pushQueue(); // anything reviewed while we were pulling
       await setMeta('lastSync', new Date().toISOString());
-      setUiSettings({ show_french_help: settings.show_french_help, compliments_enabled: settings.compliments_enabled });
+      setUiSettings({ show_french_help: settings.show_french_help });
       await loadFromDb();
       setState({ sync: 'ok' });
       return true;

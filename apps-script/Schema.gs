@@ -13,7 +13,6 @@ var SCHEMA = {
   Tags: ['tag', 'label_nl', 'label_fr', 'description', 'subject_nl'],
   Inbox: CARD_COLS.concat(['status']),
   Settings: ['key', 'value', 'description'],
-  Compliments: ['text'],
   Curriculum: ['order', 'tag', 'unlock_threshold', 'min_reviews', 'max_wait_days', 'active', 'open'],
   Dashboard: ['metric', 'value']
 };
@@ -26,24 +25,21 @@ var TRACKS = ['recog', 'prod'];
 var MODES = ['nl_fr', 'fr_nl', 'cloze', 'question', 'listen'];
 
 // Settings rows that setup removes from the sheet (features that no longer exist).
-var OBSOLETE_SETTINGS = ['cooldown_minutes'];
+var OBSOLETE_SETTINGS = ['cooldown_minutes', 'session_max_cards', 'session_max_minutes', 'session_extra_cards',
+  'session_resume_minutes', 'min_reviews_to_count', 'new_per_session', 'max_cards_per_round', 'compliments_enabled'];
 
 var SETTINGS_DEFAULTS = [
-  ['new_per_day', 8, 'Nieuwe kaarten per dag'],
+  ['new_per_day', 10, 'Nieuwe kaarten per dag (per kalenderdag)'],
   ['desired_retention', 0.9, 'Gewenste kans om het te onthouden (FSRS, 0.7–0.97)'],
-  ['compliments_enabled', true, 'Complimenten tonen'],
   ['unlock_prod_stability_days', 3, 'Stabiliteit (dagen) van herkennen voordat de richting FR → NL start'],
   ['mature_stability_days', 21, 'Een kaart is "bekend" vanaf deze stabiliteit in dagen (curriculum)'],
   ['show_french_help', true, 'Knop "Hulp" en Franse uitleg tonen (uitvinken als ze klaar is)'],
-  ['session_max_cards', 15, 'Kaarten per sessie voordat de app vraagt om door te gaan'],
-  ['session_max_minutes', 8, 'Minuten per sessie voordat de app vraagt om door te gaan'],
-  ['session_extra_cards', 10, 'Extra kaarten na "Nog 10 kaarten, graag!"'],
-  ['min_reviews_to_count', 3, 'Een sessie telt vanaf dit aantal herhalingen (daarna kan de Android-installatieknop verschijnen)'],
   ['max_learning_backlog', 3, 'Een nieuwe kaart komt pas als minder dan dit aantal kaarten nog in de korte stappen zit'],
   ['require_approval', false, 'Alleen kaarten met controle = goedgekeurd gaan naar de app (aan = de leerling ziet geen ongecontroleerde kaarten)'],
   ['curriculum_only', true, 'Nieuwe kaarten alleen uit open onderwerpen van het tabblad Curriculum; andere onderwerpen en kaarten zonder tag blijven dicht'],
   ['listen_share', 0.3, 'Deel van de herkenningskaarten als luisterkaart (0 = uit; alleen met een Nederlandse stem op de telefoon)'],
-  ['session_resume_minutes', 30, 'Na "Terug" kan ze de sessie zo lang (minuten) voortzetten; daarna vervalt ze']
+  ['due_window_minutes', 10, 'Kaarten die binnen zoveel minuten terugkomen, tellen al mee als te herhalen'],
+  ['max_reviews_per_day', 100, 'Maximaal aantal herhalingen per dag (stil; de rest schuift door naar morgen)']
 ];
 
 // tag | label_nl (shown to the learner) | label_fr (teacher) | description | subject_nl (label above the card)
@@ -72,27 +68,6 @@ var CURRICULUM_SEED = [
   [4, 'klok-3', 0.8, 2, 21, true, 'automatisch']
 ];
 var OPEN_NL = { auto: 'automatisch', always: 'altijd open', closed: 'dicht' };
-
-var COMPLIMENTS_SEED = [
-  'Goed zo!',
-  'Prima!',
-  'Top!',
-  'Heel goed!',
-  'Mooi gedaan!',
-  'Je wordt steeds beter!',
-  'Uitstekend!',
-  'Fantastisch!',
-  'Ga zo door!',
-  'Geweldig!',
-  'Ik ben trots op je!',
-  'Perfect!',
-  'Sterk!'
-];
-
-// The first (French) compliments seed: setup() replaces it with the Dutch one if untouched.
-var OLD_COMPLIMENTS_FR = ['Bravo !', 'Super, continue comme ça !', 'Excellent travail !', 'Tu progresses vraiment bien.',
-  'Parfait !', 'Très bien, tu t\'améliores !', 'Impressionnant !', 'Ça se voit que tu as révisé.', 'Génial !',
-  'Trots op jou ! (Fier de toi !)', 'Goed gedaan ! (Bien joué !)', 'Prima ! (Parfait !)'];
 
 // type|nl|article|pos|fr|example_nl|example_fr|tags|tags_source|flags
 // (brief format, English codes; converted to Dutch sheet values by toSheetRow_ in Setup.gs)

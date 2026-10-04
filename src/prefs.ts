@@ -5,8 +5,8 @@ import { NS } from './config';
 // the source with synced Settings). Cached in localStorage so it works offline.
 const KEY = `${NS}:settings`;
 
-export type UiSettings = { show_french_help: boolean; compliments_enabled: boolean };
-const DEFAULTS: UiSettings = { show_french_help: true, compliments_enabled: true };
+export type UiSettings = { show_french_help: boolean };
+const DEFAULTS: UiSettings = { show_french_help: true };
 
 function load(): UiSettings {
   try {

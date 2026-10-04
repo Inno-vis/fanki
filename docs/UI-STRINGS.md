@@ -14,7 +14,11 @@ She sees **nl**. **fr** is hidden help: shown only in the "Hulp" panel and the o
 | `home.cards` | {n} kaarten | {n} cartes en tout |
 | `home.empty` | Nog geen kaarten. Tik op Synchroniseren. | Pas encore de cartes. Touche « Synchroniseren ». |
 | `home.emptyOffline` | Nog geen kaarten. Zet het internet aan. | Pas encore de cartes. Connecte-toi à internet. |
-| `home.allDone` | Klaar voor vandaag! | Fini pour aujourd’hui ! |
+| `home.allDone` | Klaar voor nu! | Fini pour le moment ! |
+| `home.nextCard` | Volgende kaart over ± {n} min | Prochaine carte dans environ {n} minutes |
+| `today.label` | Vandaag | Aujourd’hui |
+| `today.left` | Nog {n} kaarten | Encore {n} cartes aujourd’hui |
+| `today.left1` | Nog 1 kaart | Encore 1 carte aujourd’hui |
 | `db.blocked` | Fanki is nog open in een ander venster. Sluit het en open de app opnieuw. | Une autre fenêtre de Fanki (ancienne version) est encore ouverte : ferme-la, puis rouvre l’appli. |
 | `status.offline` | Geen internet | Pas d’internet |
 | `sync.button` | Synchroniseren | Synchroniser (télécharger les cartes et envoyer tes réponses) |
@@ -24,14 +28,7 @@ She sees **nl**. **fr** is hidden help: shown only in the "Hulp" panel and the o
 | `sync.never` | Nog niet gesynchroniseerd | Pas encore synchronisé |
 | `sync.pending` | {n} antwoorden nog niet gesynchroniseerd | {n} réponses pas encore envoyées (elles partiront à la prochaine connexion) |
 | `review.back` | Terug | Retour |
-| `review.progress` | {done} van {target} kaarten | {done} cartes sur {target} dans cette séance |
 | `review.show` | Antwoord tonen | Montrer la réponse |
-| `review.done` | Klaar voor vandaag! | Fini pour aujourd’hui ! |
-| `review.count` | {n} kaarten herhaald | {n} cartes révisées |
-| `session.offer` | Sessie voltooid! Wil je doorgaan? | Séance terminée ! Tu veux continuer ? |
-| `session.more` | Nog {n} kaarten, graag! | Encore {n} cartes, s’il te plaît ! |
-| `session.stop` | Stoppen | Arrêter |
-| `home.resume` | Doorgaan ({done} van {target} kaarten) | Continuer ta séance ({done} cartes sur {target}) |
 | `tags.title` | Kies een onderwerp | Choisis un ou plusieurs thèmes |
 | `tags.all` | Alle onderwerpen | Tous les thèmes |
 | `tags.done` | Klaar | Terminé |
@@ -115,8 +112,8 @@ She sees **nl**. **fr** is hidden help: shown only in the "Hulp" panel and the o
 
 | screen | fr (shown in the panel) |
 |---|---|
-| home | Touche « Fanki » en haut pour le menu : « Voortgang » (ta progression) et « Gemarkeerd » (cartes marquées 🚩). Cet écran montre combien de cartes tu dois revoir aujourd’hui (« te herhalen ») et combien de nouvelles cartes t’attendent (« nieuw vandaag »). Touche « Starten » pour commencer. L’appli fonctionne aussi sans internet : tes réponses sont gardées sur le téléphone et envoyées à la prochaine connexion. « Synchroniseren » télécharge les nouvelles cartes quand tu as internet. Si tu reviens en arrière pendant une séance, « Doorgaan » te permet de la continuer. |
+| home | Touche « Fanki » en haut pour le menu : « Voortgang » (ta progression) et « Gemarkeerd » (cartes marquées 🚩). Cet écran montre combien de cartes tu dois revoir aujourd’hui (« te herhalen ») et combien de nouvelles cartes t’attendent (« nieuw vandaag »). La barre « Vandaag » montre ton travail du jour ; « Nog 5 kaarten » = encore 5 cartes. Touche « Starten » pour commencer ; tu peux t’arrêter quand tu veux (« Terug »), tout est gardé. « Klaar voor nu! » = fini pour le moment ; « Volgende kaart over ± 7 min » = une carte revient dans environ 7 minutes. L’appli fonctionne aussi sans internet : tes réponses sont gardées sur le téléphone et envoyées à la prochaine connexion. « Synchroniseren » télécharge les nouvelles cartes quand tu as internet. |
 | progress | Ta progression : « kaarten geoefend » = cartes déjà travaillées, « kaarten bekend » = cartes bien sues, « herhalingen deze week » = révisions des 7 derniers jours, « dagen op rij » = jours de suite. En bas : combien de cartes reviennent aujourd’hui (vandaag), demain (morgen) et cette semaine (deze week). |
 | marked | Ici, les cartes que tu as marquées avec 🚩 pendant les révisions, les plus récentes en haut. « Opgelost » = résolu : la carte passe dans la liste « Opgelost » (rien n’est effacé). « Delen » = partager la liste (Messages, e-mail…) avec ton prof ou quelqu’un d’autre : c’est toi qui l’envoies, rien ne part tout seul. |
-| topics | Choisis un ou plusieurs thèmes : les prochaines séances ne montrent que les cartes de ces thèmes (révisions et nouvelles cartes). « Alle onderwerpen » = tous les thèmes. 🔒 « nog dicht » = pas encore ouvert : ce thème s’ouvrira quand le précédent sera bien su. Touche « Klaar » pour revenir. |
-| review | Lis la carte et essaie de te souvenir de la réponse. Touche « Antwoord tonen » pour la voir, puis dis honnêtement comment ça s’est passé : ❌ Opnieuw = je ne savais pas, 😅 Moeilijk = j’ai hésité, ✅ Goed = bien, 😎 Makkelijk = très facile. Sous chaque bouton : quand la carte reviendra (min = minutes, u = heures, d = jours, wk = semaines, mnd = mois, jr = ans). Les noms montrent toujours « de » ou « het ». Badges : « valse vriend » = faux ami, « afkorting » = abréviation. La barre en haut montre ta séance (« 9 van 15 kaarten » = 9 cartes sur 15). À la fin, « Nog 10 kaarten, graag! » = encore 10 cartes, « Stoppen » = arrêter. « Terug » = retour. 🔊 = écouter le mot en néerlandais. Parfois la carte commence seulement par le son (« Wat hoor je? ») : écoute, devine, puis « Antwoord tonen ». S’il n’y a pas de voix néerlandaise sur ton téléphone : iPhone : Réglages › Accessibilité › Contenu énoncé › Voix › Néerlandais ; Android : Paramètres › Synthèse vocale › Installer les données vocales › Néerlandais. 🚩 en haut de la carte = marquer une carte qui te pose question (appui long ou « + notitie » pour ajouter une note). |
+| topics | Choisis un ou plusieurs thèmes : « Starten » ne montre plus que les cartes de ces thèmes (révisions et nouvelles cartes). « Alle onderwerpen » = tous les thèmes. 🔒 « nog dicht » = pas encore ouvert : ce thème s’ouvrira quand le précédent sera bien su. Touche « Klaar » pour revenir. |
+| review | Lis la carte et essaie de te souvenir de la réponse. Touche « Antwoord tonen » pour la voir, puis dis honnêtement comment ça s’est passé : ❌ Opnieuw = je ne savais pas, 😅 Moeilijk = j’ai hésité, ✅ Goed = bien, 😎 Makkelijk = très facile. Sous chaque bouton : quand la carte reviendra (min = minutes, u = heures, d = jours, wk = semaines, mnd = mois, jr = ans). Les noms montrent toujours « de » ou « het ». Badges : « valse vriend » = faux ami, « afkorting » = abréviation. « Terug » = retour à l’accueil : tu peux t’arrêter quand tu veux, tout est gardé. 🔊 = écouter le mot en néerlandais. Parfois la carte commence seulement par le son (« Wat hoor je? ») : écoute, devine, puis « Antwoord tonen ». S’il n’y a pas de voix néerlandaise sur ton téléphone : iPhone : Réglages › Accessibilité › Contenu énoncé › Voix › Néerlandais ; Android : Paramètres › Synthèse vocale › Installer les données vocales › Néerlandais. 🚩 en haut de la carte = marquer une carte qui te pose question (appui long ou « + notitie » pour ajouter une note). |

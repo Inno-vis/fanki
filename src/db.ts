@@ -4,7 +4,7 @@ import { cardLabel } from './display';
 import { DEFAULT_SETTINGS, type Card, type CurriculumRow, type Settings, type Tag } from './types';
 import type { Progress, Snapshot, Track } from './scheduler';
 import type { Intro, Mode } from './session';
-import type { SessionState } from './sessionRules';
+import type { DoneToday } from './today';
 
 /** One review, as stored in the outbox and sent to the API (Log row). */
 export type ReviewEvent = {
@@ -21,19 +21,18 @@ export type ReviewEvent = {
 // One IndexedDB per environment (DEV and PROD share the github.io origin).
 // Stores:
 //   cards    — every active card from the sheet (replaced on each pull)
-//   meta     — settings, tags, compliments, lastSync …
+//   meta     — settings, tags, lastSync, doneToday …
 //   progress — FSRS state per card+track (stage 3)
 //   queue    — review events waiting to be pushed (stage 3/4)
 
 export type Meta = {
   settings: Settings;
   tags: Tag[];
-  compliments: string[];
   lastSync: string; // ISO time of the last successful sync
   intro: Intro; // new cards introduced today
   curriculum: CurriculumRow[];
   studyTags: string[]; // tag filter ("Kies een onderwerp"); [] = everything
-  openSession: SessionState | null; // a paused session she can continue ("Doorgaan")
+  doneToday: DoneToday; // items finished today (the "Vandaag" bar); another date counts as empty
   dayCounts: Record<string, number>; // local date (yyyy-mm-dd) → reviews that day (Voortgang screen)
 };
 
@@ -150,10 +149,11 @@ export async function allProgress(): Promise<Map<string, Progress>> {
 }
 
 /**
- * Saves one review: new progress + outbox event + today's intro list, in ONE transaction.
- * Either all three are stored or none, so a crash can never lose a review or double-count it.
+ * Saves one review: new progress + outbox event + today's intro list (+ the item as done today when it left
+ * the due window), in ONE transaction. Either all are stored or none, so a crash can never lose a review or
+ * double-count it.
  */
-export async function recordReview(progress: Progress, event: ReviewEvent, intro: Intro): Promise<void> {
+export async function recordReview(progress: Progress, event: ReviewEvent, intro: Intro, doneToday?: DoneToday): Promise<void> {
   const d = await db();
   const tx = d.transaction(['progress', 'queue', 'meta'], 'readwrite');
   await tx.objectStore('progress').put(progress);
@@ -165,6 +165,7 @@ export async function recordReview(progress: Progress, event: ReviewEvent, intro
   const counts = { ...((row?.value as Record<string, number>) ?? {}) };
   counts[day] = (counts[day] ?? 0) + 1;
   await tx.objectStore('meta').put({ key: 'dayCounts', value: counts });
+  if (doneToday) await tx.objectStore('meta').put({ key: 'doneToday', value: doneToday });
   await tx.done;
 }
 

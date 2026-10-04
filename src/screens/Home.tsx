@@ -4,24 +4,24 @@ import { useStore } from '../store';
 import { syncNow } from '../sync';
 import { useOnline } from '../pwa';
 import { InstallHint } from '../components/Banners';
-import { useEffect, useState } from 'preact/hooks';
-import { progressLabel, resumable } from '../sessionRules';
 import { useInstallPrompt } from '../installPrompt';
 import { isStandalone } from '../pwa';
 
-export function Home({ due, newToday, onStart, onTopics }: { due: number; newToday: number; onStart: () => void; onTopics: () => void }) {
+type Props = {
+  due: number;
+  newToday: number;
+  bar: { done: number; remaining: number; fill: number }; // "Vandaag" (unique items)
+  nextMin: number | null; // a learning-step card due later today; static, recomputed when home opens / regains focus
+  onStart: () => void;
+  onTopics: () => void;
+};
+
+export function Home({ due, newToday, bar, nextMin, onStart, onTopics }: Props) {
   const s = useStore();
   const online = useOnline();
   const empty = s.loaded && s.cards.length === 0;
   const canStart = due + newToday > 0;
-  // Re-render every 15 s, so a paused session that expired no longer offers "Doorgaan".
-  const [now, setNow] = useState(Date.now());
-  useEffect(() => {
-    const id = setInterval(() => setNow(Date.now()), 15_000);
-    return () => clearInterval(id);
-  }, []);
   const install = useInstallPrompt(isStandalone());
-  const open = resumable(s.openSession, s.settings, now);
 
   return (
     <main class="home">
@@ -46,7 +46,17 @@ export function Home({ due, newToday, onStart, onTopics }: { due: number; newTod
               <span class="stat-label">{t('home.newToday')}</span>
             </div>
           </section>
-          {s.loaded && !canStart && <p class="center done-line">{t('home.allDone')}</p>}
+          {s.loaded && bar.done + bar.remaining > 0 && (
+            <section class="today" aria-label={t('today.label')}>
+              <div class="today-head">
+                <span class="today-label">{t('today.label')}</span>
+                {bar.remaining > 0 && <span class="today-left">{t(bar.remaining === 1 ? 'today.left1' : 'today.left', { n: bar.remaining })}</span>}
+              </div>
+              <div class="today-bar" role="progressbar" aria-valuemin={0} aria-valuemax={100} aria-valuenow={Math.round(bar.fill * 100)}>
+                <div class="today-fill" style={{ width: `${Math.round(bar.fill * 100)}%` }} />
+              </div>
+            </section>
+          )}
           <button class="btn btn-secondary topic-btn" onClick={onTopics}>
             {s.studyTags.length === 0
               ? t('home.topicAll')
@@ -54,9 +64,16 @@ export function Home({ due, newToday, onStart, onTopics }: { due: number; newTod
                   list: s.studyTags.map((tg) => s.tags.find((x) => x.tag === tg)?.label_nl || tg).join(', ')
                 })}
           </button>
-          <button class="btn btn-primary btn-huge" disabled={!canStart} onClick={onStart}>
-            {open && canStart ? t('home.resume', progressLabel(open, s.settings)) : t('home.start')}
-          </button>
+          {!s.loaded || canStart ? (
+            <button class="btn btn-primary btn-huge" disabled={!canStart} onClick={onStart}>
+              {t('home.start')}
+            </button>
+          ) : (
+            <div class="all-done">
+              <p class="done-big">{t('home.allDone')}</p>
+              {nextMin !== null && <p class="center muted">{t('home.nextCard', { n: nextMin })}</p>}
+            </div>
+          )}
         </>
       )}
 

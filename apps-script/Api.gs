@@ -57,6 +57,8 @@ function doPost(e) {
       case 'deleteRejected': return adminDeleteRejected_(body.dryRun !== false);
       case 'importCards': return adminImportCards_(body.rows, body.dryRun !== false);
       case 'cardsToInbox': return adminCardsToInbox_(body.ids, body.dryRun !== false);
+      case 'cleanSettings': return adminCleanSettings_(body.dryRun !== false);
+      case 'deleteTabs': return adminDeleteTabs_(body.tabs, body.dryRun !== false);
       case 'setCurriculum': return adminSetCurriculum_(body.tag, body.field, body.value);
       case 'promoteInbox': return adminPromoteInbox_();
       case 'rebuildProgress': return adminRebuildProgress_();
@@ -126,8 +128,6 @@ function getCards_() {
       return { tag: String(r.tag).trim().toLowerCase(), label_nl: String(r.label_nl || r.tag || ''), label_fr: String(r.label_fr || ''),
         subject_nl: String(r.subject_nl || '').trim() };
     }).filter(function (x) { return x.tag; }),
-    compliments: readTable_(sheet_('Compliments')).rows.map(function (r) { return String(r.text || '').trim(); })
-      .filter(function (s) { return s; }),
     curriculum: readCurriculum_()
   };
 }

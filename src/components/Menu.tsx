@@ -2,8 +2,9 @@ import { useState } from 'preact/hooks';
 import { APP_ENV, APP_NAME } from '../config';
 import { t } from '../i18n';
 import { useStore } from '../store';
+import { SyncBox } from './SyncBox';
 
-/** Tap the app name ("SpeesRep") → menu: Voortgang, Gemarkeerd, Instellingen, Over SpeesRep. A dot on the title when cards are marked. */
+/** Tap the app name ("SpeesRep") → menu: Voortgang, Gemarkeerd, Instellingen, Over SpeesRep, then the sync status. A dot on the title when cards are marked. */
 export function Menu({ go }: { go: (screen: 'progress' | 'marked' | 'settings' | 'about') => void }) {
   const s = useStore();
   const [open, setOpen] = useState(false);
@@ -38,6 +39,7 @@ export function Menu({ go }: { go: (screen: 'progress' | 'marked' | 'settings' |
             <button class="menu-item" role="menuitem" onClick={() => pick('about')}>
               <span aria-hidden="true">ℹ️</span> {t('about.title')}
             </button>
+            <SyncBox />
             <button class="btn btn-secondary btn-block" onClick={() => setOpen(false)}>
               {t('help.close')}
             </button>

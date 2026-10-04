@@ -49,7 +49,7 @@ export const UI = {
   'home.topic': { nl: 'Onderwerp: {list}', fr: 'Thème : {list}' },
 
   // Menu (tap "SpeesRep")
-  'menu.open': { nl: 'Menu openen', fr: 'Ouvrir le menu (progression, cartes marquées, réglages, à propos)' },
+  'menu.open': { nl: 'Menu openen', fr: 'Ouvrir le menu (progression, cartes marquées, réglages, à propos, synchronisation)' },
   'menu.title': { nl: 'Menu', fr: 'Menu' },
 
   // Voortgang (progress overview)
@@ -181,7 +181,8 @@ export const HELP = {
       'encore 5 cartes. Touche « Starten » pour commencer ; tu peux t’arrêter quand tu veux (« Terug »), tout est ' +
       'gardé. « Klaar voor nu! » = fini pour le moment ; « Volgende kaarten: 3 over ± 15 min » = 3 cartes ' +
       'reviennent dans environ 15 minutes ; elles arrivent alors dans « Vandaag » et « Starten » revient. L’appli fonctionne aussi sans internet : tes réponses sont gardées sur le téléphone ' +
-      'et envoyées à la prochaine connexion. « Synchroniseren » télécharge les nouvelles cartes quand tu as internet.'
+      'et envoyées à la prochaine connexion. Dans le menu (touche « SpeesRep » en haut) : « Synchroniseren » télécharge ' +
+      'les nouvelles cartes et envoie tes réponses quand tu as internet (ça se fait aussi tout seul).'
   },
   about: {
     nl: 'Hier lees je over SpeesRep.',

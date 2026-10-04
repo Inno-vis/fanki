@@ -188,6 +188,8 @@ keys, pos and descriptions. The API maps them to internal codes (`typeCode_`/`so
   shows ONE row per card (`groupFlags`: "3×", all notes; Opgelost resolves all its open flags); counts are cards.
 - Menu: tap "SpeesRep" (`components/Menu.tsx`) → 📈 Voortgang, 🚩 Gemarkeerd (count; red dot on the title),
   ⚙️ Instellingen, ℹ️ Over SpeesRep (`screens/AboutScreen.tsx`: about, privacy, OpenMoji CC BY-SA 4.0 credit).
+  Below them the sync status (`components/SyncBox.tsx`: last sync, cards, unsent answers, "Synchroniseren");
+  home no longer shows it. Syncing stays automatic.
 - A flag stores the card's name (`label`, at flag time and in `saveSnapshot` before cards are replaced), so
   "Gemarkeerd" still names a card that left the phone (e.g. not approved).
 - Strings use the `mark.*` i18n keys. Never mix up with `Card.flags` / `flag.*` (sheet content markers:
@@ -220,7 +222,7 @@ keys, pos and descriptions. The API maps them to internal codes (`typeCode_`/`so
   only when the server lists them as accepted or duplicate; the server de-duplicates on `event_id`.
 - Sync = push → pull cards/settings + Progress → merge (server wins only if newer AND no unsent local
   review) → push again. Runs at launch, when back online, when the app returns to the foreground (> 2 min
-  since the last sync) and on "Synchroniseren".
+  since the last sync) and on "Synchroniseren" (in the menu).
 - `useOnline()` is ONE shared flag (src/pwa.ts); don't add per-component online listeners.
 - IndexedDB upgrades (bump the version in `db()`, add stores in `upgrade(d, oldVersion)` only): an open copy of the
   app closes its connection and reloads when a newer version needs to upgrade (`blocking`); if an old copy still

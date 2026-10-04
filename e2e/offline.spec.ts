@@ -65,6 +65,15 @@ function mockServer(
   };
 }
 
+/** The sync status lives in the menu: open it, run the checks, close it. */
+async function inMenu(page: Page, check: () => Promise<void>) {
+  await page.getByRole('button', { name: 'Menu openen' }).click();
+  await check();
+  await page.getByRole('menu').getByRole('button', { name: 'Sluiten' }).click();
+}
+const waitSynced = (page: Page) =>
+  inMenu(page, () => expect(page.getByText('Laatst gesynchroniseerd: zojuist')).toBeVisible({ timeout: 20_000 }));
+
 /** Rates n cards 😎 Makkelijk (days away: each one leaves today's queue). */
 async function rateEasy(page: Page, n: number) {
   for (let i = 0; i < n; i++) {
@@ -90,8 +99,10 @@ test('offline: review without internet, reconnect, every review reaches the serv
 
   // 1. First launch online: cards are downloaded and the service worker caches the app.
   await page.goto('/fanki/dev/');
-  await expect(page.getByText('Laatst gesynchroniseerd: zojuist')).toBeVisible({ timeout: 20_000 });
-  await expect(page.getByText('· 5 kaarten')).toBeVisible();
+  await inMenu(page, async () => {
+    await expect(page.getByText('Laatst gesynchroniseerd: zojuist')).toBeVisible({ timeout: 20_000 });
+    await expect(page.getByText('· 5 kaarten')).toBeVisible();
+  });
   await page.evaluate(() => navigator.serviceWorker.ready);
 
   // 2. No internet, and the app is reopened: it still loads, with the cards.
@@ -104,6 +115,8 @@ test('offline: review without internet, reconnect, every review reaches the serv
   await page.getByRole('button', { name: 'Starten' }).click();
   await reviewCards(page, 3);
   await page.getByRole('button', { name: /Terug/ }).click();
+  // The menu shows the unsent answers (it stays open while the connection comes back).
+  await page.getByRole('button', { name: 'Menu openen' }).click();
   await expect(page.getByText('3 antwoorden nog niet gesynchroniseerd')).toBeVisible();
   expect(server.log.size).toBe(0);
 
@@ -118,10 +131,11 @@ test('offline: review without internet, reconnect, every review reaches the serv
   expect(server.log.size).toBe(3);
   expect([...server.log.values()].every((e) => e.rating === 3)).toBe(true);
 
-  // 5. Another sync sends nothing new.
+  // 5. Another sync (the button in the menu) sends nothing new.
   await page.getByRole('button', { name: 'Synchroniseren' }).click();
   await expect(page.getByText('Laatst gesynchroniseerd: zojuist')).toBeVisible();
   expect(server.log.size).toBe(3);
+  await page.getByRole('menu').getByRole('button', { name: 'Sluiten' }).click();
 
   // 6. Reviews and progress survive a restart.
   await page.reload();
@@ -145,7 +159,7 @@ test("topics, the Vandaag bar, stop and resume, and Klaar voor nu (no sessions, 
   const server = mockServer({ new_per_day: 5, unlock_prod_stability_days: 365, show_french_help: true });
   await server.install(page);
   await page.goto('/fanki/dev/');
-  await expect(page.getByText('Laatst gesynchroniseerd: zojuist')).toBeVisible({ timeout: 20_000 });
+  await waitSynced(page);
 
   // Kies een onderwerp: only "huishouden" → 2 new cards.
   await page.getByRole('button', { name: 'Onderwerp: alle' }).click();
@@ -197,7 +211,7 @@ test('enkel/emoji card, 🔊 without a Dutch voice, and 🚩 flags (flag, note, 
     speechSynthesis.getVoices = () => orig().filter((v) => !/^nl/i.test(v.lang));
   });
   await page.goto('/fanki/dev/');
-  await expect(page.getByText('Laatst gesynchroniseerd: zojuist')).toBeVisible({ timeout: 20_000 });
+  await waitSynced(page);
 
   // The oldest card comes first: the emoji card, with its subject label; the answer only after the reveal.
   await page.getByRole('button', { name: 'Starten' }).click();

@@ -15,7 +15,9 @@ She sees **nl**. **fr** is hidden help: shown only in the "Hulp" panel and the o
 | `home.empty` | Nog geen kaarten. Tik op Synchroniseren. | Pas encore de cartes. Touche « Synchroniseren ». |
 | `home.emptyOffline` | Nog geen kaarten. Zet het internet aan. | Pas encore de cartes. Connecte-toi à internet. |
 | `home.allDone` | Klaar voor nu! | Fini pour le moment ! |
-| `home.nextCard` | Volgende kaart over ± {n} min | Prochaine carte dans environ {n} minutes |
+| `home.later` | Volgende kaarten: {list} | Prochaines cartes aujourd’hui : {list} |
+| `home.laterMin` | {n} over ± {m} min | {n} dans environ {m} minutes |
+| `home.laterHour` | {n} over ± {h} uur | {n} dans environ {h} heure(s) |
 | `today.label` | Vandaag | Aujourd’hui |
 | `today.left` | Nog {n} kaarten | Encore {n} cartes aujourd’hui |
 | `today.left1` | Nog 1 kaart | Encore 1 carte aujourd’hui |
@@ -132,7 +134,7 @@ She sees **nl**. **fr** is hidden help: shown only in the "Hulp" panel and the o
 
 | screen | fr (shown in the panel) |
 |---|---|
-| home | Touche « SpeesRep » en haut pour le menu : « Voortgang » (ta progression) et « Gemarkeerd » (cartes marquées 🚩). Cet écran montre combien de cartes tu dois revoir aujourd’hui (« te herhalen ») et combien de nouvelles cartes t’attendent (« nieuw vandaag »). La barre « Vandaag » montre ton travail du jour ; « Nog 5 kaarten » = encore 5 cartes. Touche « Starten » pour commencer ; tu peux t’arrêter quand tu veux (« Terug »), tout est gardé. « Klaar voor nu! » = fini pour le moment ; « Volgende kaart over ± 7 min » = une carte revient dans environ 7 minutes. L’appli fonctionne aussi sans internet : tes réponses sont gardées sur le téléphone et envoyées à la prochaine connexion. « Synchroniseren » télécharge les nouvelles cartes quand tu as internet. |
+| home | Touche « SpeesRep » en haut pour le menu : « Voortgang » (ta progression) et « Gemarkeerd » (cartes marquées 🚩). Cet écran montre combien de cartes tu dois revoir aujourd’hui (« te herhalen ») et combien de nouvelles cartes t’attendent (« nieuw vandaag »). La barre « Vandaag » montre ton travail du jour ; « Nog 5 kaarten » = encore 5 cartes. Touche « Starten » pour commencer ; tu peux t’arrêter quand tu veux (« Terug »), tout est gardé. « Klaar voor nu! » = fini pour le moment ; « Volgende kaarten: 3 over ± 15 min » = 3 cartes reviennent dans environ 15 minutes ; elles arrivent alors dans « Vandaag » et « Starten » revient. L’appli fonctionne aussi sans internet : tes réponses sont gardées sur le téléphone et envoyées à la prochaine connexion. « Synchroniseren » télécharge les nouvelles cartes quand tu as internet. |
 | about | Cette page explique SpeesRep : à quoi sert l’appli, que ta progression reste sur ton téléphone (pas de compte, pas de nom, pas d’e-mail) et d’où viennent les images (OpenMoji, licence CC BY-SA 4.0). |
 | settings | Ces réglages restent sur ton téléphone. « Max. aantal nieuwe woorden per dag » = combien de nouveaux mots au maximum chaque jour (« Standaard » = le choix de ton professeur). « Luisteroefeningen » = parfois la carte commence seulement par le son ; « Uit » = jamais. « Back-up opslaan » enregistre ta progression dans un fichier ; « Back-up terugzetten » la remet depuis ce fichier (par exemple sur un nouveau téléphone). Les changements comptent tout de suite, pour la prochaine carte. |
 | progress | Ta progression : « kaarten geoefend » = cartes déjà travaillées, « kaarten bekend » = cartes bien sues, « herhalingen deze week » = révisions des 7 derniers jours, « dagen op rij » = jours de suite. En bas : combien de cartes reviennent aujourd’hui (vandaag), demain (morgen) et cette semaine (deze week). |

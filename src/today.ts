@@ -34,13 +34,35 @@ export function dueDoneCount(done: DoneToday): number {
   return Object.values(done.items).filter((k) => k === 'due').length;
 }
 
-/** A rated item is done when its next due time is past the due window. */
+/** A rated item is done when its next due time is outside the due window (≥ now + due_window_minutes). */
 export function leavesWindow(nextDue: string, now: Date, settings: Pick<Settings, 'due_window_minutes'>): boolean {
-  return Date.parse(nextDue) > now.getTime() + dueWindowMs(settings);
+  return Date.parse(nextDue) >= now.getTime() + dueWindowMs(settings);
 }
 
 /**
- * The "Vandaag" bar. Unique items only: an item finished today that is due again (a longer learning step)
+ * The current round: items finished since the round started. A round ends when nothing is left (home shows
+ * "Klaar voor nu!"); the next time cards are there, a NEW round starts at 0. A card that arrives while a round is
+ * still going joins it (the total grows, the count is kept). Same shape as DoneToday + `finished`.
+ */
+export type Round = DoneToday & { finished: boolean };
+
+/** Today's round; a round from another day counts as a fresh one. */
+export function todaysRound(r: Round | undefined | null, now = new Date()): Round {
+  const date = localDate(now);
+  return r && r.date === date ? r : { date, items: {}, finished: false };
+}
+
+/**
+ * The round after looking at what is left now (pure): nothing left → finished; cards again after a finished
+ * round → a new round at 0; otherwise unchanged (same object, so callers can see nothing changed).
+ */
+export function nextRound(r: Round, remaining: number): Round {
+  if (remaining === 0) return r.finished ? r : { ...r, finished: true };
+  return r.finished ? { date: r.date, items: {}, finished: false } : r;
+}
+
+/**
+ * The "Vandaag" bar of the CURRENT ROUND. Unique items only: an item finished in this round that is due again
  * counts as remaining, not twice. fill is always 0–1.
  */
 export function todayBar(done: DoneToday, remainingKeys: string[]): { done: number; remaining: number; fill: number } {
@@ -50,28 +72,48 @@ export function todayBar(done: DoneToday, remainingKeys: string[]): { done: numb
   return { done: finished, remaining: remaining.size, fill: total ? finished / total : 0 };
 }
 
+/** One group of the later-today line: n cards in about `min` minutes or `hour` hours. */
+export type LaterGroup = { n: number; min?: number; hour?: number };
+
+/** "± 15 min" below an hour (nearest 5 min), "± 2 uur" from 60 min. */
+export function roundLater(minutes: number): { min?: number; hour?: number } {
+  const m5 = Math.round(minutes / 5) * 5;
+  return m5 >= 60 ? { hour: Math.max(1, Math.round(minutes / 60)) } : { min: Math.max(5, m5) };
+}
+
 /**
- * Minutes until the next card in a learning step becomes due later today (outside the due window),
- * or null when there is none today. Static: computed when home opens or the app regains focus.
+ * Cards due later today: started (card, track) items due at or after the due window and before local
+ * midnight, grouped by rounded time, earliest first, at most 3 groups. `nextAt` = when the first of them enters
+ * the due window (joins the round) — home wakes up once at that moment. Cards due on later days never count.
  */
-export function nextLaterTodayMin(
+export function laterToday(
   cards: Card[],
   progress: Map<string, Progress>,
   settings: Pick<Settings, 'due_window_minutes' | 'unlock_prod_stability_days'>,
-  now: Date
-): number | null {
+  now: Date,
+  eligible?: (c: Card) => boolean
+): { groups: LaterGroup[]; nextAt: number | null } {
   const t = now.getTime();
-  const from = t + dueWindowMs(settings);
+  const win = dueWindowMs(settings);
   const end = new Date(now);
   end.setHours(24, 0, 0, 0);
-  let next: number | null = null;
+  const dues: number[] = [];
   for (const card of cards) {
+    if (eligible && !eligible(card)) continue;
     for (const track of tracksFor(card, progress.get(progressKey(card.id, 'recog')), settings)) {
       const p = progress.get(progressKey(card.id, track));
-      if (!p || (p.state !== 'Learning' && p.state !== 'Relearning')) continue;
+      if (!p || (p.state === 'New' && p.reps === 0)) continue;
       const at = Date.parse(p.due);
-      if (at > from && at < end.getTime() && (next === null || at < next)) next = at;
+      if (at >= t + win && at < end.getTime()) dues.push(at);
     }
   }
-  return next === null ? null : Math.max(1, Math.round((next - t) / 60_000));
+  dues.sort((a, b) => a - b);
+  const groups: LaterGroup[] = [];
+  for (const at of dues) {
+    const r = roundLater((at - t) / 60_000);
+    const last = groups[groups.length - 1];
+    if (last && last.min === r.min && last.hour === r.hour) last.n++;
+    else groups.push({ n: 1, ...r });
+  }
+  return { groups: groups.slice(0, 3), nextAt: dues.length ? dues[0] - win : null };
 }

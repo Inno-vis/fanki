@@ -10,13 +10,13 @@ import { HelpButton } from './components/Help';
 import { Home } from './screens/Home';
 import { Review } from './screens/Review';
 import { interleave, planToday, todaysIntro, type Item } from './session';
-import { dueDoneCount, nextLaterTodayMin, todayBar, todaysDone } from './today';
+import { dueDoneCount, laterToday, nextRound, todayBar, todaysDone, todaysRound } from './today';
 import { curriculumStatus, makePicker } from './curriculum';
 import { Topics } from './screens/Topics';
 import { Marked } from './screens/Marked';
 import { ProgressScreen } from './screens/ProgressScreen';
 import { Toast, showToast } from './components/Toast';
-import { setDbBlockedHandler } from './db';
+import { setDbBlockedHandler, setMeta } from './db';
 import { Menu } from './components/Menu';
 import type { Card } from './types';
 import { listenMode, voicesReady } from './tts';
@@ -77,12 +77,31 @@ export function App() {
       dueDone: dueDoneCount(done)
     });
     const keys = [...p.due, ...p.fresh].map((i) => `${i.card.id}|${i.track}`);
-    return { ...p, bar: todayBar(done, keys), nextMin: nextLaterTodayMin(s.cards, s.progress, settings, now) };
+    // The bar covers the current round: a finished round + new cards → a new round at 0; cards arriving while a
+    // round is going join it.
+    const round = nextRound(todaysRound(s.round, now), keys.length);
+    return { ...p, round, bar: todayBar(round, keys), later: laterToday(s.cards, s.progress, settings, now, eligible) };
   }, [
-    s.cards, s.progress, s.intro, s.curriculum, s.studyTags, s.doneToday, focus, screen.name,
+    s.cards, s.progress, s.intro, s.curriculum, s.studyTags, s.doneToday, s.round, focus, screen.name,
     settings.new_per_day, settings.due_window_minutes, settings.max_reviews_per_day, settings.unlock_prod_stability_days,
     settings.curriculum_only, settings.mature_stability_days
   ]);
+
+  // Keep the round on the phone when it finished or a new one started (survives closing the app).
+  useEffect(() => {
+    if (plan.round !== s.round) {
+      setState({ round: plan.round });
+      void setMeta('round', plan.round);
+    }
+  }, [plan.round]);
+
+  // One wake-up (not a countdown) when the next later-today card joins the round, so Starten comes back while
+  // she stays on home. The line itself stays static.
+  useEffect(() => {
+    if (screen.name !== 'home' || plan.later.nextAt === null) return;
+    const id = setTimeout(() => setFocus((n) => n + 1), Math.max(0, plan.later.nextAt - Date.now()) + 1000);
+    return () => clearTimeout(id);
+  }, [plan.later.nextAt, screen.name]);
 
   if (screen.name === 'review') {
     return (
@@ -121,7 +140,7 @@ export function App() {
         due={plan.due.length}
         newToday={plan.fresh.length}
         bar={plan.bar}
-        nextMin={plan.nextMin}
+        later={plan.later.groups}
         onStart={() => setScreen({ name: 'review', items: todayItems() })}
       />
       )}

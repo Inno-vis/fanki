@@ -4,7 +4,7 @@ import { cardLabel } from './display';
 import { DEFAULT_SETTINGS, type Card, type CurriculumRow, type Settings, type Tag } from './types';
 import type { Progress, Snapshot, Track } from './scheduler';
 import type { Intro, Mode } from './session';
-import type { DoneToday } from './today';
+import type { DoneToday, Round } from './today';
 import type { UserSettings } from './userSettings';
 
 /** One review, as stored in the outbox and sent to the API (Log row). */
@@ -33,7 +33,8 @@ export type Meta = {
   intro: Intro; // new cards introduced today
   curriculum: CurriculumRow[];
   studyTags: string[]; // tag filter ("Kies een onderwerp"); [] = everything
-  doneToday: DoneToday; // items finished today (the "Vandaag" bar); another date counts as empty
+  doneToday: DoneToday; // items finished today (silent daily due cap); another date counts as empty
+  round: Round; // the current round (the "Vandaag" bar); see src/today.ts
   userSettings: UserSettings; // her own Instellingen — phone only, never sent to the Sheet
   dayCounts: Record<string, number>; // local date (yyyy-mm-dd) → reviews that day (Voortgang screen)
 };
@@ -155,7 +156,7 @@ export async function allProgress(): Promise<Map<string, Progress>> {
  * the due window), in ONE transaction. Either all are stored or none, so a crash can never lose a review or
  * double-count it.
  */
-export async function recordReview(progress: Progress, event: ReviewEvent, intro: Intro, doneToday?: DoneToday): Promise<void> {
+export async function recordReview(progress: Progress, event: ReviewEvent, intro: Intro, doneToday?: DoneToday, round?: Round): Promise<void> {
   const d = await db();
   const tx = d.transaction(['progress', 'queue', 'meta'], 'readwrite');
   await tx.objectStore('progress').put(progress);
@@ -168,6 +169,7 @@ export async function recordReview(progress: Progress, event: ReviewEvent, intro
   counts[day] = (counts[day] ?? 0) + 1;
   await tx.objectStore('meta').put({ key: 'dayCounts', value: counts });
   if (doneToday) await tx.objectStore('meta').put({ key: 'doneToday', value: doneToday });
+  if (round) await tx.objectStore('meta').put({ key: 'round', value: round });
   await tx.done;
 }
 

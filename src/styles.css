@@ -1068,7 +1068,14 @@ label.btn.disabled {
 /* OpenMoji picture on emoji cards */
 .card-picture {
   display: block;
-  width: min(44vw, 160px);
+  /* twice the first size (160 → 320 px), but never wider than the card or taller than ~1/3 of the screen */
+  width: min(100%, 320px, 36dvh);
   height: auto;
   margin: 4px auto;
+}
+
+/* "Volgende kaarten: 3 over ± 15 min · 2 over ± 1 uur" on home */
+.later-line {
+  margin: 0;
+  font-size: 15px;
 }

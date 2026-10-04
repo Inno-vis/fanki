@@ -1,7 +1,7 @@
 import 'fake-indexeddb/auto';
 import { beforeEach, describe, expect, it } from 'vitest';
 import { _resetDb, getMeta, recordReview } from './db';
-import { dueDoneCount, getNewPerDay, leavesWindow, nextLaterTodayMin, todayBar, todaysDone, type DoneToday } from './today';
+import { dueDoneCount, getNewPerDay, laterToday, leavesWindow, nextRound, roundLater, todayBar, todaysDone, todaysRound, type DoneToday } from './today';
 import { planToday, todaysIntro } from './session';
 import { progressKey, type Progress } from './scheduler';
 import type { Card } from './types';
@@ -76,15 +76,78 @@ describe('"Klaar voor nu!" and the next card later today', () => {
     progress.set(progressKey('a', 'recog'), prog('a', at(3 * 1440)));
     expect(work(quotaUsed)).toBe(0); // nothing due, quota used → "Klaar voor nu!"
   });
+});
 
-  it('names the next learning-step card due later today (outside the window), else nothing', () => {
-    const cards = [card('l1'), card('l2'), card('r1')];
+describe('strict due window (due_window_minutes = 10)', () => {
+  it('9 minutes away is part of the round, exactly 10 minutes is not', () => {
+    const cards = [card('a9'), card('a10')];
     const progress = new Map([
-      [progressKey('l1', 'recog'), prog('l1', at(25), 'Learning')],
-      [progressKey('l2', 'recog'), prog('l2', at(5), 'Learning')], // inside the window: part of today's run
-      [progressKey('r1', 'recog'), prog('r1', at(15))] // a Review card, not a learning step
+      [progressKey('a9', 'recog'), prog('a9', at(9))],
+      [progressKey('a10', 'recog'), prog('a10', at(10))]
     ]);
-    expect(nextLaterTodayMin(cards, progress, settings, now)).toBe(25);
-    expect(nextLaterTodayMin([card('r1')], progress, settings, now)).toBeNull();
+    expect(planToday(cards, progress, settings, todaysIntro(undefined, now), now).due.map((i) => i.card.id)).toEqual(['a9']);
+    expect(leavesWindow(at(9), now, settings)).toBe(false);
+    expect(leavesWindow(at(10), now, settings)).toBe(true);
+  });
+});
+
+describe('the bar covers the current round only', () => {
+  it('a finished round + new cards → a new round that counts from 0', () => {
+    let r = todaysRound(undefined, now);
+    r = { ...r, items: { 'a|recog': 'due', 'b|recog': 'due' } };
+    expect(todayBar(r, ['c|recog']).fill).toBeCloseTo(2 / 3);
+    const finished = nextRound(r, 0);
+    expect(finished.finished).toBe(true);
+    expect(todayBar(finished, []).fill).toBe(1);
+    const fresh = nextRound(finished, 2); // later cards arrived
+    expect(fresh.items).toEqual({});
+    expect(todayBar(fresh, ['x|recog', 'y|recog'])).toEqual({ done: 0, remaining: 2, fill: 0 });
+  });
+
+  it('a card arriving while the round is going joins it: the count is kept, the total grows', () => {
+    const r = { ...todaysRound(undefined, now), items: { 'a|recog': 'due' as const } };
+    expect(nextRound(r, 2)).toBe(r); // unchanged, not a new round
+    expect(todayBar(r, ['b|recog'])).toEqual({ done: 1, remaining: 1, fill: 0.5 });
+    expect(todayBar(r, ['b|recog', 'late|recog'])).toEqual({ done: 1, remaining: 2, fill: 1 / 3 });
+  });
+
+  it('a new day starts a new round', () => {
+    const r = { date: '2026-10-04', items: { 'a|recog': 'due' as const }, finished: false };
+    expect(todaysRound(r, new Date('2026-10-05T08:00:00')).items).toEqual({});
+  });
+});
+
+describe('later today ("Volgende kaarten: …")', () => {
+  it('rounds to 5 min below an hour, whole hours from 60 min', () => {
+    expect(roundLater(12)).toEqual({ min: 10 });
+    expect(roundLater(23)).toEqual({ min: 25 });
+    expect(roundLater(59)).toEqual({ hour: 1 });
+    expect(roundLater(61)).toEqual({ hour: 1 });
+    expect(roundLater(130)).toEqual({ hour: 2 });
+  });
+
+  it('groups by rounded time, at most 3 groups; cards due tomorrow never count', () => {
+    const ids = ['m11', 'm12', 'm23', 'm59', 'm61', 'm130', 'tomorrow'];
+    const mins = [11, 12, 23, 59, 61, 130, 20 * 60];
+    const progress = new Map(ids.map((id, i) => [progressKey(id, 'recog'), prog(id, at(mins[i]))]));
+    const r = laterToday(ids.map(card), progress, settings, now);
+    expect(r.groups).toEqual([{ n: 2, min: 10 }, { n: 1, min: 25 }, { n: 2, hour: 1 }]);
+    expect(r.nextAt).toBe(now.getTime() + 60_000); // 11 min away joins the round in 1 min (window 10)
+    const tomorrowOnly = new Map([[progressKey('t', 'recog'), prog('t', at(20 * 60))]]);
+    expect(laterToday([card('t')], tomorrowOnly, settings, now).groups).toEqual([]);
+  });
+
+  it('the line is there while Starten is too, and a card rejoins the round when its time comes', () => {
+    const cards = [card('now1'), card('soon')];
+    const progress = new Map([
+      [progressKey('now1', 'recog'), prog('now1', at(-5))],
+      [progressKey('soon', 'recog'), prog('soon', at(15), 'Learning')]
+    ]);
+    const plan = planToday(cards, progress, settings, { ...todaysIntro(undefined, now), main: ['x', 'y'] }, now);
+    expect(plan.due.map((i) => i.card.id)).toEqual(['now1']); // Starten
+    expect(laterToday(cards, progress, settings, now).groups).toEqual([{ n: 1, min: 15 }]); // + the line
+    const later = new Date(now.getTime() + 6 * 60_000); // 'soon' is now 9 min away → in the round
+    expect(planToday(cards, progress, settings, { ...todaysIntro(undefined, later), main: ['x', 'y'] }, later).due.map((i) => i.card.id)).toEqual(['now1', 'soon']);
+    expect(laterToday(cards, progress, settings, later).groups).toEqual([]);
   });
 });

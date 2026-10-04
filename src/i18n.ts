@@ -15,7 +15,9 @@ export const UI = {
   'home.empty': { nl: 'Nog geen kaarten. Tik op Synchroniseren.', fr: 'Pas encore de cartes. Touche « Synchroniseren ».' },
   'home.emptyOffline': { nl: 'Nog geen kaarten. Zet het internet aan.', fr: 'Pas encore de cartes. Connecte-toi à internet.' },
   'home.allDone': { nl: 'Klaar voor nu!', fr: 'Fini pour le moment !' },
-  'home.nextCard': { nl: 'Volgende kaart over ± {n} min', fr: 'Prochaine carte dans environ {n} minutes' },
+  'home.later': { nl: 'Volgende kaarten: {list}', fr: 'Prochaines cartes aujourd’hui : {list}' },
+  'home.laterMin': { nl: '{n} over ± {m} min', fr: '{n} dans environ {m} minutes' },
+  'home.laterHour': { nl: '{n} over ± {h} uur', fr: '{n} dans environ {h} heure(s)' },
   'today.label': { nl: 'Vandaag', fr: 'Aujourd’hui' },
   'today.left': { nl: 'Nog {n} kaarten', fr: 'Encore {n} cartes aujourd’hui' },
   'today.left1': { nl: 'Nog 1 kaart', fr: 'Encore 1 carte aujourd’hui' },
@@ -177,8 +179,8 @@ export const HELP = {
       'Cet écran montre combien de cartes tu dois revoir aujourd’hui (« te herhalen ») et combien de nouvelles ' +
       'cartes t’attendent (« nieuw vandaag »). La barre « Vandaag » montre ton travail du jour ; « Nog 5 kaarten » = ' +
       'encore 5 cartes. Touche « Starten » pour commencer ; tu peux t’arrêter quand tu veux (« Terug »), tout est ' +
-      'gardé. « Klaar voor nu! » = fini pour le moment ; « Volgende kaart over ± 7 min » = une carte revient ' +
-      'dans environ 7 minutes. L’appli fonctionne aussi sans internet : tes réponses sont gardées sur le téléphone ' +
+      'gardé. « Klaar voor nu! » = fini pour le moment ; « Volgende kaarten: 3 over ± 15 min » = 3 cartes ' +
+      'reviennent dans environ 15 minutes ; elles arrivent alors dans « Vandaag » et « Starten » revient. L’appli fonctionne aussi sans internet : tes réponses sont gardées sur le téléphone ' +
       'et envoyées à la prochaine connexion. « Synchroniseren » télécharge les nouvelles cartes quand tu as internet.'
   },
   about: {

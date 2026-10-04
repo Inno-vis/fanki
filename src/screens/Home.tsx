@@ -6,17 +6,18 @@ import { useOnline } from '../pwa';
 import { InstallHint } from '../components/Banners';
 import { useInstallPrompt } from '../installPrompt';
 import { isStandalone } from '../pwa';
+import type { LaterGroup } from '../today';
 
 type Props = {
   due: number;
   newToday: number;
   bar: { done: number; remaining: number; fill: number }; // "Vandaag" (unique items)
-  nextMin: number | null; // a learning-step card due later today; static, recomputed when home opens / regains focus
+  later: LaterGroup[]; // cards due later today (outside the due window); static, recomputed on open / focus
   onStart: () => void;
   onTopics: () => void;
 };
 
-export function Home({ due, newToday, bar, nextMin, onStart, onTopics }: Props) {
+export function Home({ due, newToday, bar, later, onStart, onTopics }: Props) {
   const s = useStore();
   const online = useOnline();
   const empty = s.loaded && s.cards.length === 0;
@@ -71,8 +72,14 @@ export function Home({ due, newToday, bar, nextMin, onStart, onTopics }: Props) 
           ) : (
             <div class="all-done">
               <p class="done-big">{t('home.allDone')}</p>
-              {nextMin !== null && <p class="center muted">{t('home.nextCard', { n: nextMin })}</p>}
             </div>
+          )}
+          {s.loaded && later.length > 0 && (
+            <p class="center muted later-line">
+              {t('home.later', {
+                list: later.map((g) => (g.hour !== undefined ? t('home.laterHour', { n: g.n, h: g.hour }) : t('home.laterMin', { n: g.n, m: g.min! }))).join(' · ')
+              })}
+            </p>
           )}
         </>
       )}

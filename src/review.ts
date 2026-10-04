@@ -2,7 +2,7 @@ import { pendingCount, recordReview, type ReviewEvent } from './db';
 import { snapshotOf, type Outcome } from './scheduler';
 import { modeFor, type Item } from './session';
 import { getState, setState } from './store';
-import { leavesWindow, todaysDone } from './today';
+import { leavesWindow, todaysDone, todaysRound } from './today';
 import { currentSettings } from './settings';
 import { pushQueue } from './sync';
 
@@ -40,16 +40,18 @@ export async function rate(item: Item, outcome: Outcome, shownAt: number, now = 
     snapshot: snapshotOf(next)
   };
   let doneToday = todaysDone(s.doneToday, now);
+  let round = todaysRound(s.round, now);
   if (leavesWindow(next.due, now, currentSettings())) {
     const introduced = item.track === 'prod' && item.card.type === 'word' ? intro.prod : intro.main;
     const kind = introduced.includes(item.card.id) ? 'new' : 'due';
     doneToday = { ...doneToday, items: { ...doneToday.items, [next.key]: doneToday.items[next.key] ?? kind } };
+    round = { ...round, items: { ...round.items, [next.key]: round.items[next.key] ?? kind } };
   }
-  await recordReview(next, event, intro, doneToday);
+  await recordReview(next, event, intro, doneToday, round);
   const progress = new Map(s.progress);
   progress.set(next.key, next);
   const dayCounts = { ...s.dayCounts, [intro.date]: (s.dayCounts[intro.date] ?? 0) + 1 };
-  setState({ progress, intro, pending: s.pending + 1, dayCounts, doneToday });
+  setState({ progress, intro, pending: s.pending + 1, dayCounts, doneToday, round });
   schedulePush();
 }
 

@@ -161,13 +161,14 @@ keys, pos and descriptions. The API maps them to internal codes (`typeCode_`/`so
   on every render). `apps-script/Curriculum.gs` mirrors the status for the Dashboard only — keep in sync.
   Full algorithm: docs/SHEET.md › Curriculum. Per-row `open` (automatisch|altijd open|dicht → auto|always|
   closed) overrides the chain; Settings.curriculum_only (default TRUE) locks every non-curriculum topic.
-- Studying today (no sessions, no timers, no cooldown): `planToday` (src/session.ts) + `src/today.ts`. Due = started
-  cards due within `due_window_minutes`, capped at `max_reviews_per_day` (overflow rolls over, silently); new =
-  today's quota from `getNewPerDay()` — the ONLY reader of `new_per_day`. `interleave`: due first, 1 new per 3 due.
-  Steps ≤ 20 min come back in the same run (`afterRating`, src/sessionFlow.ts). Home shows the "Vandaag" bar
-  (`todayBar`, unique items; `meta.doneToday` by local date, written in `recordReview`'s transaction) and
-  "Klaar voor nu!" + static "Volgende kaart over ± N min" (`nextLaterTodayMin`). The plan is recomputed on screen
-  change and when the app regains focus — never on a timer. The review screen shows only the card.
+- Studying now (no sessions, no timers, no cooldown): `planToday` (src/session.ts) + `src/today.ts`. The round = started
+  cards due in LESS than `due_window_minutes` (strict), capped at `max_reviews_per_day` (overflow rolls over), + new
+  cards from `getNewPerDay()` — the ONLY reader of `new_per_day`. `interleave`: due first, 1 new per 3 due. Steps
+  ≤ 20 min come back in the same run (`afterRating`, src/sessionFlow.ts). Home: "Vandaag" bar = current round
+  (`meta.round`, `nextRound`: finished → new round at 0, arrivals join a running round; written in
+  `recordReview`'s transaction; `meta.doneToday` stays for the daily cap), "Klaar voor nu!", and the later-today
+  line `laterToday` ("Volgende kaarten: …", ≤ 3 groups). Recomputed on screen change / focus plus ONE wake-up at
+  `later.nextAt` — never a countdown. The review screen shows only the card.
 
 ## Study by topic, new-card pacing
 

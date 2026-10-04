@@ -2,7 +2,7 @@ import { useEffect, useState } from 'preact/hooks';
 import { allCards, allProgress, getMeta, getSettings, pendingCount } from './db';
 import { DEFAULT_SETTINGS, type Card, type CurriculumRow, type Settings, type Tag } from './types';
 import type { Progress } from './scheduler';
-import { todaysDone, type DoneToday } from './today';
+import { todaysDone, todaysRound, type DoneToday, type Round } from './today';
 import { cleanUserSettings, EMPTY_USER_SETTINGS, type UserSettings } from './userSettings';
 import { todaysIntro, type Intro } from './session';
 
@@ -21,7 +21,8 @@ export type State = {
   pending: number; // reviews not yet sent
   curriculum: CurriculumRow[];
   studyTags: string[];
-  doneToday: DoneToday; // items finished today ("Vandaag" bar)
+  doneToday: DoneToday; // items finished today (daily due cap)
+  round: Round; // the current round ("Vandaag" bar)
   userSettings: UserSettings; // her Instellingen (phone only); read settings via src/settings.ts, never directly
   hasVoice: boolean; // a Dutch speech voice exists on this phone
   dayCounts: Record<string, number>; // reviews per local day (Voortgang)
@@ -43,6 +44,7 @@ let state: State = {
   curriculum: [],
   studyTags: [],
   doneToday: todaysDone(undefined),
+  round: todaysRound(undefined),
   userSettings: EMPTY_USER_SETTINGS,
   hasVoice: false,
   dayCounts: {},
@@ -77,7 +79,7 @@ export function byAdded(a: Card & { order?: number }, b: Card & { order?: number
 }
 
 export async function loadFromDb(): Promise<void> {
-  const [cards, settings, tags, lastSync, progress, intro, pending, curriculum, studyTags, doneToday, dayCounts, userSettings] = await Promise.all([
+  const [cards, settings, tags, lastSync, progress, intro, pending, curriculum, studyTags, doneToday, dayCounts, userSettings, round] = await Promise.all([
     allCards(),
     getSettings(),
     getMeta('tags'),
@@ -89,7 +91,8 @@ export async function loadFromDb(): Promise<void> {
     getMeta('studyTags'),
     getMeta('doneToday'),
     getMeta('dayCounts'),
-    getMeta('userSettings')
+    getMeta('userSettings'),
+    getMeta('round')
   ]);
   setState({
     loaded: true,
@@ -104,7 +107,8 @@ export async function loadFromDb(): Promise<void> {
     studyTags: studyTags ?? [],
     doneToday: todaysDone(doneToday),
     dayCounts: dayCounts ?? {},
-    userSettings: cleanUserSettings(userSettings)
+    userSettings: cleanUserSettings(userSettings),
+    round: todaysRound(round)
   });
   await refreshFlagCount();
 }

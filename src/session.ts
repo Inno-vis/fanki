@@ -62,7 +62,7 @@ export function planToday(
     for (const track of tracks) {
       const p = progress.get(progressKey(card.id, track));
       if (isStarted(p)) {
-        if (new Date(p!.due).getTime() <= until) {
+        if (new Date(p!.due).getTime() < until) { // strictly less: due in exactly due_window_minutes is later
           const learning = p!.state === 'Learning' || p!.state === 'Relearning';
           due.push({ card, track, progress: p, isNew: false, ...(learning ? { learning } : {}) });
         }

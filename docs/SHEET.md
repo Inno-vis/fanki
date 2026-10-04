@@ -265,28 +265,27 @@ dicht (closed now, and every automatisch row below it too).
 6. Cards she already started keep coming back for review even if their tag is (again) locked — the
    curriculum only decides what is *new*.
 
-## Studying today (phone only)
+## Studying now (phone only)
 
-No sessions, no timers, no cooldown. Today's work is ONE finite queue (`src/today.ts`, `planToday` in
+No sessions, no timers, no cooldown. What she can study NOW is one finite round (`src/today.ts`, `planToday` in
 src/session.ts):
 
-- **Due:** every started card due now or within `due_window_minutes`, oldest first, capped at
-  `max_reviews_per_day` (counting the due reviews already finished today). The overflow stays due and rolls to
-  tomorrow, silently.
-- **New:** today's remaining quota, `getNewPerDay()` (= `new_per_day`) minus the new cards introduced today
-  (counted per local day), chosen by the Curriculum rules.
-- **Order:** due cards first, one new card after every 3 due cards, then the remaining new cards. A new card
-  waits while `max_learning_backlog` cards are in short learning steps; a step of ≤ 20 min comes back later in
-  the same run.
-- **Stopping** is always allowed ("Terug" or closing the app): every rating is saved at once.
-- **"Vandaag" bar** on home: done today / (done today + remaining), unique cards, with "Nog N kaarten". A card
-  is done when its next due time is past the due window. Stored on the phone (`meta.doneToday`, by local
-  date) and reset at local midnight; reopening the app the same day shows the same bar. No timer, no streak,
-  no red, no "behind".
-- **Done:** when nothing is due and today's new cards are used up (or none are available), home shows
-  "Klaar voor nu!" instead of Starten, plus "Volgende kaart over ± 7 min" when a learning-step card comes back
-  later today. That text is static: refreshed when home opens or the app comes back to the front.
-- The review screen shows only the card (no counter, no bar, no timer).
+- **In the round:** every started card due now or in LESS than `due_window_minutes` (strict: 9 min in, exactly 10
+  min out), oldest first, capped at `max_reviews_per_day` (counting today's finished due reviews; the overflow
+  stays due and rolls to tomorrow, silently) + today's remaining new cards (`getNewPerDay()`, per local day).
+- **Order:** due cards first, one new card after every 3 due cards, then the remaining new cards; a new card
+  waits while `max_learning_backlog` cards are in short steps. Stopping is always allowed: every rating is saved.
+- **"Vandaag" bar = the current round** (`meta.round` on the phone): done in this round / (done + remaining),
+  unique cards, with "Nog N kaarten". A card is done when its next due time is outside the window. When nothing
+  is left the round is finished ("Klaar voor nu!"); the next time cards are there, a NEW round starts at 0. A
+  card that arrives while a round is still going joins it (the total grows, the count stays). A new day starts a
+  new round.
+- **Later today:** "Volgende kaarten: 3 over ± 15 min · 2 over ± 1 uur" = cards due later today (10+ min away,
+  before midnight), grouped by rounded time (nearest 5 min below an hour, whole hours from 60 min), at most 3
+  groups, shown on home whether or not Starten is there. Cards due tomorrow never appear. Static text (home
+  opens / the app comes back to the front), never a countdown; home wakes up ONCE when the next of them joins
+  the round, so Starten comes back.
+- The review screen shows only the card.
 
 ## Dashboard (formulas, read-only)
 

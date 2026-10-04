@@ -13,14 +13,15 @@ const ALLOW = new Set(
   `de het een ik je jij jou u hij zij ze we wij is ben bent zijn was en of maar niet wel ook nog nu
    hier daar er dit dat deze die op in aan met van voor naar uit om te tot bij als dan wat wie waar hoe
    mijn jouw jullie ons onze heb hebt heeft kan kun kunt wil moet ja nee al zo heel veel meer tik
-   alle ok mag niets per min u d wk mnd jr fanki dev`.split(/\s+/).filter(Boolean)
+   alle ok mag niets per min u d wk mnd jr fanki dev
+   max teruggezet`.split(/\s+/).filter(Boolean) // max = maximaal (taught), teruggezet = terugzetten (taught)
 );
 
 // Taught words from the app seed list (multi-word entries like "nog eens" count per word).
 const schema = readFileSync(join(root, 'apps-script/Schema.gs'), 'utf8');
 const block = schema.slice(schema.indexOf('var APP_SEED_CARDS'));
 const taught = new Set();
-for (const m of block.matchAll(/'word\|([^|]+)\|/g)) for (const w of m[1].toLowerCase().split(/\s+/)) taught.add(w);
+for (const m of block.matchAll(/'word\|([^|]+)\|/g)) for (const w of m[1].toLowerCase().split(/[\s-]+/)) taught.add(w); // back-up → back, up
 // Separable verbs also teach the bare verb: aanzetten → zetten, opslaan → slaan.
 for (const w of [...taught]) {
   const m = w.match(/^(aan|uit|op|af|mee|terug|in|door)(\w{4,}en)$/);

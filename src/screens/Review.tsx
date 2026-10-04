@@ -6,7 +6,7 @@ import { RatingBar } from '../components/RatingBar';
 import { RatingHelp } from '../components/RatingHelp';
 import { HelpButton } from '../components/Help';
 import { makeScheduler, previewOutcomes, type Outcome } from '../scheduler';
-import { modeFor, type Item } from '../session';
+import { modeFor, pickNextIndex, type Item } from '../session';
 import { afterRating } from '../sessionFlow';
 import { subjectFor } from '../display';
 import { FlagButton } from '../components/FlagButton';
@@ -28,7 +28,13 @@ export function Review({ items, onExit }: { items: Item[]; onExit: () => void })
   const s = useStore();
   const settings = useSettings();
   const online = useOnline();
-  const [queue, setQueue] = useState<Item[]>(items);
+  // The first card follows the same rule as every next one (a card in a short step not before its time).
+  const [queue, setQueue] = useState<Item[]>(() => {
+    const q = [...items];
+    const k = pickNextIndex(q, settings.max_learning_backlog);
+    if (k > 0) q.unshift(...q.splice(k, 1));
+    return q;
+  });
   const [revealed, setRevealed] = useState(false);
   const [busy, setBusy] = useState(false);
   const rated = useRef(0);
@@ -56,7 +62,7 @@ export function Review({ items, onExit }: { items: Item[]; onExit: () => void })
     const outcome = outcomes[g];
     await rate(item, outcome, shownAt.current);
     rated.current++;
-    setQueue(afterRating(queue, outcome.intervalMs, outcome.next, settings));
+    setQueue(afterRating(queue, outcome.next, settings));
     setRevealed(false);
     setBusy(false);
     shownAt.current = Date.now();

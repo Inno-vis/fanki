@@ -34,9 +34,17 @@ export function dueDoneCount(done: DoneToday): number {
   return Object.values(done.items).filter((k) => k === 'due').length;
 }
 
-/** A rated item is done when its next due time is outside the due window (≥ now + due_window_minutes). */
+/**
+ * THE due-window rule, used everywhere (round membership in planToday, requeue in afterRating, "done" in
+ * leavesWindow), so they can never disagree: due now or in LESS than due_window_minutes.
+ */
+export function inDueWindow(due: string | number, now: number, settings: Pick<Settings, 'due_window_minutes'>): boolean {
+  return (typeof due === 'number' ? due : Date.parse(due)) < now + dueWindowMs(settings);
+}
+
+/** A rated item is done (for the bar) when its next due time is outside the due window. */
 export function leavesWindow(nextDue: string, now: Date, settings: Pick<Settings, 'due_window_minutes'>): boolean {
-  return Date.parse(nextDue) >= now.getTime() + dueWindowMs(settings);
+  return !inDueWindow(nextDue, now.getTime(), settings);
 }
 
 /**

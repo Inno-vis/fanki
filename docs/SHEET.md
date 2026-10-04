@@ -275,6 +275,11 @@ src/session.ts):
   stays due and rolls to tomorrow, silently) + today's remaining new cards (`getNewPerDay()`, per local day).
 - **Order:** due cards first, one new card after every 3 due cards, then the remaining new cards; a new card
   waits while `max_learning_backlog` cards are in short steps. Stopping is always allowed: every rating is saved.
+- **After a rating:** the card comes back in the same run ONLY if its next step is inside the due window
+  (strictly less than `due_window_minutes`: ❌ Opnieuw 1 min, 😅 Moeilijk ~6 min). ✅ Goed (10 min) and 😎 Makkelijk
+  leave the run: the bar counts the card as done and home lists it under "Volgende kaarten"; it joins the round
+  again when its time is inside the window. One rule decides the round, the comeback and "done". A card that
+  came back is not shown before its due time while other cards are ready (if nothing else is left, it is shown).
 - **"Vandaag" bar = the current round** (`meta.round` on the phone): done in this round / (done + remaining),
   unique cards, with "Nog N kaarten". A card is done when its next due time is outside the window. When nothing
   is left the round is finished ("Klaar voor nu!"); the next time cards are there, a NEW round starts at 0. A

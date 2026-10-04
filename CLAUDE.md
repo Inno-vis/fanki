@@ -163,8 +163,12 @@ keys, pos and descriptions. The API maps them to internal codes (`typeCode_`/`so
   closed) overrides the chain; Settings.curriculum_only (default TRUE) locks every non-curriculum topic.
 - Studying now (no sessions, no timers, no cooldown): `planToday` (src/session.ts) + `src/today.ts`. The round = started
   cards due in LESS than `due_window_minutes` (strict), capped at `max_reviews_per_day` (overflow rolls over), + new
-  cards from `getNewPerDay()` — the ONLY reader of `new_per_day`. `interleave`: due first, 1 new per 3 due. Steps
-  ≤ 20 min come back in the same run (`afterRating`, src/sessionFlow.ts). Home: "Vandaag" bar = current round
+  cards from `getNewPerDay()` — the ONLY reader of `new_per_day`. `interleave`: due first, 1 new per 3 due. A rated
+  card goes back into the run ONLY if its next step is inside the window (`afterRating`, src/sessionFlow.ts) —
+  ONE rule, `inDueWindow` (src/today.ts), for the round, the requeue and "done", so they never disagree; "Goed"
+  (10 min) and "Makkelijk" leave the run and return via the later-today line. `pickNextIndex`: a card in a short
+  step is not shown before its due time while other cards are ready (if only such cards are left, the first due
+  one is shown). Home: "Vandaag" bar = current round
   (`meta.round`, `nextRound`: finished → new round at 0, arrivals join a running round; written in
   `recordReview`'s transaction; `meta.doneToday` stays for the daily cap), "Klaar voor nu!", and the later-today
   line `laterToday` ("Volgende kaarten: …", ≤ 3 groups). Recomputed on screen change / focus plus ONE wake-up at
@@ -204,7 +208,7 @@ keys, pos and descriptions. The API maps them to internal codes (`typeCode_`/`so
   sentence/question cards only `prod`. `prod` unlocks when `recog` stability ≥ `unlock_prod_stability_days`.
 - Scheduling (`src/scheduler.ts`, `src/session.ts`): ts-fsrs, fuzz on, retention from Settings. The four
   outcomes are computed once when the answer is revealed; the tapped one is applied, so the interval on
-  the button is exactly what is scheduled. Steps under 20 min come back in the same run.
+  the button is exactly what is scheduled. Steps inside the due window (< due_window_minutes) come back in the same run.
 - New cards per day capped by Settings.`new_per_day`, ordered by `added` (then sheet order). A word's
   unlocked `prod` track has its own cap of the same size. Today's introductions are stored (`meta.intro`).
 - Each rating = progress + outbox event + intro list in ONE IndexedDB transaction (`recordReview`).

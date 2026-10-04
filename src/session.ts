@@ -1,6 +1,6 @@
 import type { Card, Settings } from './types';
 import { progressKey, tracksFor, type Progress, type Track } from './scheduler';
-import { dueWindowMs, getNewPerDay } from './today';
+import { getNewPerDay, inDueWindow } from './today';
 
 export type Mode = 'nl_fr' | 'fr_nl' | 'cloze' | 'question' | 'oneway' | 'listen';
 
@@ -52,7 +52,6 @@ export function planToday(
   const due: Item[] = [];
   const newMain: Card[] = [];
   const newProd: Item[] = [];
-  const until = now.getTime() + dueWindowMs(settings);
 
   for (const card of cards) {
     if (opts.eligible && !opts.eligible(card)) continue;
@@ -62,7 +61,7 @@ export function planToday(
     for (const track of tracks) {
       const p = progress.get(progressKey(card.id, track));
       if (isStarted(p)) {
-        if (new Date(p!.due).getTime() < until) { // strictly less: due in exactly due_window_minutes is later
+        if (inDueWindow(p!.due, now.getTime(), settings)) {
           const learning = p!.state === 'Learning' || p!.state === 'Relearning';
           due.push({ card, track, progress: p, isNew: false, ...(learning ? { learning } : {}) });
         }
@@ -102,17 +101,29 @@ export function interleave(plan: Plan): Item[] {
   return out.concat(fresh);
 }
 
-/** A (re)learning step shorter than this comes back in today's run. */
-export const REQUEUE_WITHIN_MS = 20 * 60_000;
+/** A card in a short step that is not due yet (it came back in this run, or is due inside the window). */
+function waiting(i: Item, now: number): boolean {
+  return !!i.learning && !!i.progress && Date.parse(i.progress.due) > now;
+}
 
 /**
- * Which queue item to show next. A NEW card waits while `maxBacklog` or more cards are still in their
- * short learning steps (so new cards arrive once the earlier ones stick); the first non-new item is
- * shown instead. If only new cards are left, the first one is shown.
+ * Which queue item to show next.
+ *  - A card in a short step is not shown before its due time while other cards are ready; if only such cards are
+ *    left, the one due first is shown anyway (the run never stalls).
+ *  - A NEW card waits while `maxBacklog` or more cards are in short steps: the first ready non-new card goes first.
  */
-export function pickNextIndex(queue: Item[], maxBacklog: number): number {
-  const backlog = queue.filter((i) => i.learning).length;
-  if (backlog < maxBacklog) return 0;
-  const i = queue.findIndex((x) => !x.isNew);
-  return i === -1 ? 0 : i;
+export function pickNextIndex(queue: Item[], maxBacklog: number, now = Date.now()): number {
+  const ready = queue.map((_, k) => k).filter((k) => !waiting(queue[k], now));
+  if (!ready.length) {
+    let best = 0;
+    queue.forEach((x, k) => {
+      if (Date.parse(x.progress!.due) < Date.parse(queue[best].progress!.due)) best = k;
+    });
+    return best;
+  }
+  if (queue.filter((i) => i.learning).length >= maxBacklog) {
+    const k = ready.find((k) => !queue[k].isNew);
+    if (k !== undefined) return k;
+  }
+  return ready[0];
 }

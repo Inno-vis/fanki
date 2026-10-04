@@ -152,7 +152,7 @@ Above each card the app shows `subject_nl` of the FIRST tag on the card that has
 Seed keys (= label_nl unless noted): huishouden, school, wiskunde, familie, reizen, eten, werk, gezondheid,
 winkelen, tijd, app, klok-1 ("klok niveau 1"), klok-2 ("klok niveau 2"), klok-3 ("klok niveau 3").
 
-## Teacher review page ("Fanki – controleren")
+## Teacher review page ("SpeesRep – controleren")
 
 A web page in your browser, no tools needed: review the Inbox and edit Cards.
 

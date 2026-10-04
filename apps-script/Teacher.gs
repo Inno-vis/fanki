@@ -1,4 +1,4 @@
-// Teacher review UI ("Fanki – controleren"): an HtmlService page served by a SEPARATE web-app deployment of
+// Teacher review UI ("SpeesRep – controleren"): an HtmlService page served by a SEPARATE web-app deployment of
 // this project that requires a Google login and runs as the visiting teacher (USER_ACCESSING). The public
 // card API deployment (anonymous) never serves this page. The browser gets no token: it calls the review*
 // functions below through google.script.run, each of which checks the teacher allowlist first.
@@ -36,7 +36,7 @@ function requireTeacher_() {
 function serveReview_() {
   if (!teacherAllowed_(teacherEmail_())) return null;
   return HtmlService.createTemplateFromFile('Review').evaluate()
-    .setTitle('Fanki – controleren (' + env_() + ')')
+    .setTitle('SpeesRep – controleren (' + env_() + ')')
     .addMetaTag('viewport', 'width=device-width, initial-scale=1');
 }
 

@@ -1,13 +1,13 @@
 import { useState } from 'preact/hooks';
-import { APP_ENV } from '../config';
+import { APP_ENV, APP_NAME } from '../config';
 import { t } from '../i18n';
 import { useStore } from '../store';
 
-/** Tap "Fanki" → menu: Voortgang, Gemarkeerd, Instellingen. A dot on the title when cards are marked. */
-export function Menu({ go }: { go: (screen: 'progress' | 'marked' | 'settings') => void }) {
+/** Tap the app name ("SpeesRep") → menu: Voortgang, Gemarkeerd, Instellingen, Over SpeesRep. A dot on the title when cards are marked. */
+export function Menu({ go }: { go: (screen: 'progress' | 'marked' | 'settings' | 'about') => void }) {
   const s = useStore();
   const [open, setOpen] = useState(false);
-  const pick = (screen: 'progress' | 'marked' | 'settings') => {
+  const pick = (screen: 'progress' | 'marked' | 'settings' | 'about') => {
     setOpen(false);
     go(screen);
   };
@@ -15,7 +15,7 @@ export function Menu({ go }: { go: (screen: 'progress' | 'marked' | 'settings') 
     <>
       <button class="title-btn" onClick={() => setOpen(true)} aria-haspopup="menu" aria-label={t('menu.open')}>
         <h1>
-          Fanki {APP_ENV === 'DEV' && <span class="env-badge">DEV</span>}
+          {APP_NAME} {APP_ENV === 'DEV' && <span class="env-badge">DEV</span>}
           <span class="menu-caret" aria-hidden="true">
             ▾
           </span>
@@ -34,6 +34,9 @@ export function Menu({ go }: { go: (screen: 'progress' | 'marked' | 'settings') 
             </button>
             <button class="menu-item" role="menuitem" onClick={() => pick('settings')}>
               <span aria-hidden="true">⚙️</span> {t('settings.title')}
+            </button>
+            <button class="menu-item" role="menuitem" onClick={() => pick('about')}>
+              <span aria-hidden="true">ℹ️</span> {t('about.title')}
             </button>
             <button class="btn btn-secondary btn-block" onClick={() => setOpen(false)}>
               {t('help.close')}

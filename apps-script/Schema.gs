@@ -54,7 +54,7 @@ var TAGS_SEED = [
   ['gezondheid', 'gezondheid', 'la santé', 'Lichaam, dokter, ziek zijn', 'Gezondheid'],
   ['winkelen', 'winkelen', 'les courses', 'Winkels, geld, kopen', 'Winkelen'],
   ['tijd', 'tijd', 'le temps', 'Uren, dagen, kalender', 'Tijd'],
-  ['app', 'app', 'l\'appli', 'De woorden van de Fanki-app', 'App'],
+  ['app', 'app', 'l\'appli', 'De woorden van de SpeesRep-app', 'App'],
   ['klok-1', 'klok niveau 1', 'horloge niveau 1', 'Hele en halve uren, minuten optellen', 'De tijd'],
   ['klok-2', 'klok niveau 2', 'horloge niveau 2', 'Kwartier, voor en over, tijden optellen', 'De tijd'],
   ['klok-3', 'klok niveau 3', 'horloge niveau 3', 'Elke minuut lezen, over middernacht rekenen', 'De tijd']

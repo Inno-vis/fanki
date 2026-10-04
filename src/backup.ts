@@ -111,5 +111,6 @@ export async function importBackup(raw: unknown, now = new Date()): Promise<{ pr
 
 export function backupFileName(now = new Date()): string {
   const p = (n: number) => String(n).padStart(2, '0');
-  return `${NS}-backup-${now.getFullYear()}-${p(now.getMonth() + 1)}-${p(now.getDate())}.json`;
+  const env = NS.endsWith('-dev') ? '-dev' : '';
+  return `speesrep${env}-backup-${now.getFullYear()}-${p(now.getMonth() + 1)}-${p(now.getDate())}.json`;
 }

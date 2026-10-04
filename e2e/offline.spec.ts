@@ -226,7 +226,7 @@ test('enkel/emoji card, 🔊 without a Dutch voice, and 🚩 flags (flag, note, 
   await page.getByRole('button', { name: /^Makkelijk, / }).click();
   await page.getByRole('button', { name: /Terug/ }).click();
 
-  // Menu (tap "Fanki") → Gemarkeerd → copy text → Opgelost.
+  // Menu (tap "SpeesRep") → Gemarkeerd → copy text → Opgelost.
   await page.getByRole('button', { name: 'Menu openen' }).click();
   await expect(page.getByRole('menuitem', { name: /Gemarkeerd/ })).toContainText('1');
   await page.getByRole('menuitem', { name: /Gemarkeerd/ }).click();
@@ -236,7 +236,7 @@ test('enkel/emoji card, 🔊 without a Dutch voice, and 🚩 flags (flag, note, 
   await expect(page.getByText('“waarom geen emoji?”')).toBeVisible();
   await page.getByRole('button', { name: 'Kopieer naar klembord' }).click();
   const copied = await page.evaluate(() => navigator.clipboard.readText());
-  expect(copied).toContain('Fanki: gemarkeerde kaarten');
+  expect(copied).toContain('SpeesRep: gemarkeerde kaarten');
   expect(copied).toContain('🛏️ (het bed) · waarom geen emoji?');
   await page.getByRole('button', { name: 'Opgelost' }).click();
   await expect(page.getByText('Opgelost (1)')).toBeVisible();

@@ -69,8 +69,8 @@ describe('export text for "Delen"', () => {
       { id: '2', card_id: 'K2-06', ts: at(11).toISOString(), note: '', resolved: false, updated_ts: '' },
       { id: '3', card_id: 'c_1', ts: at(12).toISOString(), note: 'al opgelost', resolved: true, updated_ts: '' }
     ];
-    expect(exportText(flags, cards, 'Fanki')).toBe(
-      ['Fanki', '9:40u + 20 min = ... (10:00u)', "het huis (la maison) · waarom niet 'de'?"].join('\n')
+    expect(exportText(flags, cards, 'SpeesRep')).toBe(
+      ['SpeesRep', '9:40u + 20 min = ... (10:00u)', "het huis (la maison) · waarom niet 'de'?"].join('\n')
     );
   });
 
@@ -86,7 +86,7 @@ describe('export text for "Delen"', () => {
     const groups = groupFlags(await listFlags());
     const cards = new Map<string, Card>();
     expect(groups.map((g) => flagCardLabel(cards.get(g.card_id), g.card_id, g.label))).toEqual(['het huis (la maison)', "de boom (l'arbre)"]);
-    expect(exportText(await listFlags(), cards, 'Fanki')).toContain("de boom (l'arbre)");
+    expect(exportText(await listFlags(), cards, 'SpeesRep')).toContain("de boom (l'arbre)");
   });
 });
 

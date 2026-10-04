@@ -1,4 +1,9 @@
-# Fanki — offline-first Dutch flashcards
+# SpeesRep — offline-first Dutch flashcards
+
+Visible name **SpeesRep** (renamed from Fanki on 2026-10-04: `APP_NAME` in src/config.ts, manifest/title in
+vite.config.ts, i18n strings, teacher page, User info). Technical names stay **fanki** on purpose — IndexedDB `NS`
+(`fanki-prod`/`fanki-dev`, renaming would wipe her progress), URLs `/fanki/`, the repo, Workbox cacheId, backup
+`ns` field.
 
 An iPhone PWA (Safari, Home Screen) for **one French-speaking learner** studying Dutch, taught by
 the repo owner. She is often offline. Content lives in a Google Sheet behind an Apps Script API.
@@ -62,7 +67,7 @@ The repo is **public** and hosted on GitHub Pages.
 - Relative times in Dutch (`timeAgo` in `src/format.ts`): "zojuist", "5 minuten geleden", "2 dagen geleden".
 - The tag filter ("Kies een onderwerp") shows Tags.`label_nl`; the keys in Cards.tags are unchanged.
 
-## Teacher review UI (Apps Script HtmlService)
+## Teacher review UI (Apps Script HtmlService, "SpeesRep – controleren")
 
 - `apps-script/Teacher.gs` + `Review.html` (vanilla JS, no build). Served by a SECOND web-app deployment of the
   same project: `scripts/gas-deploy.sh` pushes a temporary manifest variant (executeAs USER_ACCESSING, access
@@ -170,7 +175,8 @@ keys, pos and descriptions. The API maps them to internal codes (`typeCode_`/`so
 - UI: 🚩 on every card in review (`FlagButton`: tap = flag + "Gemarkeerd" toast with "+ notitie";
   long-press = flag + note field; lit when the card has an open flag). "Gemarkeerd" screen (`screens/Marked.tsx`)
   shows ONE row per card (`groupFlags`: "3×", all notes; Opgelost resolves all its open flags); counts are cards.
-- Menu: tap "Fanki" (`components/Menu.tsx`) → 📈 Voortgang, 🚩 Gemarkeerd (count; red dot on the title).
+- Menu: tap "SpeesRep" (`components/Menu.tsx`) → 📈 Voortgang, 🚩 Gemarkeerd (count; red dot on the title),
+  ⚙️ Instellingen, ℹ️ Over SpeesRep (`screens/AboutScreen.tsx`: about, privacy, OpenMoji CC BY-SA 4.0 credit).
 - A flag stores the card's name (`label`, at flag time and in `saveSnapshot` before cards are replaced), so
   "Gemarkeerd" still names a card that left the phone (e.g. not approved).
 - Strings use the `mark.*` i18n keys. Never mix up with `Card.flags` / `flag.*` (sheet content markers:

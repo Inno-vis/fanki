@@ -13,7 +13,7 @@ const ALLOW = new Set(
   `de het een ik je jij jou u hij zij ze we wij is ben bent zijn was en of maar niet wel ook nog nu
    hier daar er dit dat deze die op in aan met van voor naar uit om te tot bij als dan wat wie waar hoe
    mijn jouw jullie ons onze heb hebt heeft kan kun kunt wil moet ja nee al zo heel veel meer tik
-   alle ok mag niets per min u d wk mnd jr fanki dev
+   alle ok mag niets per min u d wk mnd jr fanki speesrep openmoji dev
    max teruggezet`.split(/\s+/).filter(Boolean) // max = maximaal (taught), teruggezet = terugzetten (taught)
 );
 
@@ -67,8 +67,10 @@ function known(word) {
   return false;
 }
 
+// Not course vocabulary: the English OpenMoji credit and the licence line (legal attribution, kept verbatim).
+const SKIP_KEYS = new Set(['about.imagesEn', 'about.license']);
 const strings = [
-  ...Object.entries(UI).map(([k, v]) => [k, v.nl]),
+  ...Object.entries(UI).filter(([k]) => !SKIP_KEYS.has(k)).map(([k, v]) => [k, v.nl]),
   ...RATINGS.map((r) => [`rating.${r.key}`, r.nl])
 ];
 const unknown = new Map();

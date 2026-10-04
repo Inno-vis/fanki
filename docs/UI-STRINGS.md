@@ -19,7 +19,7 @@ She sees **nl**. **fr** is hidden help: shown only in the "Hulp" panel and the o
 | `today.label` | Vandaag | Aujourd’hui |
 | `today.left` | Nog {n} kaarten | Encore {n} cartes aujourd’hui |
 | `today.left1` | Nog 1 kaart | Encore 1 carte aujourd’hui |
-| `db.blocked` | Fanki is nog open in een ander venster. Sluit het en open de app opnieuw. | Une autre fenêtre de Fanki (ancienne version) est encore ouverte : ferme-la, puis rouvre l’appli. |
+| `db.blocked` | SpeesRep is nog open in een ander venster. Sluit het en open de app opnieuw. | Une autre fenêtre de SpeesRep (ancienne version) est encore ouverte : ferme-la, puis rouvre l’appli. |
 | `status.offline` | Geen internet | Pas d’internet |
 | `sync.button` | Synchroniseren | Synchroniser (télécharger les cartes et envoyer tes réponses) |
 | `sync.running` | Synchroniseren… | Synchronisation en cours… |
@@ -35,9 +35,16 @@ She sees **nl**. **fr** is hidden help: shown only in the "Hulp" panel and the o
 | `tags.locked` | nog dicht | pas encore ouvert : il s’ouvre quand le thème précédent est bien su |
 | `home.topicAll` | Onderwerp: alle | Thème : tous |
 | `home.topic` | Onderwerp: {list} | Thème : {list} |
-| `menu.open` | Menu openen | Ouvrir le menu (progression, cartes marquées, réglages) |
+| `menu.open` | Menu openen | Ouvrir le menu (progression, cartes marquées, réglages, à propos) |
 | `menu.title` | Menu | Menu |
 | `progress.title` | Voortgang | Ma progression |
+| `about.title` | Over SpeesRep | À propos de SpeesRep |
+| `about.intro` | SpeesRep helpt je om Nederlandse woorden te leren. Je oefent een beetje, neemt een pauze, en oefent dan weer. | SpeesRep t’aide à apprendre des mots néerlandais : tu t’exerces un peu, tu fais une pause, puis tu recommences. |
+| `about.privacy` | Je voortgang blijft op dit toestel. SpeesRep heeft geen account nodig en vraagt niet om je naam of e-mailadres. | Ta progression reste sur cet appareil. SpeesRep n’a pas besoin de compte et ne demande ni ton nom ni ton e-mail. |
+| `about.imagesTitle` | Plaatjes | Images |
+| `about.images` | Alle plaatjes zijn gemaakt door OpenMoji, het open-source emoji- en iconenproject. De plaatjes zijn niet aangepast. | Toutes les images viennent d’OpenMoji, un projet libre d’emojis et d’icônes. Elles ne sont pas modifiées. |
+| `about.license` | Licentie: CC BY-SA 4.0 | Licence : CC BY-SA 4.0 |
+| `about.imagesEn` | All emojis designed by OpenMoji – the open-source emoji and icon project. License: CC BY-SA 4.0 | All emojis designed by OpenMoji – the open-source emoji and icon project. License: CC BY-SA 4.0 |
 | `settings.title` | Instellingen | Réglages |
 | `settings.newPerDay` | Max. aantal nieuwe woorden per dag | Nombre maximum de nouveaux mots par jour |
 | `settings.default` | Standaard ({n}) | Par défaut ({n}) |
@@ -49,7 +56,7 @@ She sees **nl**. **fr** is hidden help: shown only in the "Hulp" panel and the o
 | `backup.save` | Back-up opslaan | Enregistrer une sauvegarde (fichier) |
 | `backup.load` | Back-up terugzetten | Restaurer une sauvegarde (fichier) |
 | `backup.done` | Back-up teruggezet. | Sauvegarde restaurée. |
-| `backup.bad` | Dit is geen Fanki-back-up. | Ce fichier n’est pas une sauvegarde Fanki. |
+| `backup.bad` | Dit is geen SpeesRep-back-up. | Ce fichier n’est pas une sauvegarde SpeesRep. |
 | `backup.otherApp` | Deze back-up is van een andere versie van de app. | Cette sauvegarde vient d’une autre version de l’appli (DEV/PROD). |
 | `progress.learned` | kaarten geoefend (van {n}) | cartes déjà travaillées (sur {n} en tout) |
 | `progress.known` | kaarten bekend | cartes bien sues (elles reviennent dans 3 semaines ou plus) |
@@ -75,7 +82,7 @@ She sees **nl**. **fr** is hidden help: shown only in the "Hulp" panel and the o
 | `mark.share` | Delen | Partager (Messages, e-mail…) |
 | `mark.copy` | Kopieer naar klembord | Copier dans le presse-papiers |
 | `mark.copied` | Gekopieerd | Copié |
-| `mark.shareTitle` | Fanki: gemarkeerde kaarten | Fanki : cartes marquées |
+| `mark.shareTitle` | SpeesRep: gemarkeerde kaarten | SpeesRep : cartes marquées |
 | `flag.abbreviation` | afkorting | abréviation : forme courte d’un mot (min = minuten) |
 | `flag.false-friend` | valse vriend | faux ami : ressemble à un mot français, mais le sens est différent |
 | `time.justNow` | zojuist | à l’instant |
@@ -125,7 +132,8 @@ She sees **nl**. **fr** is hidden help: shown only in the "Hulp" panel and the o
 
 | screen | fr (shown in the panel) |
 |---|---|
-| home | Touche « Fanki » en haut pour le menu : « Voortgang » (ta progression) et « Gemarkeerd » (cartes marquées 🚩). Cet écran montre combien de cartes tu dois revoir aujourd’hui (« te herhalen ») et combien de nouvelles cartes t’attendent (« nieuw vandaag »). La barre « Vandaag » montre ton travail du jour ; « Nog 5 kaarten » = encore 5 cartes. Touche « Starten » pour commencer ; tu peux t’arrêter quand tu veux (« Terug »), tout est gardé. « Klaar voor nu! » = fini pour le moment ; « Volgende kaart over ± 7 min » = une carte revient dans environ 7 minutes. L’appli fonctionne aussi sans internet : tes réponses sont gardées sur le téléphone et envoyées à la prochaine connexion. « Synchroniseren » télécharge les nouvelles cartes quand tu as internet. |
+| home | Touche « SpeesRep » en haut pour le menu : « Voortgang » (ta progression) et « Gemarkeerd » (cartes marquées 🚩). Cet écran montre combien de cartes tu dois revoir aujourd’hui (« te herhalen ») et combien de nouvelles cartes t’attendent (« nieuw vandaag »). La barre « Vandaag » montre ton travail du jour ; « Nog 5 kaarten » = encore 5 cartes. Touche « Starten » pour commencer ; tu peux t’arrêter quand tu veux (« Terug »), tout est gardé. « Klaar voor nu! » = fini pour le moment ; « Volgende kaart over ± 7 min » = une carte revient dans environ 7 minutes. L’appli fonctionne aussi sans internet : tes réponses sont gardées sur le téléphone et envoyées à la prochaine connexion. « Synchroniseren » télécharge les nouvelles cartes quand tu as internet. |
+| about | Cette page explique SpeesRep : à quoi sert l’appli, que ta progression reste sur ton téléphone (pas de compte, pas de nom, pas d’e-mail) et d’où viennent les images (OpenMoji, licence CC BY-SA 4.0). |
 | settings | Ces réglages restent sur ton téléphone. « Max. aantal nieuwe woorden per dag » = combien de nouveaux mots au maximum chaque jour (« Standaard » = le choix de ton professeur). « Luisteroefeningen » = parfois la carte commence seulement par le son ; « Uit » = jamais. « Back-up opslaan » enregistre ta progression dans un fichier ; « Back-up terugzetten » la remet depuis ce fichier (par exemple sur un nouveau téléphone). Les changements comptent tout de suite, pour la prochaine carte. |
 | progress | Ta progression : « kaarten geoefend » = cartes déjà travaillées, « kaarten bekend » = cartes bien sues, « herhalingen deze week » = révisions des 7 derniers jours, « dagen op rij » = jours de suite. En bas : combien de cartes reviennent aujourd’hui (vandaag), demain (morgen) et cette semaine (deze week). |
 | marked | Ici, les cartes que tu as marquées avec 🚩 pendant les révisions, les plus récentes en haut. « Opgelost » = résolu : la carte passe dans la liste « Opgelost » (rien n’est effacé). « Delen » = partager la liste (Messages, e-mail…) avec ton prof ou quelqu’un d’autre : c’est toi qui l’envoies, rien ne part tout seul. |

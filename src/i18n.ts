@@ -21,8 +21,8 @@ export const UI = {
   'today.left1': { nl: 'Nog 1 kaart', fr: 'Encore 1 carte aujourd’hui' },
 
   'db.blocked': {
-    nl: 'Fanki is nog open in een ander venster. Sluit het en open de app opnieuw.',
-    fr: 'Une autre fenêtre de Fanki (ancienne version) est encore ouverte : ferme-la, puis rouvre l’appli.'
+    nl: 'SpeesRep is nog open in een ander venster. Sluit het en open de app opnieuw.',
+    fr: 'Une autre fenêtre de SpeesRep (ancienne version) est encore ouverte : ferme-la, puis rouvre l’appli.'
   },
 
   // Status + sync
@@ -46,12 +46,33 @@ export const UI = {
   'home.topicAll': { nl: 'Onderwerp: alle', fr: 'Thème : tous' },
   'home.topic': { nl: 'Onderwerp: {list}', fr: 'Thème : {list}' },
 
-  // Menu (tap "Fanki")
-  'menu.open': { nl: 'Menu openen', fr: 'Ouvrir le menu (progression, cartes marquées, réglages)' },
+  // Menu (tap "SpeesRep")
+  'menu.open': { nl: 'Menu openen', fr: 'Ouvrir le menu (progression, cartes marquées, réglages, à propos)' },
   'menu.title': { nl: 'Menu', fr: 'Menu' },
 
   // Voortgang (progress overview)
   'progress.title': { nl: 'Voortgang', fr: 'Ma progression' },
+
+  // Over SpeesRep
+  'about.title': { nl: 'Over SpeesRep', fr: 'À propos de SpeesRep' },
+  'about.intro': {
+    nl: 'SpeesRep helpt je om Nederlandse woorden te leren. Je oefent een beetje, neemt een pauze, en oefent dan weer.',
+    fr: 'SpeesRep t’aide à apprendre des mots néerlandais : tu t’exerces un peu, tu fais une pause, puis tu recommences.'
+  },
+  'about.privacy': {
+    nl: 'Je voortgang blijft op dit toestel. SpeesRep heeft geen account nodig en vraagt niet om je naam of e-mailadres.',
+    fr: 'Ta progression reste sur cet appareil. SpeesRep n’a pas besoin de compte et ne demande ni ton nom ni ton e-mail.'
+  },
+  'about.imagesTitle': { nl: 'Plaatjes', fr: 'Images' },
+  'about.images': {
+    nl: 'Alle plaatjes zijn gemaakt door OpenMoji, het open-source emoji- en iconenproject. De plaatjes zijn niet aangepast.',
+    fr: 'Toutes les images viennent d’OpenMoji, un projet libre d’emojis et d’icônes. Elles ne sont pas modifiées.'
+  },
+  'about.license': { nl: 'Licentie: CC BY-SA 4.0', fr: 'Licence : CC BY-SA 4.0' },
+  'about.imagesEn': {
+    nl: 'All emojis designed by OpenMoji – the open-source emoji and icon project. License: CC BY-SA 4.0',
+    fr: 'All emojis designed by OpenMoji – the open-source emoji and icon project. License: CC BY-SA 4.0'
+  },
 
   // Instellingen (phone only)
   'settings.title': { nl: 'Instellingen', fr: 'Réglages' },
@@ -65,7 +86,7 @@ export const UI = {
   'backup.save': { nl: 'Back-up opslaan', fr: 'Enregistrer une sauvegarde (fichier)' },
   'backup.load': { nl: 'Back-up terugzetten', fr: 'Restaurer une sauvegarde (fichier)' },
   'backup.done': { nl: 'Back-up teruggezet.', fr: 'Sauvegarde restaurée.' },
-  'backup.bad': { nl: 'Dit is geen Fanki-back-up.', fr: 'Ce fichier n’est pas une sauvegarde Fanki.' },
+  'backup.bad': { nl: 'Dit is geen SpeesRep-back-up.', fr: 'Ce fichier n’est pas une sauvegarde SpeesRep.' },
   'backup.otherApp': { nl: 'Deze back-up is van een andere versie van de app.', fr: 'Cette sauvegarde vient d’une autre version de l’appli (DEV/PROD).' },
   'progress.learned': { nl: 'kaarten geoefend (van {n})', fr: 'cartes déjà travaillées (sur {n} en tout)' },
   'progress.known': { nl: 'kaarten bekend', fr: 'cartes bien sues (elles reviennent dans 3 semaines ou plus)' },
@@ -100,7 +121,7 @@ export const UI = {
   'mark.share': { nl: 'Delen', fr: 'Partager (Messages, e-mail…)' },
   'mark.copy': { nl: 'Kopieer naar klembord', fr: 'Copier dans le presse-papiers' },
   'mark.copied': { nl: 'Gekopieerd', fr: 'Copié' },
-  'mark.shareTitle': { nl: 'Fanki: gemarkeerde kaarten', fr: 'Fanki : cartes marquées' },
+  'mark.shareTitle': { nl: 'SpeesRep: gemarkeerde kaarten', fr: 'SpeesRep : cartes marquées' },
 
   // Card flags (key = value in the Cards.flags column)
   'flag.abbreviation': { nl: 'afkorting', fr: 'abréviation : forme courte d’un mot (min = minuten)' },
@@ -149,13 +170,19 @@ export const HELP = {
   home: {
     nl: 'Hier zie je je kaarten voor vandaag. Tik op Starten.',
     fr:
-      'Touche « Fanki » en haut pour le menu : « Voortgang » (ta progression) et « Gemarkeerd » (cartes marquées 🚩). ' +
+      'Touche « SpeesRep » en haut pour le menu : « Voortgang » (ta progression) et « Gemarkeerd » (cartes marquées 🚩). ' +
       'Cet écran montre combien de cartes tu dois revoir aujourd’hui (« te herhalen ») et combien de nouvelles ' +
       'cartes t’attendent (« nieuw vandaag »). La barre « Vandaag » montre ton travail du jour ; « Nog 5 kaarten » = ' +
       'encore 5 cartes. Touche « Starten » pour commencer ; tu peux t’arrêter quand tu veux (« Terug »), tout est ' +
       'gardé. « Klaar voor nu! » = fini pour le moment ; « Volgende kaart over ± 7 min » = une carte revient ' +
       'dans environ 7 minutes. L’appli fonctionne aussi sans internet : tes réponses sont gardées sur le téléphone ' +
       'et envoyées à la prochaine connexion. « Synchroniseren » télécharge les nouvelles cartes quand tu as internet.'
+  },
+  about: {
+    nl: 'Hier lees je over SpeesRep.',
+    fr:
+      'Cette page explique SpeesRep : à quoi sert l’appli, que ta progression reste sur ton téléphone (pas de compte, ' +
+      'pas de nom, pas d’e-mail) et d’où viennent les images (OpenMoji, licence CC BY-SA 4.0).'
   },
   settings: {
     nl: 'Hier kies je je instellingen.',

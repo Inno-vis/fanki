@@ -22,8 +22,9 @@ import type { Card } from './types';
 import { listenMode, voicesReady } from './tts';
 import { useSettings } from './settings';
 import { SettingsScreen } from './screens/SettingsScreen';
+import { AboutScreen } from './screens/AboutScreen';
 
-type Screen = { name: 'home' } | { name: 'topics' } | { name: 'marked' } | { name: 'progress' } | { name: 'settings' } | { name: 'review'; items: Item[] };
+type Screen = { name: 'home' } | { name: 'topics' } | { name: 'marked' } | { name: 'progress' } | { name: 'settings' } | { name: 'about' } | { name: 'review'; items: Item[] };
 
 export function App() {
   const online = useOnline();
@@ -98,7 +99,7 @@ export function App() {
       <UpdateBanner />
       <Toast />
       <header class="topbar">
-        <Menu go={(name) => setScreen(name === 'marked' ? { name: 'marked' } : name === 'settings' ? { name: 'settings' } : { name: 'progress' })} />
+        <Menu go={(name) => setScreen({ name } as Screen)} />
         <div class="topbar-right">
           {!online && <span class="offline-badge">{t('status.offline')}</span>}
           <HelpButton screen={screen.name === 'home' ? 'home' : screen.name} />
@@ -112,6 +113,8 @@ export function App() {
         <ProgressScreen onDone={() => setScreen({ name: 'home' })} />
       ) : screen.name === 'settings' ? (
         <SettingsScreen onDone={() => setScreen({ name: 'home' })} />
+      ) : screen.name === 'about' ? (
+        <AboutScreen onDone={() => setScreen({ name: 'home' })} />
       ) : (
       <Home
         onTopics={() => setScreen({ name: 'topics' })}

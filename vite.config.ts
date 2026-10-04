@@ -12,7 +12,7 @@ export default defineConfig(({ mode, command }) => {
   const ENV = isProd ? 'PROD' : 'DEV';
   const env = { ...loadEnv(mode, process.cwd(), ''), ...process.env };
   const base = process.env.FANKI_BASE ?? (isProd ? '/fanki/' : '/fanki/dev/');
-  const name = isProd ? 'Fanki' : 'Fanki DEV';
+  const name = isProd ? 'SpeesRep' : 'SpeesRep DEV'; // visible name; technical names stay "fanki"
   const iconDir = isProd ? 'icons/prod' : 'icons/dev';
 
   if (command === 'build' && !process.env.FANKI_ALLOW_NO_API && (!env[`API_URL_${ENV}`] || !env[`LEARNER_TOKEN_${ENV}`])) {

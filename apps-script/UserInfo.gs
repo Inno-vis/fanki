@@ -6,7 +6,7 @@ var USER_INFO_TAB = 'User info';
 function userInfoRows_(env) {
   var prod = env === 'PROD';
   var link = prod ? 'https://inno-vis.github.io/fanki/' : 'https://inno-vis.github.io/fanki/dev/';
-  var name = prod ? 'Fanki' : 'Fanki DEV';
+  var name = prod ? 'SpeesRep' : 'SpeesRep DEV';
   return [
     ['', 'Nederlands', 'Français'],
     ['Link', link, link + (prod ? '' : '   (version de TEST — la vraie version : https://inno-vis.github.io/fanki/)')],

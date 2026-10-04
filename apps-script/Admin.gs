@@ -577,3 +577,19 @@ function adminDeleteTabs_(tabs, dryRun) {
     return report;
   });
 }
+
+/** Changes the value of one known Settings key: {key, value}. Dry run unless dryRun:false. */
+function adminSetSetting_(key, value, dryRun) {
+  var def = SETTINGS_DEFAULTS.filter(function (d) { return d[0] === key; })[0];
+  if (!def) throw apiError_('bad_request', 'unknown setting ' + key);
+  var v = typeof def[1] === 'number' ? Number(value) : typeof def[1] === 'boolean' ? bool_(value) : String(value);
+  if (typeof def[1] === 'number' && !isFinite(v)) throw apiError_('bad_request', key + ' must be a number');
+  return withLock_(function () {
+    var sh = sheet_('Settings');
+    var row = readTable_(sh).rows.filter(function (r) { return String(r.key).trim() === key; })[0];
+    if (!row) throw apiError_('not_found', key + ' is not in the Settings tab (run cleanSettings first)');
+    var report = { dryRun: dryRun, key: key, from: row.value, to: v };
+    if (!dryRun) sh.getRange(row._row, 2).setValue(v);
+    return report;
+  });
+}

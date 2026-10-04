@@ -186,7 +186,8 @@ keys, pos and descriptions. The API maps them to internal codes (`typeCode_`/`so
 - UI: 🚩 on every card in review (`FlagButton`: tap = flag + "Gemarkeerd" toast with "+ notitie";
   long-press = flag + note field; lit when the card has an open flag). "Gemarkeerd" screen (`screens/Marked.tsx`)
   shows ONE row per card (`groupFlags`: "3×", all notes; Opgelost resolves all its open flags); counts are cards.
-- Menu: tap "SpeesRep" (`components/Menu.tsx`) → 📈 Voortgang, 🚩 Gemarkeerd (count; red dot on the title),
+- Menu: tap "SpeesRep" (`components/Menu.tsx`; red dot on the title = open 🚩 flags or unsent answers) → 📈 Voortgang,
+  🚩 Gemarkeerd (count),
   ⚙️ Instellingen, ℹ️ Over SpeesRep (`screens/AboutScreen.tsx`: about, privacy, OpenMoji CC BY-SA 4.0 credit).
   Below them the sync status (`components/SyncBox.tsx`: last sync, cards, unsent answers, "Synchroniseren");
   home no longer shows it. Syncing stays automatic.

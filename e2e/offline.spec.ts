@@ -115,7 +115,8 @@ test('offline: review without internet, reconnect, every review reaches the serv
   await page.getByRole('button', { name: 'Starten' }).click();
   await reviewCards(page, 3);
   await page.getByRole('button', { name: /Terug/ }).click();
-  // The menu shows the unsent answers (it stays open while the connection comes back).
+  // Unsent answers: the red dot on the menu title; the menu shows them (it stays open while the connection comes back).
+  await expect(page.locator('.menu-dot')).toBeVisible();
   await page.getByRole('button', { name: 'Menu openen' }).click();
   await expect(page.getByText('3 antwoorden nog niet gesynchroniseerd')).toBeVisible();
   expect(server.log.size).toBe(0);
@@ -136,6 +137,7 @@ test('offline: review without internet, reconnect, every review reaches the serv
   await expect(page.getByText('Laatst gesynchroniseerd: zojuist')).toBeVisible();
   expect(server.log.size).toBe(3);
   await page.getByRole('menu').getByRole('button', { name: 'Sluiten' }).click();
+  await expect(page.locator('.menu-dot')).toBeHidden(); // everything sent, no 🚩 → no dot
 
   // 6. Reviews and progress survive a restart.
   await page.reload();

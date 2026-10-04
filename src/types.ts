@@ -52,7 +52,7 @@ export const DEFAULT_SETTINGS: Settings = {
   mature_stability_days: 21,
   show_french_help: true,
   max_learning_backlog: 3,
-  due_window_minutes: 10,
+  due_window_minutes: 5,
   max_reviews_per_day: 100,
   curriculum_only: true,
   listen_share: 0.3

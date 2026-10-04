@@ -203,7 +203,7 @@ to move them into Cards. Nothing is ever written to Cards by `/addwords`.
 | curriculum_only | TRUE | New cards only from open Curriculum topics; other topics and untagged cards stay locked (reviews of started cards continue) |
 | listen_share | 0.3 | Share of word-recognition reviews that start with only the sound (🔊 "Wat hoor je?"); 0 = off. Only on phones with a Dutch voice |
 | max_learning_backlog | 3 | The next NEW card waits while this many cards are still in their short "again in minutes" steps |
-| due_window_minutes | 10 | Cards due within this many minutes already count as due now (part of today's work) |
+| due_window_minutes | 5 | Cards due in LESS than this many minutes count as due now (the round), and only such short steps come back in the same run. Keep it below the "Goed" step of a new card (10 min). Set to 5 on 2026-10-04 |
 | max_reviews_per_day | 100 | Silent cap on the due part of today's work; the rest stays due and rolls to tomorrow |
 
 Removed 2026-10-04 (`admin <env> cleanSettings` deletes the rows, dry run first): `cooldown_minutes`,

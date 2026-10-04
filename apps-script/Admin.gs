@@ -578,7 +578,7 @@ function adminDeleteTabs_(tabs, dryRun) {
   });
 }
 
-/** Changes the value of one known Settings key: {key, value}. Dry run unless dryRun:false. */
+/** Changes the value of one known Settings key: {key, value}; adds the row (with its description) when missing. Dry run unless dryRun:false. */
 function adminSetSetting_(key, value, dryRun) {
   var def = SETTINGS_DEFAULTS.filter(function (d) { return d[0] === key; })[0];
   if (!def) throw apiError_('bad_request', 'unknown setting ' + key);
@@ -587,9 +587,10 @@ function adminSetSetting_(key, value, dryRun) {
   return withLock_(function () {
     var sh = sheet_('Settings');
     var row = readTable_(sh).rows.filter(function (r) { return String(r.key).trim() === key; })[0];
-    if (!row) throw apiError_('not_found', key + ' is not in the Settings tab (run cleanSettings first)');
-    var report = { dryRun: dryRun, key: key, from: row.value, to: v };
-    if (!dryRun) sh.getRange(row._row, 2).setValue(v);
+    var report = { dryRun: dryRun, key: key, from: row ? row.value : '(no row: added)', to: v };
+    if (dryRun) return report;
+    if (row) sh.getRange(row._row, 2).setValue(v);
+    else sh.appendRow([key, v, def[2]]);
     return report;
   });
 }

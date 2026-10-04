@@ -43,7 +43,7 @@ export function cleanSettings(raw: Partial<Settings> | undefined): Settings {
     mature_stability_days: num(s.mature_stability_days, 21, 1, 3650),
     show_french_help: s.show_french_help !== false,
     max_learning_backlog: Math.round(num(s.max_learning_backlog, 3, 1, 100)),
-    due_window_minutes: num(s.due_window_minutes, 10, 0, 24 * 60),
+    due_window_minutes: num(s.due_window_minutes, 5, 0, 24 * 60),
     max_reviews_per_day: Math.round(num(s.max_reviews_per_day, 100, 1, 10_000)),
     curriculum_only: s.curriculum_only !== false,
     listen_share: num(s.listen_share, 0.3, 0, 1)

@@ -593,3 +593,17 @@ function adminSetSetting_(key, value, dryRun) {
     return report;
   });
 }
+
+/** Sets or clears 🚩 nakijken (Cards.nakijken) for cards: {ids:[...], on:true}. Never hides a card. Dry run unless dryRun:false. */
+function adminFlagCards_(ids, on, dryRun) {
+  if (!Array.isArray(ids) || !ids.length) throw apiError_('bad_request', 'ids[] required');
+  return withLock_(function () {
+    var sh = sheet_('Cards');
+    var col = headersOf_(sh).indexOf('nakijken') + 1;
+    if (!col) throw apiError_('setup_needed', 'Cards.nakijken missing: run setup first');
+    var rows = ids.map(function (id) { return findById_(sh, id); }).filter(function (r) { return r; });
+    var report = { dryRun: dryRun, on: !!on, cards: rows.length, notFound: ids.length - rows.length };
+    if (!dryRun) rows.forEach(function (r) { sh.getRange(r._row, col).setValue(!!on); });
+    return report;
+  });
+}

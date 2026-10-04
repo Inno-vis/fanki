@@ -1,17 +1,25 @@
 import { t } from '../i18n';
 
-const OPENMOJI = 'https://openmoji.org/';
-const CC_BY_SA = 'https://creativecommons.org/licenses/by-sa/4.0/';
-
-/** "Over SpeesRep": what the app is, privacy, and the image credits (OpenMoji, CC BY-SA 4.0). */
-export function AboutScreen({ onDone }: { onDone: () => void }) {
-  const link = (href: string, text: string) => (
-    <a href={href} target="_blank" rel="noopener noreferrer">
-      {text}
-    </a>
+/** Text with its http(s) addresses as links (they open outside the app). */
+function Linked({ text }: { text: string }) {
+  const parts = text.split(/(https?:\/\/[^\s)]+)/);
+  return (
+    <>
+      {parts.map((p, i) =>
+        /^https?:\/\//.test(p) ? (
+          <a key={i} href={p} target="_blank" rel="noopener noreferrer">
+            {p}
+          </a>
+        ) : (
+          p
+        )
+      )}
+    </>
   );
-  // "… gemaakt door OpenMoji, …": the name links to the project.
-  const [before, after] = t('about.images').split('OpenMoji');
+}
+
+/** "Over SpeesRep": what the app is, privacy, and the image credit (OpenMoji, CC BY-SA 4.0). */
+export function AboutScreen({ onDone }: { onDone: () => void }) {
   return (
     <main class="topics about">
       <h2 class="screen-title">{t('about.title')}</h2>
@@ -19,11 +27,11 @@ export function AboutScreen({ onDone }: { onDone: () => void }) {
       <p>{t('about.privacy')}</p>
       <h3 class="setting-head">{t('about.imagesTitle')}</h3>
       <p>
-        {before}
-        {link(OPENMOJI, 'OpenMoji')}
-        {after}
+        <Linked text={t('about.images')} />
       </p>
-      <p>{link(CC_BY_SA, t('about.license'))}</p>
+      <p>
+        <Linked text={t('about.license')} />
+      </p>
       <p class="muted" lang="en">
         {t('about.imagesEn')}
       </p>

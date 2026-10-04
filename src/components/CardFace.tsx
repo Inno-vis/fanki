@@ -5,6 +5,7 @@ import { useEffect } from 'preact/hooks';
 import { t } from '../i18n';
 import { dutchSpeech, speakDutch } from '../tts';
 import { SpeakButton } from './SpeakButton';
+import { openmojiFor } from '../openmoji';
 
 /**
  * One card in a given direction.
@@ -78,14 +79,20 @@ export function CardFace({ card, mode, revealed }: { card: Card; mode: Mode; rev
     );
   }
 
-  // enkel (oneway): the Dutch prompt, then the answer (display text; she rates herself).
+  // enkel (oneway): the Dutch prompt (or its OpenMoji picture), then the answer (display text; she rates herself).
   if (mode === 'oneway') {
+    const picture = openmojiFor(card.nl);
     return (
       <article class="card" aria-live="polite">
         {flags}
-        <p class="card-prompt card-prompt-big" lang="nl">
-          {card.nl}
-        </p>
+        {picture ? (
+          // OpenMoji picture (self-hosted, precached): the same image on every phone.
+          <img class="card-picture" src={`${import.meta.env.BASE_URL}openmoji/${picture}.svg`} alt={card.nl} width={160} height={160} />
+        ) : (
+          <p class="card-prompt card-prompt-big" lang="nl">
+            {card.nl}
+          </p>
+        )}
         {card.fr && (
           <p class="card-prompt" lang="fr">
             {card.fr}

@@ -71,6 +71,9 @@ from `apps-script/UserInfo.gs` (your own edits in the tab are then replaced).
 - DEV **and** PROD: the 50 interface words (tag `app`, `tags_source` manual, `added` 2026-09-27 so they are
   introduced before everything else). `setup()` adds any that are missing and never duplicates.
 
+Emoji cards: the app shows the self-hosted OpenMoji picture for the emoji in `nl` (`npm run openmoji` after
+adding new emoji cards); the sheet keeps the emoji character.
+
 ### Card types
 
 | type (sheet) | API code | front | back | directions |

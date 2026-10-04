@@ -14,7 +14,7 @@ const ALLOW = new Set(
    hier daar er dit dat deze die op in aan met van voor naar uit om te tot bij als dan wat wie waar hoe
    mijn jouw jullie ons onze heb hebt heeft kan kun kunt wil moet ja nee al zo heel veel meer tik
    alle ok mag niets per min u d wk mnd jr fanki speesrep openmoji dev
-   max teruggezet`.split(/\s+/).filter(Boolean) // max = maximaal (taught), teruggezet = terugzetten (taught)
+   max teruggezet iconenproject`.split(/\s+/).filter(Boolean) // max = maximaal, teruggezet = terugzetten, iconenproject = icoon + project (all taught)
 );
 
 // Taught words from the app seed list (multi-word entries like "nog eens" count per word).
@@ -39,7 +39,7 @@ function known(word) {
     const open = base.replace(/(aa|ee|oo|uu)([^aeiou])$/, (_, v, c) => v[0] + c);
     if (open !== base && word === open + 'en') return true;
     // verb forms from an infinitive: controleren → controleer/controleert/gecontroleerd(e)
-    if (base.endsWith('en') && base.length > 5) {
+    if (base.endsWith('en') && base.length >= 5) { // maken → gemaakt
       const plain = base.normalize('NFD').replace(/[\u0300-\u036f]/g, ''); // kopiëren → kopieren
       const sep = plain.match(/^(aan|uit|op|af|mee|terug|in|door)(.{4,})$/);
       for (const [prefix, verb] of sep ? [['', plain], [sep[1], sep[2]]] : [['', plain]]) {
@@ -75,7 +75,7 @@ const strings = [
 ];
 const unknown = new Map();
 for (const [key, text] of strings) {
-  const words = text.replace(/\{\w+\}/g, ' ').toLowerCase().match(/[a-zà-ÿ]+/g) || [];
+  const words = text.replace(/\{\w+\}/g, ' ').replace(/https?:\/\/\S+/g, ' ').toLowerCase().match(/[a-zà-ÿ]+/g) || [];
   for (const w of words) if (!known(w)) unknown.set(w, [...(unknown.get(w) || []), key]);
 }
 

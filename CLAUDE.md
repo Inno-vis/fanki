@@ -46,7 +46,7 @@ The repo is **public** and hosted on GitHub Pages.
   → `{accepted, duplicate, rejected}`. Idempotent on `event_id`.
 - Admin-only (ADMIN_TOKEN): `listCards, listUntagged, tags, setTags, appendInbox, listInbox,
   promoteInbox, rebuildProgress, setup, readTab, reseedDev (DEV only), purgeSmoke,
-  setCurriculum, addCurriculum, curriculumStatus, migrateToDutch, userInfo, setTeachers, enableApproval, setCheck, removeTags, deleteRejected (DEV only), importCards, cardsToInbox, setSetting, cleanSettings, deleteTabs, replaceKlok, seedEmoji (dry run unless
+  setCurriculum, addCurriculum, curriculumStatus, migrateToDutch, userInfo, setTeachers, enableApproval, setCheck, removeTags, deleteRejected (DEV only), importCards, cardsToInbox, setSetting, cleanSettings, deleteTabs, flagCards, replaceKlok, seedEmoji (dry run unless
   dryRun:false; seedEmoji is DEV only)`. Open items: docs/todo.md.
 - All writes are inside `LockService`. All actions are idempotent, so clients **retry** on
   `no_action` (POST body lost on Google's redirect), `busy`, or non-JSON responses.
@@ -98,6 +98,16 @@ The repo is **public** and hosted on GitHub Pages.
 - JSON backup (same page; `src/backup.ts`): export = progress, unsent reviews, 🚩 flags, intro, doneToday,
   dayCounts, studyTags, userSettings (no cards). Import MERGES (newer progress/flag wins, reviews added, today's
   records only from today) and refuses files of the other app (DEV/PROD). iPhone: share sheet; else a download.
+
+## OpenMoji pictures (emoji cards)
+
+- Emoji cards (`enkel`, front = one emoji) show the OpenMoji COLOUR picture instead of the phone's emoji
+  (`openmojiFor` in the generated `src/openmoji.ts`, `<img>` in CardFace). `npm run openmoji` (scripts/openmoji.mjs)
+  maps the EMOJI_SEED_CARDS emoji to hexcodes from `openmoji` (exact-pinned devDependency) and copies ONLY those SVGs,
+  SVGO-optimised, to `public/openmoji/` (+ LICENSE.txt). Self-hosted only (never openmoji.org / CDNs); precached by
+  the service worker (globPatterns include svg). Re-run it after adding emoji cards; unmatched emoji are listed.
+- Credit (CC BY-SA 4.0) on Over SpeesRep (`about.images`, `about.license`). Cards whose picture changed get 🚩
+  nakijken (`admin <env> flagCards`).
 
 ## Listening and Voortgang
 

@@ -39,11 +39,11 @@ She sees **nl**. **fr** is hidden help: shown only in the "Hulp" panel and the o
 | `menu.title` | Menu | Menu |
 | `progress.title` | Voortgang | Ma progression |
 | `about.title` | Over SpeesRep | À propos de SpeesRep |
-| `about.intro` | SpeesRep helpt je om Nederlandse woorden te leren. Je oefent een beetje, neemt een pauze, en oefent dan weer. | SpeesRep t’aide à apprendre des mots néerlandais : tu t’exerces un peu, tu fais une pause, puis tu recommences. |
+| `about.intro` | SpeesRep helpt je om Nederlandse woorden te leren. Je oefent elke dag een beetje. | SpeesRep t’aide à apprendre des mots néerlandais. Tu t’exerces un peu chaque jour. |
 | `about.privacy` | Je voortgang blijft op dit toestel. SpeesRep heeft geen account nodig en vraagt niet om je naam of e-mailadres. | Ta progression reste sur cet appareil. SpeesRep n’a pas besoin de compte et ne demande ni ton nom ni ton e-mail. |
 | `about.imagesTitle` | Plaatjes | Images |
-| `about.images` | Alle plaatjes zijn gemaakt door OpenMoji, het open-source emoji- en iconenproject. De plaatjes zijn niet aangepast. | Toutes les images viennent d’OpenMoji, un projet libre d’emojis et d’icônes. Elles ne sont pas modifiées. |
-| `about.license` | Licentie: CC BY-SA 4.0 | Licence : CC BY-SA 4.0 |
+| `about.images` | Alle plaatjes zijn gemaakt door OpenMoji (https://openmoji.org/), het open-source emoji- en iconenproject. De plaatjes zijn niet aangepast. | Toutes les images viennent d’OpenMoji (https://openmoji.org/), un projet libre d’emojis et d’icônes. Elles ne sont pas modifiées. |
+| `about.license` | Licentie: CC BY-SA 4.0 (https://creativecommons.org/licenses/by-sa/4.0/) | Licence : CC BY-SA 4.0 (https://creativecommons.org/licenses/by-sa/4.0/) |
 | `about.imagesEn` | All emojis designed by OpenMoji – the open-source emoji and icon project. License: CC BY-SA 4.0 | All emojis designed by OpenMoji – the open-source emoji and icon project. License: CC BY-SA 4.0 |
 | `settings.title` | Instellingen | Réglages |
 | `settings.newPerDay` | Max. aantal nieuwe woorden per dag | Nombre maximum de nouveaux mots par jour |

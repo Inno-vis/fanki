@@ -56,8 +56,8 @@ export const UI = {
   // Over SpeesRep
   'about.title': { nl: 'Over SpeesRep', fr: 'À propos de SpeesRep' },
   'about.intro': {
-    nl: 'SpeesRep helpt je om Nederlandse woorden te leren. Je oefent een beetje, neemt een pauze, en oefent dan weer.',
-    fr: 'SpeesRep t’aide à apprendre des mots néerlandais : tu t’exerces un peu, tu fais une pause, puis tu recommences.'
+    nl: 'SpeesRep helpt je om Nederlandse woorden te leren. Je oefent elke dag een beetje.',
+    fr: 'SpeesRep t’aide à apprendre des mots néerlandais. Tu t’exerces un peu chaque jour.'
   },
   'about.privacy': {
     nl: 'Je voortgang blijft op dit toestel. SpeesRep heeft geen account nodig en vraagt niet om je naam of e-mailadres.',
@@ -65,10 +65,13 @@ export const UI = {
   },
   'about.imagesTitle': { nl: 'Plaatjes', fr: 'Images' },
   'about.images': {
-    nl: 'Alle plaatjes zijn gemaakt door OpenMoji, het open-source emoji- en iconenproject. De plaatjes zijn niet aangepast.',
-    fr: 'Toutes les images viennent d’OpenMoji, un projet libre d’emojis et d’icônes. Elles ne sont pas modifiées.'
+    nl: 'Alle plaatjes zijn gemaakt door OpenMoji (https://openmoji.org/), het open-source emoji- en iconenproject. De plaatjes zijn niet aangepast.',
+    fr: 'Toutes les images viennent d’OpenMoji (https://openmoji.org/), un projet libre d’emojis et d’icônes. Elles ne sont pas modifiées.'
   },
-  'about.license': { nl: 'Licentie: CC BY-SA 4.0', fr: 'Licence : CC BY-SA 4.0' },
+  'about.license': {
+    nl: 'Licentie: CC BY-SA 4.0 (https://creativecommons.org/licenses/by-sa/4.0/)',
+    fr: 'Licence : CC BY-SA 4.0 (https://creativecommons.org/licenses/by-sa/4.0/)'
+  },
   'about.imagesEn': {
     nl: 'All emojis designed by OpenMoji – the open-source emoji and icon project. License: CC BY-SA 4.0',
     fr: 'All emojis designed by OpenMoji – the open-source emoji and icon project. License: CC BY-SA 4.0'

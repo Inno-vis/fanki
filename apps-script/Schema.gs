@@ -186,7 +186,26 @@ var APP_SEED_CARDS = [
   'word|toestel|het|noun|l\'appareil|Mijn toestel heeft geen stem.|Mon appareil n\'a pas de voix.|app|manual|',
   'word|back-up|de|noun|la sauvegarde|Ik maak een back-up.|Je fais une sauvegarde.|app|manual|',
   'word|terugzetten||verb (separable)|remettre, restaurer|Ik zet de back-up terug.|Je restaure la sauvegarde.|app|manual|separable',
-  'word|ander||adj|autre (andere = autre, avec -e)|Heb je een andere dag?|Tu as un autre jour ?|app|manual|'
+  'word|ander||adj|autre (andere = autre, avec -e)|Heb je een andere dag?|Tu as un autre jour ?|app|manual|',
+  // Over SpeesRep words (2026-10-04)
+  'word|aanpassen||verb (separable)|adapter, modifier|Ik pas de tekst aan.|J\'adapte le texte.|app|manual|separable',
+  'word|account|het|noun|le compte|Ik heb geen account.|Je n\'ai pas de compte.|app|manual|',
+  'word|een beetje||phrase|un peu|Ik spreek een beetje Nederlands.|Je parle un peu néerlandais.|app|manual|',
+  'word|blijven||verb|rester|Ik blijf thuis.|Je reste à la maison.|app|manual|',
+  'word|door||prep|par|Dit plaatje is gemaakt door een kind.|Cette image est faite par un enfant.|app|manual|',
+  'word|e-mailadres|het|noun|l\'adresse e-mail|Wat is je e-mailadres?|Quelle est ton adresse e-mail ?|app|manual|',
+  'word|elk||det|chaque (elke = chaque, avec -e)|Ik oefen elke dag.|Je m\'exerce chaque jour.|app|manual|',
+  'word|emoji|de|noun|l\'emoji|Ik zie een emoji.|Je vois un emoji.|app|manual|',
+  'word|maken||verb|faire, fabriquer|Ik maak een tekening.|Je fais un dessin.|app|manual|',
+  'word|helpen||verb|aider|Kun je mij helpen?|Tu peux m\'aider ?|app|manual|',
+  'word|icoon|het|noun|l\'icône|Tik op het icoon.|Touche l\'icône.|app|manual|',
+  'word|project|het|noun|le projet|Dit is een groot project.|C\'est un grand projet.|app|manual|',
+  'word|leren||verb|apprendre|Ik leer Nederlands.|J\'apprends le néerlandais.|app|manual|',
+  'word|naam|de|noun|le nom|Wat is je naam?|Quel est ton nom ?|app|manual|',
+  'word|nodig||adj|nécessaire (nodig hebben = avoir besoin de)|Ik heb een pen nodig.|J\'ai besoin d\'un stylo.|app|manual|',
+  'word|plaatje|het|noun|l\'image (petite image)|Kijk naar het plaatje.|Regarde l\'image.|app|manual|',
+  'word|open-source||adj|open source, libre|Deze app is open-source.|Cette appli est open source.|app|manual|',
+  'word|vragen||verb|demander|Ik vraag de weg.|Je demande le chemin.|app|manual|'
 ];
 
 // Abbreviations (enkel cards with the badge "afkorting" = flag `abbreviation`). Each sits in the category where it

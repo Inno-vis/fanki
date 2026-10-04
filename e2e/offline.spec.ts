@@ -202,7 +202,12 @@ test('enkel/emoji card, 🔊 without a Dutch voice, and 🚩 flags (flag, note, 
   // The oldest card comes first: the emoji card, with its subject label; the answer only after the reveal.
   await page.getByRole('button', { name: 'Starten' }).click();
   await expect(page.getByText('Wat is dit?')).toBeVisible();
-  await expect(page.getByText('🛏️')).toBeVisible();
+  // The emoji is shown as the self-hosted OpenMoji picture (same origin, loaded, precached for offline use).
+  const pic = page.getByRole('img', { name: '🛏️' });
+  await expect(pic).toBeVisible();
+  expect(await pic.getAttribute('src')).toBe('/fanki/dev/openmoji/1F6CF.svg');
+  expect(await pic.evaluate((img: HTMLImageElement) => img.complete && img.naturalWidth > 0)).toBe(true);
+  expect(await page.evaluate(async () => !!(await caches.match('/fanki/dev/openmoji/1F6CF.svg', { ignoreSearch: true })))).toBe(true);
   await expect(page.getByText('het bed')).toBeHidden();
   await page.getByRole('button', { name: 'Antwoord tonen' }).click();
   const overlay = page.getByRole('dialog', { name: 'De vier knoppen' });

@@ -1062,4 +1062,13 @@ label.btn.disabled {
 
 .about a {
   color: var(--primary);
+  overflow-wrap: anywhere;
+}
+
+/* OpenMoji picture on emoji cards */
+.card-picture {
+  display: block;
+  width: min(44vw, 160px);
+  height: auto;
+  margin: 4px auto;
 }

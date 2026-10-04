@@ -189,10 +189,10 @@ var ABBREV_SEED_ADDED = '2026-09-26';
 var ABBREV_SEED_CARDS = [
   'A-01|min|de minuut, de minuten — minute(s)|klok-1, tijd|K1-07',
   'A-02|u|het uur — heure (3:00u = drie uur)|klok-1, tijd|K1-05',
-  'A-03|d|de dag, de dagen — jour(s)|app|',
-  'A-04|wk|de week, de weken — semaine(s)|app|',
-  'A-05|mnd|de maand, de maanden — mois|app|',
-  'A-06|jr|het jaar — an(s), année(s)|app|',
+  'A-03|d|de dag, de dagen — jour(s)|app, tijd|',
+  'A-04|wk|de week, de weken — semaine(s)|app, tijd|',
+  'A-05|mnd|de maand, de maanden — mois|app, tijd|',
+  'A-06|jr|het jaar — an(s), année(s)|app, tijd|',
   'A-07|ev|het enkelvoud — singulier|app|',
   'A-08|mv|het meervoud — pluriel|app|'
 ];

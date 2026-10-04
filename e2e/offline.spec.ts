@@ -6,8 +6,7 @@ const API = 'https://mock.fanki.test/exec';
 type Event = { event_id: string; card_id: string; rating: number };
 
 function mockServer(
-  settings: Record<string, unknown> = { new_per_day: 5, cooldown_minutes: 0, show_french_help: true },
-  breaks: string[] = [],
+  settings: Record<string, unknown> = { new_per_day: 5, show_french_help: true },
   extraCards: Record<string, unknown>[] = []
 ) {
   settings = { curriculum_only: false, ...settings }; // the mock has no Curriculum tab
@@ -42,7 +41,7 @@ function mockServer(
               { tag: 'reizen', label_nl: 'reizen', label_fr: 'voyages' },
               { tag: 'emoji', label_nl: 'emoji', label_fr: 'emoji', subject_nl: 'Wat is dit?' }
             ],
-            compliments: ['Goed zo!'], curriculum: [], breaks
+            compliments: ['Goed zo!'], curriculum: []
           });
         }
         posts++;
@@ -133,11 +132,8 @@ test('offline: review without internet, reconnect, every review reaches the serv
   expect(stored).toEqual({ progress: 3, queue: 0 });
 });
 
-test('topics, pause and the one-time break prompt', async ({ page }) => {
-  const server = mockServer(
-    { new_per_day: 5, cooldown_minutes: 60, min_reviews_to_count: 2, session_max_cards: 3, show_french_help: true },
-    ['Zoek iets ronds.']
-  );
+test('topics, pause/Doorgaan, and no cooldown after Stoppen', async ({ page }) => {
+  const server = mockServer({ new_per_day: 5, min_reviews_to_count: 2, session_max_cards: 3, show_french_help: true });
   await server.install(page);
   await page.goto('/fanki/dev/');
   await expect(page.getByText('Laatst gesynchroniseerd: zojuist')).toBeVisible({ timeout: 20_000 });
@@ -149,7 +145,7 @@ test('topics, pause and the one-time break prompt', async ({ page }) => {
   await expect(page.getByRole('button', { name: 'Onderwerp: huishouden' })).toBeVisible();
   await expect(page.locator('.stat').nth(1)).toContainText('2');
 
-  // Back to all topics, do 3 cards, stop → pause starts → break prompt once.
+  // Back to all topics, do 3 cards, stop → straight back home, Starten works again.
   await page.getByRole('button', { name: 'Onderwerp: huishouden' }).click();
   await page.getByRole('button', { name: 'Alle onderwerpen' }).click();
   await page.getByRole('button', { name: 'Klaar' }).click();
@@ -176,15 +172,10 @@ test('topics, pause and the one-time break prompt', async ({ page }) => {
   await expect(page.getByText('3 van 3 kaarten')).toBeVisible();
   await expect(page.getByText('Sessie voltooid! Wil je doorgaan?')).toBeVisible();
   await page.getByRole('button', { name: 'Stoppen' }).click();
-  await expect(page.getByText('Sessie voltooid!')).toBeVisible();
-  await expect(page.getByText('Zoek iets ronds.')).toBeVisible();
-  await page.getByRole('button', { name: 'OK' }).click();
 
-  // Home: Starten is replaced by the countdown, and it survives a restart.
-  await expect(page.getByRole('button', { name: /Volgende sessie over (60|59) minuten/ })).toBeDisabled();
-  await page.reload();
-  await expect(page.getByRole('button', { name: /Volgende sessie over (60|59) minuten/ })).toBeDisabled();
-  await expect(page.getByText('Zoek iets ronds.')).toBeHidden();
+  // Home right away: no countdown, Starten is available.
+  await expect(page.getByRole('button', { name: 'Starten' })).toBeEnabled();
+  await expect(page.getByText(/Volgende sessie/)).toBeHidden();
 });
 
 test('enkel/emoji card, 🔊 without a Dutch voice, and 🚩 flags (flag, note, list, copy, resolve)', async ({ page, context }) => {
@@ -193,7 +184,7 @@ test('enkel/emoji card, 🔊 without a Dutch voice, and 🚩 flags (flag, note, 
     id: 'E-01', type: 'oneway', nl: '🛏️', article: '', pos: 'emoji', fr: '', example_nl: '', example_fr: '', tags: ['emoji'],
     tags_source: 'manual', flags: [], answer: 'het bed', added: '2026-09-01', active: true
   };
-  const server = mockServer({ new_per_day: 5, cooldown_minutes: 0, show_french_help: true }, [], [emoji]);
+  const server = mockServer({ new_per_day: 5, show_french_help: true }, [emoji]);
   await server.install(page);
   // Simulate a phone without a Dutch voice (the test machine may have one): hide every nl-* voice.
   await page.addInitScript(() => {

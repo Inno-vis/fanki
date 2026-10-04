@@ -200,8 +200,7 @@ to move them into Cards. Nothing is ever written to Cards by `/addwords`.
 | session_max_cards | 15 | Cards before "Sessie voltooid! Wil je doorgaan?" |
 | session_max_minutes | 8 | Minutes before the same offer (whichever comes first) |
 | session_extra_cards | 10 | Cards added by "Nog 10 kaarten, graag!" (fewer if fewer are left) |
-| cooldown_minutes | 60 | Pause after a session before "Starten" works again (0 = no pause) |
-| min_reviews_to_count | 3 | A session shorter than this does not start a pause |
+| min_reviews_to_count | 3 | A session counts from this many ratings (then the Android install button may appear) |
 | require_approval | FALSE | ☑ = the app gets only Cards with `controle` = goedgekeurd. Turn on with `admin <env> enableApproval` (dry run first; `approveStudied` approves + 🚩 the cards she has studied, default on). On in DEV and PROD since 2026-10-02 |
 | curriculum_only | TRUE | New cards only from open Curriculum topics; other topics and untagged cards stay locked (reviews of started cards continue) |
 | listen_share | 0.3 | Share of word-recognition reviews that start with only the sound (🔊 "Wat hoor je?"); 0 = off. Only on phones with a Dutch voice |
@@ -255,7 +254,7 @@ dicht (closed now, and every automatisch row below it too).
 6. Cards she already started keep coming back for review even if their tag is (again) locked — the
    curriculum only decides what is *new*.
 
-## Sessions and pause (phone only)
+## Sessions (phone only)
 
 - "Starten" begins a session. A slim bar shows "9 van 15 kaarten".
 - At `session_max_cards` reviews or `session_max_minutes` (checked after each card) she sees ONE offer:
@@ -266,24 +265,15 @@ dicht (closed now, and every automatisch row below it too).
   or the extra 10.
 - The session also ends when cards run out or on "Stoppen". "Terug" and leaving the app only PAUSE it:
   home shows "Doorgaan (4 van 15 kaarten)"; only reviewing time counts toward `session_max_minutes`.
-  A paused session not continued within `session_resume_minutes` expires without starting a pause.
-- If it had ≥ `min_reviews_to_count` reviews, its end time is saved on the phone (IndexedDB, survives
-  restarts) and "Starten" becomes "Volgende sessie over 42 minuten" until `cooldown_minutes` have passed.
+  A paused session not continued within `session_resume_minutes` expires.
+- There is no cooldown: after a session ends she can press "Starten" again right away (removed 2026-10-04,
+  together with the Breaks prompts; setup deletes the old `cooldown_minutes` row; an old Breaks tab is unused).
 
 ## Compliments
 
 `text` — one Dutch line per row (seed: "Goed zo!", "Prima!", "Top!", "Heel goed!", "Mooi gedaan!",
 "Je wordt steeds beter!", "Uitstekend!", "Fantastisch!", "Ga zo door!", "Geweldig!",
 "Ik ben trots op je!", "Perfect!", "Sterk!"). Shown as a small toast every 3rd correct answer.
-
-## Breaks — off-screen Dutch prompts
-
-`text_nl` — one short Dutch task per row ("Zoek een rond voorwerp. Wat is het Nederlandse woord ervoor?").
-When a pause starts (a session with ≥ `min_reviews_to_count` reviews and `cooldown_minutes` > 0), the phone
-shows ONE screen: "Sessie voltooid!", one random line (never the previous one) and "OK". No answer, no
-tracking, not shown again during the pause. Empty tab → no screen. Cached offline with the cards.
-Seeded with 20 lines that vary shape/size, texture, colour, category and household context (no attribute in
-more than ~20 %). Add more with `/addbreaks <n>` (appends only).
 
 ## Dashboard (formulas, read-only)
 

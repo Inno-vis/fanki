@@ -9,7 +9,7 @@ const MIN = 60_000;
 const DAY = 24 * 60 * MIN;
 const T0 = Date.parse('2026-10-02T10:00:00Z');
 const rules = {
-  session_max_cards: 15, session_max_minutes: 8, session_extra_cards: 10, cooldown_minutes: 60,
+  session_max_cards: 15, session_max_minutes: 8, session_extra_cards: 10,
   min_reviews_to_count: 3, session_resume_minutes: 30, max_learning_backlog: 3
 };
 const card = (id: string): Card =>

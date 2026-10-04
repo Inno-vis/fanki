@@ -12,8 +12,7 @@ var LAYOUT = {
   Tags: { tag: 120, label_nl: 170, label_fr: 170, description: 340, subject_nl: 130 },
   Settings: { key: 230, value: 90, description: 560 },
   Compliments: { text: 320 },
-  Curriculum: { order: 70, tag: 120, unlock_threshold: 130, min_reviews: 110, max_wait_days: 130, active: 70, open: 120 },
-  Breaks: { text_nl: 560 }
+  Curriculum: { order: 70, tag: 120, unlock_threshold: 130, min_reviews: 110, max_wait_days: 130, active: 70, open: 120 }
 };
 var WRAP = { nl: 1, fr: 1, example_nl: 1, example_fr: 1, answer: 1, description: 1, text_nl: 1, text: 1, pos: 1, tags: 1 };
 

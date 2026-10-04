@@ -8,7 +8,6 @@ import { HelpButton } from '../components/Help';
 import { makeScheduler, previewOutcomes, type Outcome } from '../scheduler';
 import { modeFor, type Item } from '../session';
 import { afterRating } from '../sessionFlow';
-import { nextBreak } from '../breaks';
 import { subjectFor } from '../display';
 import { FlagButton } from '../components/FlagButton';
 import { markEngaged } from '../installPrompt';
@@ -19,7 +18,7 @@ import {
   endSession, extend, markOffered, pauseSession, progressLabel, resumeSession, saveOpenSession, startSession, type SessionState
 } from '../sessionRules';
 
-type Phase = 'card' | 'offer' | 'done' | 'break';
+type Phase = 'card' | 'offer' | 'done';
 
 export function Review({ items, resume, onExit }: { items: Item[]; resume?: SessionState | null; onExit: () => void }) {
   const s = useStore();
@@ -32,7 +31,6 @@ export function Review({ items, resume, onExit }: { items: Item[]; resume?: Sess
     !items.length ? 'done' : resume && resume.offered && resume.extendedAt === null ? 'offer' : 'card'
   );
   const [session, setSessionState] = useState<SessionState>(() => (resume ? resumeSession(resume, Date.now()) : startSession(Date.now())));
-  const [breakLine, setBreakLine] = useState<string | null>(null);
   const sessionRef = useRef(session);
   sessionRef.current = session;
   const ended = useRef(false);
@@ -45,13 +43,12 @@ export function Review({ items, resume, onExit }: { items: Item[]; resume?: Sess
   const shownAt = useRef(Date.now());
   const sched = useMemo(() => makeScheduler(s.settings), [s.settings.desired_retention]);
 
-  /** Ends the session; returns true when a pause starts (the session counted). */
-  const finish = async (st: SessionState): Promise<boolean> => {
+  /** Ends the session (no cooldown: she may start again right away). */
+  const finish = async (st: SessionState): Promise<void> => {
     ended.current = true;
-    const rec = await endSession(st, s.settings, Date.now());
-    setState({ openSession: null, ...(rec ? { lastSession: rec } : {}) });
-    if (rec) markEngaged(); // Android: the install button may appear from now on
-    return !!rec && s.settings.cooldown_minutes > 0;
+    const counted = await endSession(st, s.settings);
+    setState({ openSession: null });
+    if (counted) markEngaged(); // Android: the install button may appear from now on
   };
 
   /** "Terug" / leaving the app: pause, keep it for "Doorgaan". */
@@ -62,15 +59,6 @@ export function Review({ items, resume, onExit }: { items: Item[]; resume?: Sess
     const open = st.reviewed > 0 ? st : null;
     await saveOpenSession(open);
     setState({ openSession: open });
-  };
-
-  /** One-time off-screen prompt when a pause starts (skipped if the Breaks tab is empty). */
-  const showBreak = (): boolean => {
-    const line = nextBreak(s.breaks);
-    if (!line) return false;
-    setBreakLine(line);
-    setPhase('break');
-    return true;
   };
 
   // Leaving the app (home button, app switcher) pauses; coming back resumes. Away time doesn't count.
@@ -86,16 +74,15 @@ export function Review({ items, resume, onExit }: { items: Item[]; resume?: Sess
 
   /** "‹ Terug": back to home, session stays open. */
   const back = async () => {
-    if (phase === 'break' || phase === 'done') return onExit();
+    if (phase === 'done') return onExit();
     await pause();
     onExit();
   };
 
-  /** "Stoppen": the session is really over → pause starts (if it counted) with the break prompt. */
+  /** "Stoppen": the session is over → back to home. */
   const stop = async () => {
-    if (phase === 'break' || phase === 'done') return onExit();
-    const paused = await finish(sessionRef.current);
-    if (!(paused && showBreak())) onExit();
+    if (phase !== 'done') await finish(sessionRef.current);
+    onExit();
   };
 
   const item = queue[0];
@@ -124,7 +111,7 @@ export function Review({ items, resume, onExit }: { items: Item[]; resume?: Sess
     } else if (step === 'end') {
       setSession(st);
       setPhase('done');
-      if (await finish(st)) showBreak();
+      await finish(st);
     } else {
       setSession(st);
     }
@@ -153,7 +140,7 @@ export function Review({ items, resume, onExit }: { items: Item[]; resume?: Sess
         )}
         <div class="topbar-right">
           {!online && <span class="offline-badge">{t('status.offline')}</span>}
-          <HelpButton screen={phase === 'break' ? 'break' : 'review'} />
+          <HelpButton screen="review" />
         </div>
       </header>
 
@@ -164,17 +151,7 @@ export function Review({ items, resume, onExit }: { items: Item[]; resume?: Sess
         <p class="review-progress muted">{t('review.progress', { done, target })}</p>
       </div>
 
-      {phase === 'break' ? (
-        <main class="review review-done">
-          <p class="done-big">{t('break.title')}</p>
-          <p class="break-line" lang="nl">
-            {breakLine}
-          </p>
-          <button class="btn btn-primary btn-huge" onClick={onExit}>
-            {t('break.ok')}
-          </button>
-        </main>
-      ) : phase === 'done' || !item ? (
+      {phase === 'done' || !item ? (
         <main class="review review-done">
           <p class="done-big">{t('review.done')}</p>
           {done > 0 && <p class="center muted">{t('review.count', { n: done })}</p>}

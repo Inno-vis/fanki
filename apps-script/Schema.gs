@@ -15,7 +15,6 @@ var SCHEMA = {
   Settings: ['key', 'value', 'description'],
   Compliments: ['text'],
   Curriculum: ['order', 'tag', 'unlock_threshold', 'min_reviews', 'max_wait_days', 'active', 'open'],
-  Breaks: ['text_nl'],
   Dashboard: ['metric', 'value']
 };
 
@@ -25,6 +24,9 @@ var CARD_TYPES = ['dubbel', 'enkel', 'zin', 'vraag'];
 var TAG_SOURCES = ['handmatig', 'automatisch']; // sheet values (API codes: manual, auto)
 var TRACKS = ['recog', 'prod'];
 var MODES = ['nl_fr', 'fr_nl', 'cloze', 'question', 'listen'];
+
+// Settings rows that setup removes from the sheet (features that no longer exist).
+var OBSOLETE_SETTINGS = ['cooldown_minutes'];
 
 var SETTINGS_DEFAULTS = [
   ['new_per_day', 8, 'Nieuwe kaarten per dag'],
@@ -36,39 +38,12 @@ var SETTINGS_DEFAULTS = [
   ['session_max_cards', 15, 'Kaarten per sessie voordat de app vraagt om door te gaan'],
   ['session_max_minutes', 8, 'Minuten per sessie voordat de app vraagt om door te gaan'],
   ['session_extra_cards', 10, 'Extra kaarten na "Nog 10 kaarten, graag!"'],
-  ['cooldown_minutes', 60, 'Pauze in minuten na een sessie (0 = geen pauze)'],
-  ['min_reviews_to_count', 3, 'Een sessie telt (en start de pauze) vanaf dit aantal herhalingen'],
+  ['min_reviews_to_count', 3, 'Een sessie telt vanaf dit aantal herhalingen (daarna kan de Android-installatieknop verschijnen)'],
   ['max_learning_backlog', 3, 'Een nieuwe kaart komt pas als minder dan dit aantal kaarten nog in de korte stappen zit'],
   ['require_approval', false, 'Alleen kaarten met controle = goedgekeurd gaan naar de app (aan = de leerling ziet geen ongecontroleerde kaarten)'],
   ['curriculum_only', true, 'Nieuwe kaarten alleen uit open onderwerpen van het tabblad Curriculum; andere onderwerpen en kaarten zonder tag blijven dicht'],
   ['listen_share', 0.3, 'Deel van de herkenningskaarten als luisterkaart (0 = uit; alleen met een Nederlandse stem op de telefoon)'],
-  ['session_resume_minutes', 30, 'Na "Terug" kan ze de sessie zo lang (minuten) voortzetten; daarna vervalt ze zonder pauze']
-];
-
-// Off-screen Dutch prompts shown once when a pause starts. Vary shape/size, texture, colour, category
-// (toys, screen, food/drink, clothing, kitchen, something held) and household context — no attribute
-// in more than ~20 % of the lines (see .claude/commands/addbreaks.md).
-var BREAKS_SEED = [
-  'Zoek een rond voorwerp. Wat is het Nederlandse woord ervoor?',
-  'Zoek een vierkant voorwerp. Hoe zeg je dat in het Nederlands?',
-  'Zoek iets groots. Wat is het Nederlandse woord ervoor?',
-  'Zoek iets kleins. Hoe zeg je dat in het Nederlands?',
-  'Zoek iets langs. Wat is het Nederlandse woord ervoor?',
-  'Zoek iets zachts. Hoe zeg je dat in het Nederlands?',
-  'Loop naar een andere kamer. Noem drie dingen die je ziet, in het Nederlands.',
-  'Zoek iets zwarts. Hoe zeg je dat in het Nederlands?',
-  'Zoek iets met een kleur. Zeg de kleur in het Nederlands.',
-  'Kijk uit het raam. Zie je iets waarvan je het Nederlandse woord kent?',
-  'Is de tv aan? Noem iets wat je op het scherm ziet, in het Nederlands.',
-  'Zoek een speelgoed. Wat is het Nederlandse woord ervoor?',
-  'Zoek iets van een kind in huis. Hoe zeg je dat in het Nederlands?',
-  'Zoek iets in de keuken. Wat is het Nederlandse woord ervoor?',
-  'Noem het Nederlandse woord voor iets dat je nu vasthoudt.',
-  'Zoek een voorwerp dat begint met dezelfde letter als jouw naam.',
-  'Tel tot tien terwijl je naar de deur loopt, in het Nederlands.',
-  'Beschrijf in één Nederlands woord wat je buiten ziet.',
-  'Zoek iets van eten of drinken. Wat is het Nederlandse woord ervoor?',
-  'Zoek iets wat je aandoet of draagt. Hoe zeg je dat in het Nederlands?'
+  ['session_resume_minutes', 30, 'Na "Terug" kan ze de sessie zo lang (minuten) voortzetten; daarna vervalt ze']
 ];
 
 // tag | label_nl (shown to the learner) | label_fr (teacher) | description | subject_nl (label above the card)

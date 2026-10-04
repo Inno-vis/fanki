@@ -31,7 +31,6 @@ export type Settings = {
   session_max_cards: number;
   session_max_minutes: number;
   session_extra_cards: number;
-  cooldown_minutes: number;
   min_reviews_to_count: number;
   max_learning_backlog: number;
   session_resume_minutes: number;
@@ -60,7 +59,6 @@ export const DEFAULT_SETTINGS: Settings = {
   session_max_cards: 15,
   session_max_minutes: 8,
   session_extra_cards: 10,
-  cooldown_minutes: 60,
   min_reviews_to_count: 3,
   max_learning_backlog: 3,
   session_resume_minutes: 30,
@@ -76,5 +74,4 @@ export type CardsResponse = {
   tags: Tag[];
   compliments: string[];
   curriculum?: CurriculumRow[];
-  breaks?: string[];
 };

@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'preact/hooks';
-import { allCards, allProgress, getMeta, getSettings, pendingCount, type SessionRecord } from './db';
+import { allCards, allProgress, getMeta, getSettings, pendingCount } from './db';
 import { DEFAULT_SETTINGS, type Card, type CurriculumRow, type Settings, type Tag } from './types';
 import type { Progress } from './scheduler';
 import type { SessionState } from './sessionRules';
@@ -20,8 +20,6 @@ export type State = {
   intro: Intro;
   pending: number; // reviews not yet sent
   curriculum: CurriculumRow[];
-  lastSession: SessionRecord | null;
-  breaks: string[];
   studyTags: string[];
   openSession: SessionState | null;
   dayCounts: Record<string, number>; // reviews per local day (Voortgang)
@@ -42,8 +40,6 @@ let state: State = {
   intro: todaysIntro(undefined),
   pending: 0,
   curriculum: [],
-  lastSession: null,
-  breaks: [],
   studyTags: [],
   openSession: null,
   dayCounts: {},
@@ -78,7 +74,7 @@ export function byAdded(a: Card & { order?: number }, b: Card & { order?: number
 }
 
 export async function loadFromDb(): Promise<void> {
-  const [cards, settings, tags, compliments, lastSync, progress, intro, pending, curriculum, lastSession, breaks, studyTags, openSession, dayCounts] = await Promise.all([
+  const [cards, settings, tags, compliments, lastSync, progress, intro, pending, curriculum, studyTags, openSession, dayCounts] = await Promise.all([
     allCards(),
     getSettings(),
     getMeta('tags'),
@@ -88,8 +84,6 @@ export async function loadFromDb(): Promise<void> {
     getMeta('intro'),
     pendingCount(),
     getMeta('curriculum'),
-    getMeta('lastSession'),
-    getMeta('breaks'),
     getMeta('studyTags'),
     getMeta('openSession'),
     getMeta('dayCounts')
@@ -105,8 +99,6 @@ export async function loadFromDb(): Promise<void> {
     intro: todaysIntro(intro),
     pending,
     curriculum: curriculum ?? [],
-    lastSession: lastSession ?? null,
-    breaks: breaks ?? [],
     studyTags: studyTags ?? [],
     openSession: openSession ?? null,
     dayCounts: dayCounts ?? {}

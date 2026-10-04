@@ -476,10 +476,6 @@ body {
   padding: 0 18px;
 }
 
-.btn-cooldown {
-  font-size: 18px;
-}
-
 .session-progress {
   display: flex;
   flex-direction: column;
@@ -566,16 +562,6 @@ body {
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
-}
-
-.break-line {
-  font-size: 22px;
-  line-height: 1.4;
-  text-align: center;
-  background: var(--surface);
-  border-radius: 20px;
-  padding: 20px;
-  margin: 0 0 auto;
 }
 
 .offer-actions {
@@ -971,9 +957,9 @@ body {
 }
 
 .card-subject {
-  margin: 0 0 -4px;
+  margin: 0 0 -2px;
   text-align: center;
-  font-size: 13px;
+  font-size: 16px;
   font-weight: 700;
   letter-spacing: 0.06em;
   text-transform: uppercase;

@@ -32,16 +32,10 @@ export type Meta = {
   lastSync: string; // ISO time of the last successful sync
   intro: Intro; // new cards introduced today
   curriculum: CurriculumRow[];
-  breaks: string[]; // Dutch off-screen prompts shown when a pause starts
-  lastSession: SessionRecord | null; // for the cooldown
-  lastBuild: string; // DEV: build that last reset the cooldown
   studyTags: string[]; // tag filter ("Kies een onderwerp"); [] = everything
   openSession: SessionState | null; // a paused session she can continue ("Doorgaan")
   dayCounts: Record<string, number>; // local date (yyyy-mm-dd) → reviews that day (Voortgang screen)
 };
-
-/** The last session that counted (>= min_reviews_to_count reviews). */
-export type SessionRecord = { start: string; end: string; reviews: number };
 
 /**
  * A card the LEARNER marked with 🚩 (local only, never synced; she shares them herself).

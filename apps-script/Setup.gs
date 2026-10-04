@@ -60,8 +60,6 @@ function setup() {
   seedSettings_(ss.getSheetByName('Settings'));
   seedTags_(ss.getSheetByName('Tags'));
   seedCompliments_(ss.getSheetByName('Compliments'));
-  seedIfEmpty_(ss.getSheetByName('Breaks'), BREAKS_SEED.map(function (x) { return [x]; }));
-  ss.getSheetByName('Breaks').setColumnWidth(1, 520);
   if (env === 'DEV') seedCards_(ss.getSheetByName('Cards'));
   seedAppWords_(ss.getSheetByName('Cards'));
   seedKlokCards_(ss.getSheetByName('Cards'));
@@ -118,6 +116,8 @@ function migrateControle_(sh) {
 }
 
 function seedSettings_(sh) {
+  readTable_(sh).rows.filter(function (r) { return OBSOLETE_SETTINGS.indexOf(String(r.key).trim()) !== -1; })
+    .sort(function (a, b) { return b._row - a._row; }).forEach(function (r) { sh.deleteRow(r._row); });
   var existing = readTable_(sh).rows.map(function (r) { return String(r.key); });
   SETTINGS_DEFAULTS.forEach(function (row) {
     if (existing.indexOf(row[0]) === -1) sh.appendRow(row);

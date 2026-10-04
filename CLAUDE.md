@@ -40,7 +40,7 @@ The repo is **public** and hosted on GitHub Pages.
   `{action:"reviews", token, events:[{event_id, card_id, track, ts, rating, mode, duration_ms, snapshot}]}`
   → `{accepted, duplicate, rejected}`. Idempotent on `event_id`.
 - Admin-only (ADMIN_TOKEN): `listCards, listUntagged, tags, setTags, appendInbox, listInbox,
-  promoteInbox, rebuildProgress, setup, readTab, reseedDev (DEV only), purgeSmoke, appendBreaks,
+  promoteInbox, rebuildProgress, setup, readTab, reseedDev (DEV only), purgeSmoke,
   setCurriculum, addCurriculum, curriculumStatus, migrateToDutch, userInfo, setTeachers, enableApproval, setCheck, removeTags, deleteRejected (DEV only), importCards, cardsToInbox, replaceKlok, seedEmoji (dry run unless
   dryRun:false; seedEmoji is DEV only)`. Open items: docs/todo.md.
 - All writes are inside `LockService`. All actions are idempotent, so clients **retry** on
@@ -133,22 +133,21 @@ keys, pos and descriptions. The API maps them to internal codes (`typeCode_`/`so
   closed) overrides the chain; Settings.curriculum_only (default TRUE) locks every non-curriculum topic.
 - Sessions: `src/sessionRules.ts` (pure). One offer at session_max_cards / minutes of reviewing time
   ("Nog 10 kaarten, graag!" / "Stoppen"), then session_extra_cards more. "Terug" or leaving the app only
-  pauses (`meta.openSession`, "Doorgaan", expires after session_resume_minutes without a pause). The session
-  ENDS on Stoppen / extension done / no cards left; with ≥ min_reviews_to_count reviews it stores
-  `meta.lastSession` and home blocks "Starten" until end + cooldown_minutes.
+  pauses (`meta.openSession`, "Doorgaan", expires after session_resume_minutes). The session ENDS on Stoppen /
+  extension done / no cards left and she goes home; there is NO cooldown and no Breaks prompt (both removed
+  2026-10-04). A session with ≥ min_reviews_to_count ratings "counts" (`markEngaged`, Android install button).
 - Short-step repeats (a card rated into a ≤ 20 min step) never count toward "X van Y" and the session never
   offers/ends while one is pending — they are shown first, past the card/minute cap and the extension
   (`afterRating` in src/sessionFlow.ts, `nextStep` → 'repeat'). After a pause, Learning/Relearning cards due
   within 20 min rejoin the session (`planToday` learnAheadMs). max_learning_backlog still holds new cards back.
 
-## Study by topic, new-card pacing, breaks
+## Study by topic, new-card pacing
 
 - "Kies een onderwerp" (`src/screens/Topics.tsx`): multi-select of tags that have cards (label_nl; 🔒 for
   locked curriculum tags). Stored in `meta.studyTags`; sessions then use due + new cards with ANY selected
   tag. Empty = everything.
 - Within a session a new card waits while ≥ `max_learning_backlog` cards are in short in-session steps
   (`pickNextIndex` in src/session.ts).
-- When a pause starts, one Breaks line is shown once ("Sessie voltooid!" + line + OK), `src/breaks.ts`.
 
 ## 🚩 Student flags ("Gemarkeerd") — local only
 
@@ -204,8 +203,6 @@ keys, pos and descriptions. The API maps them to internal codes (`typeCode_`/`so
 
 ## Deploy rules (standing instructions)
 
-- **DEV deploy → cooldown reset**: `src/devReset.ts` clears `meta.lastSession` the first time a DEV build with a
-  new BUILD_ID starts. PROD never resets.
 - **PROD deploy → keep her progress**: follow the "PROD safety checklist" in docs/RELEASE.md every time
   (`npm run backup:prod` before and after, additive changes only, dry runs, verify counts and the live app).
   Any change that would break PROD progress needs the teacher's explicit permission first.
@@ -235,6 +232,5 @@ Slash commands in `.claude/commands/` (all go through `scripts/admin.mjs`, defau
 - `/addwords <theme, n, level>` — dedupe against Cards + Inbox, table, wait for OK, `appendInbox`
   (status voorgesteld). Never writes Cards.
 - `/promote` — show `goedgekeurd` Inbox rows, wait for OK, `promoteInbox`.
-- `/addbreaks <n>` — new varied Breaks lines (axes + ≤ ~20 % rule), wait for OK, `appendBreaks`.
 
 Teacher review page: docs/SHEET.md › Teacher review page.

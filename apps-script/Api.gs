@@ -46,7 +46,6 @@ function doPost(e) {
       case 'setTags': return adminSetTags_(body.updates, body.manual === true);
       case 'appendInbox': return adminAppendInbox_(body.rows);
       case 'listInbox': return adminListInbox_();
-      case 'appendBreaks': return adminAppendBreaks_(body.lines);
       case 'seedEmoji': return adminSeedEmoji_(body.dryRun !== false, body.allowProd === true);
       case 'replaceKlok': return adminReplaceKlok_(body.dryRun !== false);
       case 'setCheck': return adminSetCheck_(body.updates, body.dryRun !== false);
@@ -129,9 +128,7 @@ function getCards_() {
     }).filter(function (x) { return x.tag; }),
     compliments: readTable_(sheet_('Compliments')).rows.map(function (r) { return String(r.text || '').trim(); })
       .filter(function (s) { return s; }),
-    curriculum: readCurriculum_(),
-    breaks: (ss_().getSheetByName('Breaks') ? readTable_(sheet_('Breaks')).rows : []).map(function (r) { return text_(r.text_nl).trim(); })
-      .filter(function (s) { return s; })
+    curriculum: readCurriculum_()
   };
 }
 

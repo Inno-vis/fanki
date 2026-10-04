@@ -5,7 +5,7 @@ import { syncNow } from '../sync';
 import { useOnline } from '../pwa';
 import { InstallHint } from '../components/Banners';
 import { useEffect, useState } from 'preact/hooks';
-import { cooldownUntil, minutesLeft, progressLabel, resumable } from '../sessionRules';
+import { progressLabel, resumable } from '../sessionRules';
 import { useInstallPrompt } from '../installPrompt';
 import { isStandalone } from '../pwa';
 
@@ -14,7 +14,7 @@ export function Home({ due, newToday, onStart, onTopics }: { due: number; newTod
   const online = useOnline();
   const empty = s.loaded && s.cards.length === 0;
   const canStart = due + newToday > 0;
-  // Live cooldown countdown (re-rendered every 15 s).
+  // Re-render every 15 s, so a paused session that expired no longer offers "Doorgaan".
   const [now, setNow] = useState(Date.now());
   useEffect(() => {
     const id = setInterval(() => setNow(Date.now()), 15_000);
@@ -22,7 +22,6 @@ export function Home({ due, newToday, onStart, onTopics }: { due: number; newTod
   }, []);
   const install = useInstallPrompt(isStandalone());
   const open = resumable(s.openSession, s.settings, now);
-  const wait = open ? 0 : minutesLeft(cooldownUntil(s.lastSession, s.settings), now);
 
   return (
     <main class="home">
@@ -55,15 +54,9 @@ export function Home({ due, newToday, onStart, onTopics }: { due: number; newTod
                   list: s.studyTags.map((tg) => s.tags.find((x) => x.tag === tg)?.label_nl || tg).join(', ')
                 })}
           </button>
-          {wait > 0 && canStart ? (
-            <button class="btn btn-primary btn-huge btn-cooldown" disabled aria-live="polite">
-              {wait === 1 ? t('session.cooldown1') : t('session.cooldown', { n: wait })}
-            </button>
-          ) : (
-            <button class="btn btn-primary btn-huge" disabled={!canStart} onClick={onStart}>
-              {open && canStart ? t('home.resume', progressLabel(open, s.settings)) : t('home.start')}
-            </button>
-          )}
+          <button class="btn btn-primary btn-huge" disabled={!canStart} onClick={onStart}>
+            {open && canStart ? t('home.resume', progressLabel(open, s.settings)) : t('home.start')}
+          </button>
         </>
       )}
 

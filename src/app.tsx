@@ -19,7 +19,6 @@ import { setDbBlockedHandler } from './db';
 import { Menu } from './components/Menu';
 import type { Card } from './types';
 import { resumable, type SessionState } from './sessionRules';
-import { resetCooldownOnNewDevBuild } from './devReset';
 import { isListeningReview, voicesReady } from './tts';
 
 type Screen = { name: 'home' } | { name: 'topics' } | { name: 'marked' } | { name: 'progress' } | { name: 'review'; items: Item[]; resume: SessionState | null };
@@ -42,10 +41,7 @@ export function App() {
   // Load what's on the phone first (works offline), then refresh from the sheet when online.
   useEffect(() => {
     setDbBlockedHandler(() => showToast(t('db.blocked'), { ms: 15000 }));
-    resetCooldownOnNewDevBuild()
-      .catch(() => false)
-      .then(() => loadFromDb())
-      .then(() => navigator.onLine && syncNow());
+    loadFromDb().then(() => navigator.onLine && syncNow());
   }, []);
   useEffect(() => {
     if (!online || !s.loaded) return;

@@ -61,9 +61,6 @@ git checkout main
 If `--ff-only` fails, someone committed to `release` directly: merge `release` back into `main`
 first, then retry. The learner sees "Nouvelle version disponible" the next time she opens the app.
 
-DEV is different on purpose: every DEV deploy resets the session cooldown on the phone (new build → the DEV
-app clears `meta.lastSession`), so you can test immediately.
-
 ## 2. Promote the Apps Script (only if `apps-script/` changed)
 
 From the same commit that is on `release` (deploys BOTH the card API and the teacher review page, same URLs):

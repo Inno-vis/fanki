@@ -1,20 +1,19 @@
 import type { Settings } from './types';
-import { getMeta, setMeta, type SessionRecord } from './db';
+import { getMeta, setMeta } from './db';
 
-// Short sessions with one "continue?" offer and a cooldown between sessions.
+// Short sessions with one "continue?" offer. There is no cooldown: she may start again right away.
 //   - A session starts on "Starten". When session_max_cards reviews OR session_max_minutes of REVIEWING
 //     time are reached, she is offered ONE extension ("Nog 10 kaarten, graag!" = session_extra_cards)
 //     or "Stoppen".
 //   - "Terug" or leaving the app only PAUSES the session (saved in IndexedDB meta.openSession). Home then
 //     offers "Doorgaan". A paused session not resumed within session_resume_minutes is dropped without a
 //     pause.
-//   - The session ENDS on Stoppen, when the extension is done, or when cards run out. Only then, if it had
-//     >= min_reviews_to_count reviews, its end time is stored (meta.lastSession) and home blocks
-//     "Starten" until end + cooldown_minutes.
+//   - The session ENDS on Stoppen, when the extension is done, or when cards run out. It "counts" with
+//     >= min_reviews_to_count ratings (then the Android install button may appear).
 
 type Rules = Pick<
   Settings,
-  'session_max_cards' | 'session_max_minutes' | 'session_extra_cards' | 'cooldown_minutes' | 'min_reviews_to_count' | 'session_resume_minutes'
+  'session_max_cards' | 'session_max_minutes' | 'session_extra_cards' | 'min_reviews_to_count' | 'session_resume_minutes'
 >;
 
 export type SessionState = {
@@ -99,27 +98,8 @@ export function progressLabel(s: SessionState, rules: Rules): { done: number; ta
   return { done: s.reviewed, target: Math.max(target, s.reviewed) };
 }
 
-/** Ends the session: clears the open session and records the end if it counted. */
-export async function endSession(s: SessionState, rules: Rules, now: number): Promise<SessionRecord | null> {
+/** Ends the session: clears the open session. True when it counted (>= min_reviews_to_count ratings). */
+export async function endSession(s: SessionState, rules: Rules): Promise<boolean> {
   await saveOpenSession(null);
-  const total = s.ratings ?? s.reviewed;
-  if (total < rules.min_reviews_to_count) return null;
-  const rec: SessionRecord = { start: new Date(s.start).toISOString(), end: new Date(now).toISOString(), reviews: total };
-  await setMeta('lastSession', rec);
-  return rec;
-}
-
-/** When the cooldown ends (ms), or null when there is none. */
-export function cooldownUntil(last: SessionRecord | undefined | null, rules: Rules): number | null {
-  if (!last || last.reviews < rules.min_reviews_to_count || rules.cooldown_minutes <= 0) return null;
-  return Date.parse(last.end) + rules.cooldown_minutes * 60_000;
-}
-
-/** Whole minutes left (rounded up), 0 when she may start. */
-export function minutesLeft(until: number | null, now: number): number {
-  return until === null || now >= until ? 0 : Math.ceil((until - now) / 60_000);
-}
-
-export function loadLastSession(): Promise<SessionRecord | null | undefined> {
-  return getMeta('lastSession');
+  return (s.ratings ?? s.reviewed) >= rules.min_reviews_to_count;
 }

@@ -203,20 +203,6 @@ function adminPurgeSmoke_() {
   });
 }
 
-/** lines = ['Zoek …', …] → appended to Breaks (never overwrites; exact duplicates skipped). */
-function adminAppendBreaks_(lines) {
-  if (!Array.isArray(lines) || !lines.length) throw apiError_('bad_request', 'lines[] required');
-  return withLock_(function () {
-    var sh = sheet_('Breaks');
-    var have = {};
-    readTable_(sh).rows.forEach(function (r) { have[String(r.text_nl).trim()] = true; });
-    var add = lines.map(function (x) { return String(x || '').trim(); })
-      .filter(function (x) { if (!x || have[x]) return false; have[x] = true; return true; });
-    if (add.length) sh.getRange(nextRow_(sh, 1), 1, add.length, 1).setValues(add.map(function (x) { return [x]; }));
-    return { appended: add.length, skipped: lines.length - add.length };
-  });
-}
-
 /** Changes one field of one Curriculum row (by tag). Fields: unlock_threshold, min_reviews, max_wait_days, active, order. */
 function adminSetCurriculum_(tag, field, value) {
   var allowed = ['order', 'unlock_threshold', 'min_reviews', 'max_wait_days', 'active', 'open'];

@@ -37,13 +37,11 @@ export const UI = {
   'review.done': { nl: 'Klaar voor vandaag!', fr: 'Fini pour aujourd’hui !' },
   'review.count': { nl: '{n} kaarten herhaald', fr: '{n} cartes révisées' },
 
-  // Sessions + cooldown
+  // Sessions
   'session.offer': { nl: 'Sessie voltooid! Wil je doorgaan?', fr: 'Séance terminée ! Tu veux continuer ?' },
   'session.more': { nl: 'Nog {n} kaarten, graag!', fr: 'Encore {n} cartes, s’il te plaît !' },
   'session.stop': { nl: 'Stoppen', fr: 'Arrêter' },
   'home.resume': { nl: 'Doorgaan ({done} van {target} kaarten)', fr: 'Continuer ta séance ({done} cartes sur {target})' },
-  'session.cooldown': { nl: 'Volgende sessie over {n} minuten', fr: 'Prochaine séance dans {n} minutes' },
-  'session.cooldown1': { nl: 'Volgende sessie over 1 minuut', fr: 'Prochaine séance dans 1 minute' },
 
   // Topics (tag filter)
   'tags.title': { nl: 'Kies een onderwerp', fr: 'Choisis un ou plusieurs thèmes' },
@@ -77,10 +75,6 @@ export const UI = {
       'Pas de voix néerlandaise sur ce téléphone. iPhone : Réglages › Accessibilité › Contenu énoncé › Voix › ' +
       'Néerlandais (télécharger). Android : Paramètres › Synthèse vocale (Google) › Installer les données vocales › Néerlandais.'
   },
-
-  // Break screen (when a pause starts)
-  'break.title': { nl: 'Sessie voltooid!', fr: 'Séance terminée !' },
-  'break.ok': { nl: 'OK', fr: 'OK' },
 
   // 🚩 Student flags ("Gemarkeerd", local only). NOT the sheet's Cards.flags (see 'flag.*' below).
   'mark.button': { nl: 'Kaart markeren', fr: 'Marquer cette carte (pour en parler plus tard)' },
@@ -149,8 +143,7 @@ export const HELP = {
       'Cet écran montre combien de cartes tu dois revoir aujourd’hui (« te herhalen ») et combien de nouvelles ' +
       'cartes t’attendent (« nieuw vandaag »). Touche « Starten » pour commencer. L’appli fonctionne aussi sans ' +
       'internet : tes réponses sont gardées sur le téléphone et envoyées à la prochaine connexion. ' +
-      '« Synchroniseren » télécharge les nouvelles cartes quand tu as internet. Après une séance, une pause est ' +
-      'prévue : « Volgende sessie over 42 minuten » = prochaine séance dans 42 minutes. Si tu reviens en ' +
+      '« Synchroniseren » télécharge les nouvelles cartes quand tu as internet. Si tu reviens en ' +
       'arrière pendant une séance, « Doorgaan » te permet de la continuer.'
   },
   progress: {
@@ -175,12 +168,6 @@ export const HELP = {
       'Choisis un ou plusieurs thèmes : les prochaines séances ne montrent que les cartes de ces thèmes ' +
       '(révisions et nouvelles cartes). « Alle onderwerpen » = tous les thèmes. 🔒 « nog dicht » = pas encore ' +
       'ouvert : ce thème s’ouvrira quand le précédent sera bien su. Touche « Klaar » pour revenir.'
-  },
-  break: {
-    nl: 'Pauze. Doe dit even zonder de app.',
-    fr:
-      'C’est la pause ! Fais ce petit exercice en néerlandais, loin de l’écran : pas besoin de répondre dans ' +
-      'l’appli. Touche « OK » pour fermer. La prochaine séance sera possible après la pause.'
   },
   review: {
     nl: 'Lees de kaart. Tik op Antwoord tonen. Kies dan een knop.',

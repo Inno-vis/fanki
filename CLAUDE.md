@@ -110,7 +110,7 @@ The repo is **public** and hosted on GitHub Pages.
 
 - Emoji cards (`enkel`, front = one emoji) show the OpenMoji COLOUR picture instead of the phone's emoji
   (`openmojiFor` in the generated `src/openmoji.ts`, `<img>` in CardFace). `npm run openmoji` (scripts/openmoji.mjs)
-  maps the EMOJI_SEED_CARDS emoji to hexcodes from `openmoji` (exact-pinned devDependency) and copies ONLY those SVGs,
+  maps the EMOJI_SEED_CARDS emoji (+ `EXTRA` in the script: emoji cards added via the Inbox, e.g. horeca) to hexcodes from `openmoji` (exact-pinned devDependency) and copies ONLY those SVGs,
   SVGO-optimised, to `public/openmoji/` (+ LICENSE.txt). Self-hosted only (never openmoji.org / CDNs); precached by
   the service worker (globPatterns include svg). Re-run it after adding emoji cards; unmatched emoji are listed.
 - Credit (CC BY-SA 4.0) on Over SpeesRep (`about.images`, `about.license`). Cards whose picture changed get 🚩

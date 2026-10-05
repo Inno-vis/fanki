@@ -2,7 +2,7 @@
 // Copies ONLY the OpenMoji colour SVGs that the emoji cards use into public/openmoji/ (optimised with SVGO), and
 // writes src/openmoji.ts (emoji → hexcode). Self-hosted: the app never loads images from another origin; the
 // service worker precaches public/ (globPatterns include svg), so the pictures work offline.
-// Source of the emoji: EMOJI_SEED_CARDS in apps-script/Schema.gs (front = the emoji). Run: npm run openmoji
+// Source of the emoji: EMOJI_SEED_CARDS in apps-script/Schema.gs (front = the emoji) + EXTRA below. Run: npm run openmoji
 import { readFileSync, writeFileSync, mkdirSync, readdirSync, rmSync, statSync } from 'node:fs';
 import { join, dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
@@ -16,6 +16,11 @@ const version = JSON.parse(readFileSync(join(pkg, 'package.json'), 'utf8')).vers
 const schema = readFileSync(join(root, 'apps-script/Schema.gs'), 'utf8');
 const block = schema.slice(schema.indexOf('var EMOJI_SEED_CARDS'), schema.indexOf('];', schema.indexOf('var EMOJI_SEED_CARDS')));
 const emojis = [...block.matchAll(/'E-\d+\|([^|]+)\|/g)].map((m) => m[1]);
+// Emoji cards added later through the Inbox (not seeded): add the emoji here, then run npm run openmoji.
+const EXTRA = [
+  '🧑‍🍳', '🍛', '🍨', '🍽️', '🧾' // horeca (2026-10-05)
+];
+for (const e of EXTRA) if (!emojis.includes(e)) emojis.push(e);
 
 const strip = (s) => s.replace(/️/g, '');
 const data = JSON.parse(readFileSync(join(pkg, 'data/openmoji.json'), 'utf8'));

@@ -59,6 +59,11 @@ export const OPENMOJI: Record<string, string> = {
   "🎒": '1F392',
   "💻": '1F4BB',
   "⛅": '26C5',
+  "🧑‍🍳": '1F9D1-200D-1F373',
+  "🍛": '1F35B',
+  "🍨": '1F368',
+  "🍽️": '1F37D',
+  "🧾": '1F9FE',
 };
 
 /** The OpenMoji hexcode for a card front that is one emoji (with or without the FE0F selector), else null. */

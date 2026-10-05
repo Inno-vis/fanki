@@ -6,10 +6,12 @@ var MAX_EVENTS_PER_POST = 500;
 function doGet(e) {
   var p = (e && e.parameter) || {};
   // Teacher review page: only served by the login-required teacher deployment, to an allowed teacher.
-  if (p.page === 'review') {
-    var page = serveReview_();
+  if (p.page) {
+    var page = serveTeacher_(p.page);
     return page || json_({ ok: false, error: 'forbidden', message: 'Open de leraren-link en log in met een toegestaan Google-account.' });
   }
+  // The bare teacher link (no action, no page) opens Start for an allowed teacher; the anonymous API never does.
+  if (!p.action && teacherAllowed_(teacherEmail_())) return serveTeacher_('start');
   return handle_(function () {
     var q = (e && e.parameter) || {};
     var action = q.action || '';
@@ -123,17 +125,21 @@ function getCards_() {
   var cards = t.rows.filter(function (r) { return cardServed_(r, bool_(settings.require_approval)); })
     .map(cardToJson_);
   timing.settings = Date.now() - t0;
+  var tags = readTable_(sheet_('Tags')).rows.map(function (r) {
+    return { tag: String(r.tag).trim().toLowerCase(), label_nl: String(r.label_nl || r.tag || ''), label_fr: String(r.label_fr || ''),
+      subject_nl: String(r.subject_nl || '').trim() };
+  }).filter(function (x) { return x.tag; });
+  var curriculum = curriculumForApi_({ settings: settings, tagKeys: tags.map(function (x) { return x.tag; }),
+    cards: cards.map(function (c) { return { id: c.id, type: c.type, tags: c.tags }; }) });
+  timing.curriculum = Date.now() - t0;
   return {
     env: env_(),
     serverTime: new Date().toISOString(),
     timing: timing,
     cards: cards,
     settings: settings,
-    tags: readTable_(sheet_('Tags')).rows.map(function (r) {
-      return { tag: String(r.tag).trim().toLowerCase(), label_nl: String(r.label_nl || r.tag || ''), label_fr: String(r.label_fr || ''),
-        subject_nl: String(r.subject_nl || '').trim() };
-    }).filter(function (x) { return x.tag; }),
-    curriculum: curriculumForApi_()
+    tags: tags,
+    curriculum: curriculum
   };
 }
 

@@ -67,13 +67,19 @@ The repo is **public** and hosted on GitHub Pages.
 - Relative times in Dutch (`timeAgo` in `src/format.ts`): "zojuist", "5 minuten geleden", "2 dagen geleden".
 - The tag filter ("Kies een onderwerp") shows Tags.`label_nl`; the keys in Cards.tags are unchanged.
 
-## Teacher review UI (Apps Script HtmlService, "SpeesRep – controleren")
+## Teacher pages (Apps Script HtmlService: Start · Controleren · Curriculum)
 
 - `apps-script/Teacher.gs` + `Review.html` (vanilla JS, no build). Served by a SECOND web-app deployment of the
   same project: `scripts/gas-deploy.sh` pushes a temporary manifest variant (executeAs USER_ACCESSING, access
   ANYONE or `teacherAccess` from deploy.config.json, + userinfo.email scope), versions it, redeploys
   `teacherDeploymentId`, then pushes the repo manifest and redeploys the anonymous API (HEAD = repo).
-- `doGet ?page=review` serves the page only when the visitor's email is in Script Properties TEACHER_EMAILS /
+- Pages: bare link / `?page=start` → Start.html (tiles + "De app delen met leerlingen"), `?page=review` → Review.html,
+  `?page=curriculum` → CurriculumPage.html (`serveTeacher_` in Teacher.gs; `include_()` pulls in TeacherStyle / TeacherStrings
+  (ALL Dutch labels + ⓘ instructions) / TeacherNav). Curriculum editor = the intended way to edit the Curriculum
+  (hand edits still work): CurriculumEditor.gs (load/save/restore, whole tab in one write under LockService, version
+  stamp, hidden Curriculum_backup) + CurriculumLogic.html (pure, tested in src/curriculumEditor.test.ts).
+  Manual test list: docs/SHEET.md › Curriculum editor.
+- `doGet ?page=…` serves a page only when the visitor's email is in Script Properties TEACHER_EMAILS /
   TEACHER_DOMAIN (`admin <env> setTeachers`). The anonymous API deployment has no userinfo scope → never
   serves it. Page ↔ server via google.script.run (`review*` functions, each `requireTeacher_()`); no token.
 - Inbox status `nakijken` (🚩 per row / F key): stays in the Inbox, skipped by "Keur alle 5 goed"

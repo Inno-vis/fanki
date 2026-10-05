@@ -24,6 +24,8 @@ trap 'rm -rf "$tmp"' EXIT
 cp apps-script/*.gs apps-script/*.html "$tmp/"
 # Build label shown in the review page header (to check which version a browser really gets).
 printf "var REVIEW_BUILD = '%s';\n" "$desc" > "$tmp/Build.gs"
+tdep0="$(cfg teacherDeploymentId)"
+[[ -n "$tdep0" ]] && printf "var TEACHER_URL = 'https://script.google.com/macros/s/%s/exec';\n" "$tdep0" >> "$tmp/Build.gs"
 access="$(cfg teacherAccess)"; access="${access:-ANYONE}"
 node -e '
 const m = require("./apps-script/appsscript.json");
@@ -42,7 +44,7 @@ if [[ -z "$tdep" ]]; then
 else
   (cd "$tmp" && clasp redeploy "$tdep" -V "$tver" -d "teacher $desc" >/dev/null)
 fi
-echo "Deployed $env teacher page version $tver → https://script.google.com/macros/s/$tdep/exec?page=review"
+echo "Deployed $env teacher pages version $tver → https://script.google.com/macros/s/$tdep/exec (Start · ?page=review · ?page=curriculum)"
 
 # --- 2. public API deployment (repo manifest; leaves HEAD = repo) ---
 clasp -P ".clasp.$env.json" push -f >/dev/null

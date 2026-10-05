@@ -32,11 +32,47 @@ function requireTeacher_() {
   return email;
 }
 
-/** doGet(?page=review) → the page, only for an allowed teacher; null otherwise (caller returns JSON). */
-function serveReview_() {
-  if (!teacherAllowed_(teacherEmail_())) return null;
-  return HtmlService.createTemplateFromFile('Review').evaluate()
-    .setTitle('SpeesRep – controleren (' + env_() + ')')
+var TEACHER_PAGES = { start: { file: 'Start', title: 'leraar' }, review: { file: 'Review', title: 'controleren' },
+  curriculum: { file: 'CurriculumPage', title: 'curriculum' } };
+// The learner app per environment (shown on Start › "De app delen met leerlingen"; public anyway).
+var APP_URLS = { DEV: 'https://inno-vis.github.io/fanki/dev/', PROD: 'https://inno-vis.github.io/fanki/' };
+
+/** Contents of another HTML file, for <?!= include_('TeacherStyle') ?> in the page templates. */
+function include_(name) {
+  return HtmlService.createHtmlOutputFromFile(name).getContent();
+}
+
+/** The /exec URL of the teacher deployment (written by scripts/gas-deploy.sh), else this deployment's URL. */
+function teacherUrl_() {
+  if (typeof TEACHER_URL === 'string' && TEACHER_URL) return TEACHER_URL;
+  try { return ScriptApp.getService().getUrl(); } catch (e) { return ''; }
+}
+
+/** What waits on Controleren: Inbox rows (voorgesteld/nakijken) and Cards not yet checked or with 🚩 nakijken. */
+function reviewTodo_() {
+  var inbox = readTable_(sheet_('Inbox')).rows.filter(function (r) { return String(r.nl).trim() && statusCode_(r.status) !== 'approved'; }).length;
+  var cards = readTable_(sheet_('Cards')).rows.filter(function (r) {
+    return String(r.nl).trim() && (bool_(r.nakijken) || !checkCode_(r.controle));
+  }).length;
+  return { inbox: inbox, cards: cards };
+}
+
+/**
+ * doGet(?page=start|review|curriculum) → the page, only for an allowed teacher; null otherwise (the caller then
+ * answers with JSON). The anonymous API deployment has no userinfo scope, so it never serves a page.
+ */
+function serveTeacher_(page) {
+  var email = teacherEmail_();
+  if (!teacherAllowed_(email)) return null;
+  var p = TEACHER_PAGES[page] ? page : 'start';
+  var base = teacherUrl_();
+  var t = HtmlService.createTemplateFromFile(TEACHER_PAGES[p].file);
+  t.ctx = JSON.stringify({
+    page: p, env: env_(), appUrl: APP_URLS[env_()] || '', todo: reviewTodo_(),
+    urls: { start: base + '?page=start', review: base + '?page=review', curriculum: base + '?page=curriculum' }
+  }).replace(/</g, '\\u003c');
+  return t.evaluate()
+    .setTitle('SpeesRep – ' + TEACHER_PAGES[p].title + ' (' + env_() + ')')
     .addMetaTag('viewport', 'width=device-width, initial-scale=1');
 }
 
@@ -102,6 +138,7 @@ function validateCard_(c) {
   var errors = [];
   var type = typeCode_(c.type) || 'word';
   if (!String(c.nl || '').trim()) errors.push('nl ontbreekt');
+  if (!(c.tags || []).length) errors.push('kies minstens één onderwerp (tag)');
   if (type === 'oneway' && !String(c.answer || '').trim()) errors.push('answer ontbreekt (enkel)');
   if (type !== 'oneway' && !String(c.fr || '').trim()) errors.push('fr ontbreekt');
   if (type === 'sentence' && !/\{[^}]+\}/.test(String(c.nl || ''))) errors.push('zin: zet het doelwoord tussen {accolades}');
@@ -211,6 +248,9 @@ function reviewSave(source, id, fields) {
     var sh = sheet_(source === 'cards' ? 'Cards' : 'Inbox');
     var row = findById_(sh, id);
     if (!row) throw new Error('Rij niet gevonden (al verplaatst?)');
+    if (source === 'cards' && fields && fields.tags !== undefined && !(Array.isArray(fields.tags) ? fields.tags : splitTags_(fields.tags)).length) {
+      throw new Error('Een kaart heeft minstens één onderwerp nodig. Zonder onderwerp: Terug naar Inbox.');
+    }
     return reviewRow_(writeFields_(sh, row, fields || {}), source !== 'cards');
   });
 }

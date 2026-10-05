@@ -140,21 +140,27 @@ function curriculumStatus_(rows, cards, progressByKey, known, today, opened, tag
   return { rows: out, open: openList, opened: latch };
 }
 
-/** Served cards, Progress and settings → the status as the server sees it (no latch). */
-function curriculumNow_() {
+/**
+ * Served cards, Progress and settings → the status as the server sees it (no latch). `pre` (optional, from
+ * getCards_) = {cards:[{id, type, tags}], settings, tagKeys, rows} so nothing is read twice.
+ */
+function curriculumNow_(pre) {
+  pre = pre || {};
   var ss = ss_();
-  var settings = readSettings_();
+  var settings = pre.settings || readSettings_();
   var gate = bool_(settings.require_approval);
-  var cards = readTable_(ss.getSheetByName('Cards')).rows
+  var cards = pre.cards || readTable_(ss.getSheetByName('Cards')).rows
     .filter(function (r) { return cardServed_(r, gate); })
     .map(function (r) { return { id: String(r.id), type: typeCode_(r.type), tags: splitTags_(r.tags) }; });
   var byKey = {};
-  readTable_(ss.getSheetByName('Progress')).rows.forEach(function (r) { byKey[r.card_id + '|' + r.track] = r; });
-  var tagKeys = readTable_(ss.getSheetByName('Tags')).rows.map(function (r) { return String(r.tag).trim().toLowerCase(); })
+  var prog = ss.getSheetByName('Progress');
+  var pv = prog.getLastRow() > 1 ? prog.getRange(2, 1, prog.getLastRow() - 1, 7).getValues() : []; // card_id … reps
+  pv.forEach(function (r) { if (r[0]) byKey[r[0] + '|' + r[1]] = { stability: r[4], reps: r[6] }; });
+  var tagKeys = pre.tagKeys || readTable_(ss.getSheetByName('Tags')).rows.map(function (r) { return String(r.tag).trim().toLowerCase(); })
     .filter(String);
   var counts = {};
   cards.forEach(function (c) { c.tags.forEach(function (t) { counts[t] = (counts[t] || 0) + 1; }); });
-  var rows = readCurriculum_();
+  var rows = pre.rows || readCurriculum_();
   var known = { known_stability_days: Number(settings.known_stability_days), known_min_reviews: Number(settings.known_min_reviews) };
   var status = curriculumStatus_(rows, cards, byKey, known, isoDate_(new Date()), {}, tagKeys);
   var checks = validateCurriculum_(rows, tagKeys, counts); // with the "no active cards" warning
@@ -208,11 +214,13 @@ function updateCurriculumDashboard_(force) {
  * Rows for the app. The legacy fields (open/active/unlock_threshold/min_reviews/max_wait_days) let an app version
  * from before 2026-10-05 follow the server's status until it updates; the current app ignores them.
  */
-function curriculumForApi_() {
-  var status = curriculumNow_();
+function curriculumForApi_(pre) {
+  pre = pre || {};
+  pre.rows = pre.rows || readCurriculum_();
+  var status = curriculumNow_(pre);
   var openByTag = {};
   status.rows.forEach(function (s) { openByTag[s.tag] = s.open; });
-  return readCurriculum_().map(function (r) {
+  return pre.rows.map(function (r) {
     return { order: r.order, tag: r.tag, rule: r.rule, date: r.date, percentage: r.percentage, from_tags: r.from_tags,
       open: openByTag[r.tag] ? 'always' : 'closed', active: true, unlock_threshold: 0, min_reviews: 0, max_wait_days: null };
   });

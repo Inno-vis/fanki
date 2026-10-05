@@ -126,28 +126,31 @@ describe('later today ("Volgende kaarten: …")', () => {
     expect(roundLater(130)).toEqual({ hour: 2 });
   });
 
-  it('groups by rounded time, at most 3 groups; cards due tomorrow never count', () => {
+  it('names only when the 5th later card is due; fewer than 5 → no line; tomorrow never counts', () => {
     const ids = ['m11', 'm12', 'm23', 'm59', 'm61', 'm130', 'tomorrow'];
     const mins = [11, 12, 23, 59, 61, 130, 20 * 60];
     const progress = new Map(ids.map((id, i) => [progressKey(id, 'recog'), prog(id, at(mins[i]))]));
     const r = laterToday(ids.map(card), progress, settings, now);
-    expect(r.groups).toEqual([{ n: 2, min: 10 }, { n: 1, min: 25 }, { n: 2, hour: 1 }]);
-    expect(r.nextAt).toBe(now.getTime() + 60_000); // 11 min away joins the round in 1 min (window 10)
+    expect(r.groups).toEqual([{ n: 5, hour: 1 }]); // the 5th (61 min) → "5 over ± 1 uur"
+    expect(r.nextAt).toBe(now.getTime() + 60_000); // the first (11 min) joins the round in 1 min (window 10)
+    const four = ids.slice(0, 4);
+    expect(laterToday(four.map(card), progress, settings, now).groups).toEqual([]); // only 4 later today
     const tomorrowOnly = new Map([[progressKey('t', 'recog'), prog('t', at(20 * 60))]]);
     expect(laterToday([card('t')], tomorrowOnly, settings, now).groups).toEqual([]);
   });
 
   it('the line is there while Starten is too, and a card rejoins the round when its time comes', () => {
-    const cards = [card('now1'), card('soon')];
+    const later5 = ['s1', 's2', 's3', 's4', 's5'];
+    const cards = [card('now1'), ...later5.map(card)];
     const progress = new Map([
       [progressKey('now1', 'recog'), prog('now1', at(-5))],
-      [progressKey('soon', 'recog'), prog('soon', at(15), 'Learning')]
+      ...later5.map((id, i) => [progressKey(id, 'recog'), prog(id, at(15 + i * 5), 'Learning')] as [string, Progress])
     ]);
     const plan = planToday(cards, progress, settings, { ...todaysIntro(undefined, now), main: ['x', 'y'] }, now);
     expect(plan.due.map((i) => i.card.id)).toEqual(['now1']); // Starten
-    expect(laterToday(cards, progress, settings, now).groups).toEqual([{ n: 1, min: 15 }]); // + the line
-    const later = new Date(now.getTime() + 6 * 60_000); // 'soon' is now 9 min away → in the round
-    expect(planToday(cards, progress, settings, { ...todaysIntro(undefined, later), main: ['x', 'y'] }, later).due.map((i) => i.card.id)).toEqual(['now1', 'soon']);
-    expect(laterToday(cards, progress, settings, later).groups).toEqual([]);
+    expect(laterToday(cards, progress, settings, now).groups).toEqual([{ n: 5, min: 35 }]); // + the line
+    const later = new Date(now.getTime() + 6 * 60_000); // s1 is now 9 min away → in the round
+    expect(planToday(cards, progress, settings, { ...todaysIntro(undefined, later), main: ['x', 'y'] }, later).due.map((i) => i.card.id)).toEqual(['now1', 's1']);
+    expect(laterToday(cards, progress, settings, later).groups).toEqual([]); // 4 left later → no line
   });
 });

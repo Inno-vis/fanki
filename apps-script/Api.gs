@@ -61,6 +61,7 @@ function doPost(e) {
       case 'deleteTabs': return adminDeleteTabs_(body.tabs, body.dryRun !== false);
       case 'setSetting': return adminSetSetting_(body.key, body.value, body.dryRun !== false);
       case 'flagCards': return adminFlagCards_(body.ids, body.on !== false, body.dryRun !== false);
+      case 'splitInbox': return adminSplitInbox_(body.dryRun !== false, body.parts || null);
       case 'setCurriculum': return adminSetCurriculum_(body.tag, body.field, body.value);
       case 'promoteInbox': return adminPromoteInbox_();
       case 'rebuildProgress': return adminRebuildProgress_();

@@ -22,7 +22,8 @@ export function Topics({ onDone }: { onDone: () => void }) {
         label: tg.label_nl || tg.tag,
         count: counts.get(tg.tag)!,
         locked: isTopicLocked(tg.tag, s.curriculum, status, settings.curriculum_only)
-      }));
+      }))
+      .sort((a, b) => a.label.localeCompare(b.label, 'nl', { sensitivity: 'base' })); // alphabetical
   }, [s.cards, s.tags, s.curriculum, s.progress, settings.curriculum_only, settings.mature_stability_days]);
 
   const save = async (next: string[]) => {

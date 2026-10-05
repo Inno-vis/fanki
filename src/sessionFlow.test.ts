@@ -35,7 +35,9 @@ describe('requeue = the due window (one rule, strictly less than due_window_minu
     const progress = new Map([[p.key, p]]);
     const at = (t: number) => planToday([card('g')], progress, settings, todaysIntro(undefined, new Date(t)), new Date(t));
     expect(at(T0).due).toEqual([]);
-    expect(laterToday([card('g')], progress, settings, new Date(T0)).groups).toEqual([{ n: 1, min: 10 }]);
+    const later = laterToday([card('g')], progress, settings, new Date(T0));
+    expect(later.groups).toEqual([]); // one card: no line (only from 5 cards)
+    expect(later.nextAt).toBe(due - 10 * MIN); // but home wakes up when it joins the round
     expect(ids(at(T0 + 2 * MIN).due)).toEqual(['g']); // now 8 min away → back in the round
   });
 });

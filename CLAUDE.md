@@ -46,7 +46,7 @@ The repo is **public** and hosted on GitHub Pages.
   → `{accepted, duplicate, rejected}`. Idempotent on `event_id`.
 - Admin-only (ADMIN_TOKEN): `listCards, listUntagged, tags, setTags, appendInbox, listInbox,
   promoteInbox, rebuildProgress, setup, readTab, reseedDev (DEV only), purgeSmoke,
-  setCurriculum, addCurriculum, curriculumStatus, migrateToDutch, userInfo, setTeachers, enableApproval, setCheck, removeTags, deleteRejected (DEV only), importCards, cardsToInbox, setSetting, cleanSettings, deleteTabs, flagCards, replaceKlok, seedEmoji (dry run unless
+  setCurriculum, addCurriculum, curriculumStatus, migrateToDutch, userInfo, setTeachers, enableApproval, setCheck, removeTags, deleteRejected (DEV only), importCards, cardsToInbox, setSetting, cleanSettings, deleteTabs, flagCards, splitInbox, replaceKlok, seedEmoji (dry run unless
   dryRun:false; seedEmoji is DEV only)`. Open items: docs/todo.md.
 - All writes are inside `LockService`. All actions are idempotent, so clients **retry** on
   `no_action` (POST body lost on Google's redirect), `busy`, or non-JSON responses.
@@ -171,12 +171,12 @@ keys, pos and descriptions. The API maps them to internal codes (`typeCode_`/`so
   one is shown). Home: "Vandaag" bar = current round
   (`meta.round`, `nextRound`: finished → new round at 0, arrivals join a running round; written in
   `recordReview`'s transaction; `meta.doneToday` stays for the daily cap), "Klaar voor nu!", and the later-today
-  line `laterToday` ("Volgende kaarten: …", ≤ 3 groups). Recomputed on screen change / focus plus ONE wake-up at
+  line `laterToday` ("Volgende kaarten: 5 over ± 30 min" = when the 5th later card is due; < 5 → no line). Recomputed on screen change / focus plus ONE wake-up at
   `later.nextAt` — never a countdown. The review screen shows only the card.
 
 ## Study by topic, new-card pacing
 
-- "Kies een onderwerp" (`src/screens/Topics.tsx`): multi-select of tags that have cards (label_nl; 🔒 for
+- "Kies een onderwerp" (`src/screens/Topics.tsx`): multi-select of tags that have cards, alphabetical by label_nl (🔒 for
   locked curriculum tags). Stored in `meta.studyTags`; today's work then uses due + new cards with ANY selected
   tag. Empty = everything.
 - A new card waits while ≥ `max_learning_backlog` cards are in short learning steps

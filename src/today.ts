@@ -89,10 +89,14 @@ export function roundLater(minutes: number): { min?: number; hour?: number } {
   return m5 >= 60 ? { hour: Math.max(1, Math.round(minutes / 60)) } : { min: Math.max(5, m5) };
 }
 
+/** Coming back for one card is pointless: the later-today line names when this many cards are ready. */
+export const LATER_BATCH = 5;
+
 /**
  * Cards due later today: started (card, track) items due at or after the due window and before local
- * midnight, grouped by rounded time, earliest first, at most 3 groups. `nextAt` = when the first of them enters
- * the due window (joins the round) — home wakes up once at that moment. Cards due on later days never count.
+ * midnight. The line shows ONE group: when the LATER_BATCH-th (5th) of them is due ("5 over ± 30 min"); with
+ * fewer than 5 later today there is no line. `nextAt` = when the first of them enters the due window (joins the
+ * round) — home wakes up once at that moment, so Starten comes back. Cards due on later days never count.
  */
 export function laterToday(
   cards: Card[],
@@ -116,12 +120,6 @@ export function laterToday(
     }
   }
   dues.sort((a, b) => a - b);
-  const groups: LaterGroup[] = [];
-  for (const at of dues) {
-    const r = roundLater((at - t) / 60_000);
-    const last = groups[groups.length - 1];
-    if (last && last.min === r.min && last.hour === r.hour) last.n++;
-    else groups.push({ n: 1, ...r });
-  }
-  return { groups: groups.slice(0, 3), nextAt: dues.length ? dues[0] - win : null };
+  const groups: LaterGroup[] = dues.length >= LATER_BATCH ? [{ n: LATER_BATCH, ...roundLater((dues[LATER_BATCH - 1] - t) / 60_000) }] : [];
+  return { groups, nextAt: dues.length ? dues[0] - win : null };
 }

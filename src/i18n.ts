@@ -182,7 +182,8 @@ export const HELP = {
       'gardé. « Klaar voor nu! » = fini pour le moment ; « Volgende kaarten: 3 over ± 15 min » = 3 cartes ' +
       'reviennent dans environ 15 minutes ; elles arrivent alors dans « Vandaag » et « Starten » revient. L’appli fonctionne aussi sans internet : tes réponses sont gardées sur le téléphone ' +
       'et envoyées à la prochaine connexion. Dans le menu (touche « SpeesRep » en haut) : « Synchroniseren » télécharge ' +
-      'les nouvelles cartes et envoie tes réponses quand tu as internet (ça se fait aussi tout seul).'
+      'les nouvelles cartes et envoie tes réponses quand tu as internet (ça se fait aussi tout seul). ' +
+      'Chaque écran a sa propre page « Hulp » : touche « Hulp » là où tu es.'
   },
   about: {
     nl: 'Hier lees je over SpeesRep.',

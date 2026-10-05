@@ -285,11 +285,11 @@ src/session.ts):
   is left the round is finished ("Klaar voor nu!"); the next time cards are there, a NEW round starts at 0. A
   card that arrives while a round is still going joins it (the total grows, the count stays). A new day starts a
   new round.
-- **Later today:** "Volgende kaarten: 3 over ± 15 min · 2 over ± 1 uur" = cards due later today (10+ min away,
-  before midnight), grouped by rounded time (nearest 5 min below an hour, whole hours from 60 min), at most 3
-  groups, shown on home whether or not Starten is there. Cards due tomorrow never appear. Static text (home
-  opens / the app comes back to the front), never a countdown; home wakes up ONCE when the next of them joins
-  the round, so Starten comes back.
+- **Later today:** "Volgende kaarten: 5 over ± 30 min" = when the 5th card due later today (at or after the
+  window, before midnight) is due — coming back for one card is pointless. Fewer than 5 later today → no line.
+  Rounded to 5 min below an hour, whole hours from 60 min. Shown whether or not Starten is there; cards due
+  tomorrow never count. Static text (home opens / the app comes back), never a countdown; home wakes up ONCE when
+  the first later card joins the round, so Starten comes back.
 - The review screen shows only the card.
 
 ## Dashboard (formulas, read-only)

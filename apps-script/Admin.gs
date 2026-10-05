@@ -608,3 +608,45 @@ function adminFlagCards_(ids, on, dryRun) {
     return report;
   });
 }
+
+/** Splits a text into its parts: first at " — " (question — answer), else into sentences. */
+function splitParts_(text) {
+  var t = String(text || '').trim();
+  if (t.indexOf(' — ') !== -1) return t.split(' — ').map(function (x) { return x.trim(); }).filter(String);
+  return t.split(/(?<=[.?!])\s+(?=[A-ZÀ-ÝĲ¿¡«"'])/).map(function (x) { return x.trim(); }).filter(String);
+}
+
+/**
+ * Inbox rows with two (or more) sentences become one card per sentence: nl and fr are split the same way
+ * (" — " first, else at sentence ends). Rows whose nl and fr don't give the same number of parts are left alone
+ * and listed. Dry run unless dryRun:false.
+ */
+function adminSplitInbox_(dryRun, given) {
+  // given (optional): {id: [{nl, fr}, …]} — explicit parts for a row that is one sentence (e.g. "… aan en doe …").
+  return withLock_(function () {
+    var sh = sheet_('Inbox');
+    var t = readTable_(sh);
+    var split = [], skipped = [], add = [];
+    t.rows.forEach(function (r) {
+      var parts = given && given[String(r.id)];
+      if (given && !parts) return; // explicit mode: only the given rows
+      var nl = parts ? parts.map(function (p) { return String(p.nl || '').trim(); }) : splitParts_(r.nl);
+      var fr = parts ? parts.map(function (p) { return String(p.fr || '').trim(); }) : splitParts_(r.fr);
+      if (nl.length < 2) return;
+      if (nl.length !== fr.length) { skipped.push(r.nl); return; }
+      split.push(r);
+      nl.forEach(function (part, i) {
+        var o = {};
+        SCHEMA.Inbox.forEach(function (h) { o[h] = r[h]; });
+        o.id = newId_('c_'); o.nl = part; o.fr = fr[i];
+        add.push(rowFromObject_(SCHEMA.Inbox, o));
+      });
+    });
+    var report = { dryRun: dryRun, rows: split.length, cards: add.length, skipped: skipped,
+      preview: add.map(function (row) { return row[SCHEMA.Inbox.indexOf('nl')] + ' | ' + row[SCHEMA.Inbox.indexOf('fr')]; }) };
+    if (dryRun || !add.length) return report;
+    sh.getRange(nextRow_(sh, 3), 1, add.length, SCHEMA.Inbox.length).setValues(add);
+    split.sort(function (a, b) { return b._row - a._row; }).forEach(function (r) { sh.deleteRow(r._row); });
+    return report;
+  });
+}

@@ -792,20 +792,33 @@ function adminDeleteCards_(ids, dryRun) {
 
 /**
  * Changes card fields by id: {updates:[{id, fields:{answer, fr, nl, …}}]} — only the fields the review page may edit
- * (REVIEW_EDITABLE). Same id, so her progress stays. Dry run unless dryRun:false.
+ * (REVIEW_EDITABLE), plus `added` (YYYY-MM-DD; changes where a new card comes in the queue) and `tags_source`
+ * (handmatig | automatisch | blank). Other fields or bad values are not written and listed in `ignored`. Same id,
+ * so her progress stays. Dry run unless dryRun:false.
  */
 function adminUpdateCards_(updates, dryRun) {
   if (!Array.isArray(updates) || !updates.length) throw apiError_('bad_request', 'updates[] required');
   return withLock_(function () {
-    var sh = sheet_('Cards');
-    var report = { dryRun: dryRun, change: [], notFound: [] };
+    var sh = sheet_('Cards'), headers = headersOf_(sh);
+    var report = { dryRun: dryRun, change: [], notFound: [], ignored: [] };
     updates.forEach(function (u) {
       var row = findById_(sh, u.id);
       if (!row) { report.notFound.push(u.id); return; }
-      var f = {};
-      Object.keys(u.fields || {}).forEach(function (k) { if (REVIEW_EDITABLE.indexOf(k) !== -1) f[k] = u.fields[k]; });
-      Object.keys(f).forEach(function (k) { report.change.push(u.id + ' ' + k + ': "' + row[k] + '" → "' + f[k] + '"'); });
-      if (!dryRun) writeFields_(sh, row, f);
+      var f = {}, extra = {};
+      Object.keys(u.fields || {}).forEach(function (k) {
+        var v = u.fields[k];
+        if (REVIEW_EDITABLE.indexOf(k) !== -1) f[k] = v;
+        else if (k === 'added' && /^\d{4}-\d\d-\d\d$/.test(String(v))) extra[k] = new Date(String(v) + 'T00:00:00');
+        else if (k === 'tags_source' && (!v || sourceCode_(v))) extra[k] = v ? sourceNl_(sourceCode_(v)) : '';
+        // Anything else (unknown field, date not YYYY-MM-DD, tags_source not handmatig/automatisch) is NOT written.
+        else report.ignored.push(u.id + ' ' + k + ': "' + v + '"');
+      });
+      Object.keys(f).concat(Object.keys(extra)).forEach(function (k) {
+        report.change.push(u.id + ' ' + k + ': "' + row[k] + '" → "' + (k in f ? f[k] : u.fields[k]) + '"');
+      });
+      if (dryRun) return;
+      if (Object.keys(f).length) writeFields_(sh, row, f);
+      Object.keys(extra).forEach(function (k) { sh.getRange(row._row, headers.indexOf(k) + 1).setValue(extra[k]); });
     });
     return report;
   });

@@ -650,3 +650,51 @@ function adminSplitInbox_(dryRun, given) {
     return report;
   });
 }
+
+/**
+ * Cards with two (or more) sentences become one card per sentence, split like splitInbox (nl and fr the same way).
+ * The parts take the original's place in the sheet (same tags, added, controle) with new ids. Never touched:
+ * klok cards, enkel cards, and cards she has studied (a Progress or Log row) — their progress is keyed by the id;
+ * includeStudied (DEV only) splits those too. Dry run unless dryRun:false.
+ */
+function adminSplitCards_(dryRun, includeStudied) {
+  if (includeStudied && env_() === 'PROD') throw apiError_('forbidden', 'includeStudied is DEV only');
+  return withLock_(function () {
+    var ss = ss_();
+    var sh = ss.getSheetByName('Cards');
+    var t = readTable_(sh);
+    var studied = {};
+    ['Progress', 'Log'].forEach(function (name) {
+      var tab = ss.getSheetByName(name);
+      if (tab) readTable_(tab).rows.forEach(function (r) { if (r.card_id) studied[String(r.card_id)] = true; });
+    });
+    var jobs = [], keptStudied = [], skipped = [];
+    t.rows.forEach(function (r) {
+      if (typeCode_(r.type) === 'oneway' || /(^|,\s*)klok/.test(String(r.tags))) return;
+      var nl = splitParts_(r.nl), fr = splitParts_(r.fr);
+      if (nl.length < 2) return;
+      if (studied[String(r.id)] && !includeStudied) { keptStudied.push(r.id + ' | ' + r.nl); return; }
+      if (nl.length !== fr.length) { skipped.push(r.id + ' | ' + r.nl); return; }
+      jobs.push({ r: r, rows: nl.map(function (part, i) {
+        var o = {};
+        t.headers.forEach(function (h) { o[h] = r[h]; });
+        o.id = newId_('c_'); o.nl = part; o.fr = fr[i]; o.nakijken = false;
+        return rowFromObject_(t.headers, o);
+      }) });
+    });
+    var nlCol = t.headers.indexOf('nl'), frCol = t.headers.indexOf('fr');
+    var report = { dryRun: dryRun, split: jobs.length, cards: 0, keptStudied: keptStudied, skipped: skipped, preview: [] };
+    jobs.forEach(function (j) {
+      report.cards += j.rows.length;
+      report.preview.push(j.r.id + ' | ' + j.r.nl + '  →  ' + j.rows.map(function (x) { return x[nlCol] + ' (' + x[frCol] + ')'; }).join('  +  '));
+    });
+    if (dryRun) return report;
+    jobs.sort(function (a, b) { return b.r._row - a.r._row; }).forEach(function (j) {
+      var at = j.r._row, n = j.rows.length;
+      sh.insertRowsAfter(at, n); // the new rows take the formats and checkboxes of the original row
+      sh.getRange(at + 1, 1, n, t.headers.length).setValues(j.rows);
+      sh.deleteRow(at);
+    });
+    return report;
+  });
+}

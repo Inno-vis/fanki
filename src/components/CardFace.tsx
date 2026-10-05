@@ -1,6 +1,6 @@
 import type { Card } from '../types';
 import type { Mode } from '../session';
-import { clozeParts, dutchText, flagLabel, visibleFlags } from '../display';
+import { clozeParts, dutchText, flagLabel, isPictureFront, visibleFlags } from '../display';
 import { useEffect } from 'preact/hooks';
 import { t } from '../i18n';
 import { answerIsDutch, dutchSpeech, speakDutch } from '../tts';
@@ -86,12 +86,20 @@ export function CardFace({ card, mode, revealed, readAnswer = false }: { card: C
   // enkel (oneway): the Dutch prompt (or its OpenMoji picture), then the answer (display text; she rates herself).
   if (mode === 'oneway') {
     const picture = openmojiFor(card.nl);
+    // Emoji cards show the OpenMoji picture only — never the phone's own emoji. A missing picture gets a neutral
+    // placeholder (and a warning for the teacher's test run: add it to scripts/openmoji-extra.json).
+    const missing = !picture && isPictureFront(card.nl);
+    if (missing) console.warn(`OpenMoji picture missing for card ${card.id}`);
     return (
       <article class="card" aria-live="polite">
         {flags}
         {picture ? (
           // OpenMoji picture (self-hosted, precached): the same image on every phone.
           <img class="card-picture" src={`${import.meta.env.BASE_URL}openmoji/${picture}.svg`} alt={card.nl.startsWith('openmoji:') ? '' : card.nl} width={320} height={320} />
+        ) : missing ? (
+          <div class="card-picture card-picture-missing" role="img" aria-label="?">
+            ?
+          </div>
         ) : (
           <p class="card-prompt card-prompt-big" lang="nl">
             {card.nl}

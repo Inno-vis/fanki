@@ -68,7 +68,7 @@ function doPost(e) {
       case 'replaceTag': return adminReplaceTag_(body.from, body.to, body.tab, body.dryRun !== false);
       case 'updateTags': return adminUpdateTags_(body.rows, body.dryRun !== false);
       case 'updateCurriculum': return adminUpdateCurriculum_(body.rows, body.dryRun !== false);
-      case 'updateCards':return adminUpdateCards_(body.updates, body.dryRun !== false);
+      case 'updateCards': return adminUpdateCards_(body.updates, body.dryRun !== false, body.tab);
       case 'deleteCards': return adminDeleteCards_(body.ids, body.dryRun !== false);
       case 'migrateCurriculum': return adminMigrateCurriculum_(body.dryRun !== false);
       case 'splitCards': return adminSplitCards_(body.dryRun !== false, body.includeStudied === true);

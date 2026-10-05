@@ -109,15 +109,19 @@ The repo is **public** and hosted on GitHub Pages.
 
 ## OpenMoji pictures (emoji cards)
 
-- Emoji cards (`enkel`, front = one emoji) show the OpenMoji COLOUR picture instead of the phone's emoji
-  (`openmojiFor` in the generated `src/openmoji.ts`, `<img>` in CardFace). `npm run openmoji` (scripts/openmoji.mjs)
-  maps the EMOJI_SEED_CARDS emoji (+ `EXTRA` in the script: emoji cards added via the Inbox, e.g. horeca) to hexcodes from `openmoji` (exact-pinned devDependency) and copies ONLY those SVGs,
-  SVGO-optimised, to `public/openmoji/` (+ LICENSE.txt). Self-hosted only (never openmoji.org / CDNs); precached by
-  the service worker (globPatterns include svg). Re-run it after adding emoji cards; unmatched emoji are listed. OpenMoji-only pictures (no Unicode emoji,
-  hexcode E000–EFFF) go into EXTRA by hexcode (e.g. 'E0C0'); their card front (nl) is "openmoji:E0C0". Source lists
-  (docs/openmoji-*.csv) stay out of git.
-- Credit (CC BY-SA 4.0) on Over SpeesRep (`about.images`, `about.license`). Cards whose picture changed go to the
-  Inbox for a check (`admin <env> cardsToInbox`).
+- Picture cards (`enkel`, front = one emoji, a regional-indicator letter 🇦–🇿 for the alphabet, or "openmoji:E0C0" for
+  an OpenMoji-only picture) ALWAYS show the OpenMoji COLOUR picture, never the phone's emoji (`openmojiFor` in the
+  generated `src/openmoji.ts`, `isPictureFront` in src/display.ts, `<img>` in CardFace). A missing picture shows a
+  neutral "?" box and a console warning.
+- `npm run openmoji` (scripts/openmoji.mjs) maps EMOJI_SEED_CARDS + `scripts/openmoji-extra.json` (committed list of all
+  other picture fronts, grouped; OpenMoji-only by hexcode) to hexcodes from `openmoji` (exact-pinned devDependency) and
+  copies ONLY those SVGs, SVGO-optimised, to `public/openmoji/` (+ LICENSE.txt). Self-hosted only (never openmoji.org /
+  CDNs); precached by the service worker (globPatterns include svg). Add new picture cards' emoji to the JSON, re-run,
+  commit `public/openmoji/` + `src/openmoji.ts`; unmatched emoji are listed. OpenMoji 17.0.0 has no E1DB.
+- Checks: src/openmoji.test.ts (every seed and JSON emoji has a picture; only used SVGs shipped) and
+  `npm run openmoji:check -- <env>` (every picture card in Cards AND the Inbox of that sheet has a picture; exit 1 if not).
+- Credit (CC BY-SA 4.0) on Over SpeesRep (`about.images`, `about.license`). Source lists (docs/openmoji-*.csv) stay
+  out of git.
 
 ## Listening and Voortgang
 

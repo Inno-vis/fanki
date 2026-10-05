@@ -2,7 +2,8 @@
 // Copies ONLY the OpenMoji colour SVGs that the emoji cards use into public/openmoji/ (optimised with SVGO), and
 // writes src/openmoji.ts (emoji → hexcode). Self-hosted: the app never loads images from another origin; the
 // service worker precaches public/ (globPatterns include svg), so the pictures work offline.
-// Source of the emoji: EMOJI_SEED_CARDS in apps-script/Schema.gs (front = the emoji) + EXTRA below. Run: npm run openmoji
+// Source of the emoji: EMOJI_SEED_CARDS in apps-script/Schema.gs (front = the emoji) + scripts/openmoji-extra.json.
+// Run: npm run openmoji
 import { readFileSync, writeFileSync, mkdirSync, readdirSync, rmSync, statSync, existsSync } from 'node:fs';
 import { join, dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
@@ -16,14 +17,11 @@ const version = JSON.parse(readFileSync(join(pkg, 'package.json'), 'utf8')).vers
 const schema = readFileSync(join(root, 'apps-script/Schema.gs'), 'utf8');
 const block = schema.slice(schema.indexOf('var EMOJI_SEED_CARDS'), schema.indexOf('];', schema.indexOf('var EMOJI_SEED_CARDS')));
 const emojis = [...block.matchAll(/'E-\d+\|([^|]+)\|/g)].map((m) => m[1]);
-// Emoji cards added later through the Inbox (not seeded): add the emoji here, then run npm run openmoji.
-// An OpenMoji-only picture (no Unicode emoji, hexcode E000–EFFF, e.g. 'E0C0') is listed by its hexcode; its card has
-// the front (nl) "openmoji:E0C0".
-const EXTRA = [
-  '🧑‍🍳', '🍛', '🍨', '🍽️', '🧾', // horeca (2026-10-05)
-  '🪵', '🧀', '🧈', '🚿', '🍌', '📈', '🖌️', '💅', '🎈', '🎨', // docs/openmoji-a1-woorden.csv (2026-10-05)
-  'E0C0' // half orange (sinaasappel), OpenMoji-only
-];
+// Emoji cards added later (not seeded) are listed in scripts/openmoji-extra.json (groups of emoji; an OpenMoji-only
+// picture — no Unicode emoji, hexcode E000–EFFF, e.g. "E0C0" — is listed by its hexcode and its card front is
+// "openmoji:E0C0"). Add them there, then run npm run openmoji.
+const extraFile = JSON.parse(readFileSync(join(root, 'scripts/openmoji-extra.json'), 'utf8'));
+const EXTRA = Object.entries(extraFile).filter(([k]) => !k.startsWith('_')).flatMap(([, list]) => list);
 const isHex = (e) => /^E[0-9A-F]{3}(-[0-9A-F]+)*$/i.test(e);
 for (const e of EXTRA) if (!emojis.includes(e)) emojis.push(e);
 

@@ -1074,6 +1074,17 @@ label.btn.disabled {
   margin: 4px auto;
 }
 
+/* An emoji card whose OpenMoji picture is missing: a neutral box, never the phone's emoji. */
+.card-picture-missing {
+  aspect-ratio: 1;
+  display: grid;
+  place-items: center;
+  border: 2px dashed var(--muted);
+  border-radius: var(--radius);
+  color: var(--muted);
+  font-size: 48px;
+}
+
 /* "Volgende kaarten: 3 over ± 15 min · 2 over ± 1 uur" on home */
 .later-line {
   margin: 0;

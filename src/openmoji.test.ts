@@ -18,6 +18,14 @@ describe('OpenMoji pictures (self-hosted)', () => {
     expect(openmojiFor('openmoji:E1DB')).toBeNull(); // not in OpenMoji 17.0.0
   });
 
+  it('every emoji in scripts/openmoji-extra.json has a picture (also regional-indicator letters for the alphabet)', () => {
+    const extra = JSON.parse(readFileSync(join(root, 'scripts/openmoji-extra.json'), 'utf8')) as Record<string, string[] | string>;
+    const all = Object.entries(extra).filter(([k]) => !k.startsWith('_')).flatMap(([, v]) => v as string[]);
+    for (const e of all) expect(openmojiFor(/^E[0-9A-F]{3}/i.test(e) ? `openmoji:${e}` : e), e).not.toBeNull();
+    expect(openmojiFor('🇦')).toBe('1F1E6');
+  });
+
+
   it('every emoji card in the seeds has a picture, and only used SVGs are shipped', () => {
     const schema = readFileSync(join(root, 'apps-script/Schema.gs'), 'utf8');
     const block = schema.slice(schema.indexOf('var EMOJI_SEED_CARDS'), schema.indexOf('];', schema.indexOf('var EMOJI_SEED_CARDS')));

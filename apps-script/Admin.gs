@@ -785,14 +785,15 @@ function adminDeleteCards_(ids, dryRun) {
 }
 
 /**
- * Changes card fields by id: {updates:[{id, fields:{answer, fr, nl, …}}]} — only the fields the review page may edit
+ * Changes card fields by id: {updates:[{id, fields:{answer, fr, nl, …}}], tab?: 'Cards'|'Inbox'} — only the fields the review page may edit
  * (REVIEW_EDITABLE), plus `added` (YYYY-MM-DD; changes where a new card comes in the queue). Other fields or bad
  * values are not written and listed in `ignored`. Same id, so her progress stays. Dry run unless dryRun:false.
  */
-function adminUpdateCards_(updates, dryRun) {
+function adminUpdateCards_(updates, dryRun, tab) {
   if (!Array.isArray(updates) || !updates.length) throw apiError_('bad_request', 'updates[] required');
+  if (tab && tab !== 'Cards' && tab !== 'Inbox') throw apiError_('bad_request', 'tab must be Cards or Inbox');
   return withLock_(function () {
-    var sh = sheet_('Cards'), headers = headersOf_(sh);
+    var sh = sheet_(tab || 'Cards'), headers = headersOf_(sh);
     var report = { dryRun: dryRun, change: [], notFound: [], ignored: [] };
     updates.forEach(function (u) {
       var row = findById_(sh, u.id);

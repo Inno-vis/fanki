@@ -172,7 +172,7 @@ instructions for that page. All Dutch labels and instructions: `apps-script/Teac
 - The subject menu and the tag chips are alphabetical.
 - **Controleren** (`?page=review`; no second title bar — the shared navigation is the header). **Inbox** (default):
   rows not yet in Cards, oldest first. **Kaarten**: search / filter by tag and by `controle` ("Nog niet goedgekeurd",
-  "🚩 Nakijken (oud)", "Goedgekeurd", "Afgekeurd", "Alle kaarten" = the default). Per card you can edit type, nl, lidwoord, pos, fr,
+  "Goedgekeurd", "Afgekeurd", "Alle kaarten" = the default). Per card you can edit type, nl, lidwoord, pos, fr,
   answer (enkel), examples, tags (at least one: every card needs a subject) and flags.
 - **Eén voor één** has five buttons: **Goedkeuren** (A; Inbox → Cards, added = today; Kaarten → `goedgekeurd`, also
   clears an old 🚩), **Afkeuren** (R; Kaarten only: the card goes back to the Inbox with your edits, same id, so her
@@ -181,7 +181,7 @@ instructions for that page. All Dutch labels and instructions: `apps-script/Teac
   confirm). There is no Opslaan: edits are saved by Goedkeuren, Afkeuren, Vorige and Volgende.
 - **Lijst (5)**: per row Detail / Goedkeuren / Verwijderen (Inbox) or Afkeuren (Kaarten → Inbox), and
   **Keur alle 5 goed**. The 🚩 "nakijken" marking is gone: a card that needs another look goes to the Inbox.
-  Old 🚩 cards can still be found with the filter "🚩 Nakijken (oud)".
+  The last old 🚩 card (E-58 on PROD) went to the Inbox on 2026-10-05; the Cards.nakijken column is no longer used.
 - The public card API never serves these pages and the browser never gets a token.
 
 ### Curriculum editor (`?page=curriculum`)
@@ -199,7 +199,8 @@ The intended way to change the curriculum (the Curriculum tab can still be edite
   tag from Cards and Inbox, its Curriculum row, the tag from other rows' van_tags, and the Tags row
   (`curriculumEditorDeleteTopic`, version-checked; only without unsaved changes). Dicht is the way to close a subject
   for a while.
-- Tap a topic: rule picker (Altijd open / Op een datum / Als genoeg kaarten bekend zijn / Dicht (tijdelijk gesloten)).
+- Tap a topic: first its **name** (Tags.`label_nl`, as the student sees it; Opslaan stores it; the tag code stays, so
+  every card keeps its subject), then the rule picker (Altijd open / Op een datum / Als genoeg kaarten bekend zijn / Dicht (tijdelijk gesloten)).
   Only the fields of that rule show; switching rules never clears the hidden fields. van_tags can only be chosen from
   topics ABOVE; after a reorder or delete, van_tags that are no longer above are dropped and the page says which
   (never on a dicht row).

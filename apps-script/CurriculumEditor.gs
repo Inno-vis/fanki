@@ -123,7 +123,7 @@ function appendMissingTopics_(sh, keys) {
  * Saves the editor's rows (list order). Nothing is written when there are errors or when the tab changed since
  * `version` was loaded. Returns {ok, checks} | {ok:false, conflict:true} | {ok:true, version, checks}.
  */
-function curriculumEditorSave(rows, version) {
+function curriculumEditorSave(rows, version, labels) {
   requireTeacher_();
   return withLock_(function () {
     var ss = ss_();
@@ -133,6 +133,12 @@ function curriculumEditorSave(rows, version) {
     var info = editorTagInfo_(ss);
     var plan = curriculumSavePlan_(rows, info.keys, info.counts);
     if (!plan.ok) return { ok: false, checks: plan.checks };
+    // New names (Tags.label_nl) — the tag code stays, so every card keeps its subject.
+    var tagsSh = ss.getSheetByName('Tags'), lc = headersOf_(tagsSh).indexOf('label_nl') + 1;
+    readTable_(tagsSh).rows.forEach(function (r) {
+      var k = String(r.tag).trim().toLowerCase(), v = labels && labels[k];
+      if (v !== undefined && String(v).trim() && String(v).trim() !== String(r.label_nl)) tagsSh.getRange(r._row, lc).setValue(String(v).trim());
+    });
     var b = backupSheet_(ss);
     writeCurriculumTab_(b, current);
     var values = plan.rows.map(curriculumSheetValues_);

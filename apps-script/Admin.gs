@@ -807,3 +807,24 @@ function adminDeleteCards_(ids, dryRun) {
     return report;
   });
 }
+
+/**
+ * Changes card fields by id: {updates:[{id, fields:{answer, fr, nl, …}}]} — only the fields the review page may edit
+ * (REVIEW_EDITABLE). Same id, so her progress stays. Dry run unless dryRun:false.
+ */
+function adminUpdateCards_(updates, dryRun) {
+  if (!Array.isArray(updates) || !updates.length) throw apiError_('bad_request', 'updates[] required');
+  return withLock_(function () {
+    var sh = sheet_('Cards');
+    var report = { dryRun: dryRun, change: [], notFound: [] };
+    updates.forEach(function (u) {
+      var row = findById_(sh, u.id);
+      if (!row) { report.notFound.push(u.id); return; }
+      var f = {};
+      Object.keys(u.fields || {}).forEach(function (k) { if (REVIEW_EDITABLE.indexOf(k) !== -1) f[k] = u.fields[k]; });
+      Object.keys(f).forEach(function (k) { report.change.push(u.id + ' ' + k + ': "' + row[k] + '" → "' + f[k] + '"'); });
+      if (!dryRun) writeFields_(sh, row, f);
+    });
+    return report;
+  });
+}

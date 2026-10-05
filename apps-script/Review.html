@@ -23,7 +23,6 @@
     <span class="bar" id="cardsBar" style="margin:0" hidden>
       <select id="checkFilter">
         <option value="unchecked">Nog niet goedgekeurd</option>
-        <option value="review">🚩 Nakijken (oud)</option>
         <option value="approved">Goedgekeurd</option>
         <option value="rejected">Afgekeurd</option>
         <option value="all" selected>Alle kaarten</option>
@@ -292,8 +291,8 @@ function render() {
   $('nApproved').textContent = S.approved; $('nRejected').textContent = S.rejected;
   if (S.cards.counts) {
     var o = $('checkFilter').options, c = S.cards.counts;
-    o[0].text = 'Nog niet goedgekeurd (' + c.unchecked + ')'; o[1].text = '🚩 Nakijken (oud) (' + c.review + ')';
-    o[2].text = 'Goedgekeurd (' + c.approved + ')'; o[3].text = 'Afgekeurd (' + c.rejected + ')'; o[4].text = 'Alle kaarten (' + c.all + ')';
+    o[0].text = 'Nog niet goedgekeurd (' + c.unchecked + ')';
+    o[1].text = 'Goedgekeurd (' + c.approved + ')'; o[2].text = 'Afgekeurd (' + c.rejected + ')'; o[3].text = 'Alle kaarten (' + c.all + ')';
   }
   if (S.boot) $('gate').textContent = S.boot.requireApproval ? 'De app krijgt alleen goedgekeurde kaarten.'
     : 'Let op: require_approval staat uit, dus de app krijgt alle actieve kaarten (ook niet goedgekeurde).';

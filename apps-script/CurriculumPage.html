@@ -30,7 +30,7 @@
   </div>
 </main>
 <script>
-var E = { rows: [], tags: {}, tagList: [], version: '', today: '', scores: null, known: null, hasBackup: false, openIdx: -1,
+var E = { labels: {}, rows: [], tags: {}, tagList: [], version: '', today: '', scores: null, known: null, hasBackup: false, openIdx: -1,
           checks: null, dirty: false, busy: false };
 var $ = function (id) { return document.getElementById(id); };
 function run(fn) {
@@ -85,7 +85,7 @@ function load() {
     E.rows = d.rows.map(function (r) { return { tag: r.tag, rule: r.rule, date: r.date, percentage: r.percentage, from_tags: r.from_tags }; });
     E.tags = {}; d.tags.forEach(function (t) { E.tags[t.tag] = t; });
     E.tagList = d.tags; E.version = d.version; E.today = d.today; E.scores = d.scores; E.known = d.known; E.hasBackup = d.hasBackup;
-    E.openIdx = -1; E.checks = null; E.dirty = false; E.busy = false;
+    E.openIdx = -1; E.checks = null; E.dirty = false; E.busy = false; E.labels = {};
     notice('');
     // Subjects that had no row were added (as Dicht) by the server while loading: just say so.
     if (d.added && d.added.length) notice(tr('cur.missing', { list: d.added.map(label).join(', ') }), 'ok');
@@ -95,6 +95,14 @@ function load() {
 
 function ruleEditor(row, i) {
   var box = el('div', { 'class': 'ed' });
+  // The subject's name as the student sees it (Tags.label_nl). The code (tag) stays, so cards keep their subject.
+  var t = E.tags[row.tag];
+  if (t) {
+    var nameIn = el('input', { type: 'text', maxlength: '40', value: t.label, 'data-k': 'label' });
+    nameIn.addEventListener('input', function () { t.label = nameIn.value; E.labels[row.tag] = nameIn.value; E.dirty = true; E.checks = null; notice(tr('cur.dirty')); });
+    nameIn.addEventListener('change', function () { render(); });
+    box.appendChild(el('label', {}, [tr('cur.field.label'), el('br'), nameIn]));
+  }
   var name = 'rule' + i;
   ['always', 'date', 'known', 'closed'].forEach(function (rule) {
     var input = el('input', { type: 'radio', name: name, value: rule });
@@ -176,8 +184,10 @@ function render() {
 }
 
 $('save').addEventListener('click', function () {
+  var empty = Object.keys(E.labels).filter(function (k) { return !String(E.labels[k]).trim(); });
+  if (empty.length) { notice(tr('cur.label.empty'), 'bad'); return; }
   E.busy = true; notice(tr('cur.saving')); render();
-  run('curriculumEditorSave', CurLogic.forSave(E.rows), E.version).then(function (res) {
+  run('curriculumEditorSave', CurLogic.forSave(E.rows), E.version, E.labels).then(function (res) {
     E.busy = false;
     if (res.conflict) { notice(tr('cur.conflict'), 'bad'); render(); return; }
     E.checks = res.checks;
@@ -192,7 +202,7 @@ $('save').addEventListener('click', function () {
       if (first) first.scrollIntoView({ behavior: 'smooth', block: 'center' });
       return;
     }
-    E.version = res.version; E.dirty = false; E.hasBackup = true;
+    E.version = res.version; E.dirty = false; E.hasBackup = true; E.labels = {};
     notice(tr('cur.saved'), 'ok');
     render();
   }, function (e) { E.busy = false; notice((e && e.message) || String(e), 'bad'); render(); });

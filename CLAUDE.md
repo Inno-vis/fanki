@@ -46,7 +46,7 @@ The repo is **public** and hosted on GitHub Pages.
   → `{accepted, duplicate, rejected}`. Idempotent on `event_id`.
 - Admin-only (ADMIN_TOKEN): `listCards, listUntagged, tags, setTags, appendInbox, listInbox,
   promoteInbox, rebuildProgress, setup, readTab, reseedDev (DEV only), purgeSmoke,
-  setCurriculum, addCurriculum, curriculumStatus, migrateToDutch, userInfo, setTeachers, enableApproval, setCheck, removeTags, deleteRejected (DEV only), importCards, cardsToInbox, setSetting, cleanSettings, deleteTabs, flagCards, splitInbox, splitCards, migrateCurriculum, deleteCards, replaceKlok, seedEmoji (dry run unless
+  setCurriculum, addCurriculum, curriculumStatus, migrateToDutch, userInfo, setTeachers, enableApproval, setCheck, removeTags, deleteRejected (DEV only), importCards, cardsToInbox, setSetting, cleanSettings, deleteTabs, flagCards, splitInbox, splitCards, migrateCurriculum, deleteCards, updateCards, replaceKlok, seedEmoji (dry run unless
   dryRun:false; seedEmoji is DEV only)`. Open items: docs/todo.md.
 - All writes are inside `LockService`. All actions are idempotent, so clients **retry** on
   `no_action` (POST body lost on Google's redirect), `busy`, or non-JSON responses.
@@ -84,7 +84,7 @@ The repo is **public** and hosted on GitHub Pages.
   serves it. Page ↔ server via google.script.run (`review*` functions, each `requireTeacher_()`); no token.
 - Controleren, Eén voor één: Goedkeuren · Afkeuren (Kaarten only → back to the Inbox with the edits, `reviewCardToInbox`)
   · Vorige · Volgende · Verwijderen (`reviewDelete`, Inbox or Cards row). No Opslaan: edits are saved by those buttons.
-  No more 🚩 nakijken marking (a card that needs another look goes to the Inbox); old flags: filter "🚩 Nakijken (oud)".
+  No more 🚩 nakijken marking: a card that needs another look goes to the Inbox (Cards.nakijken is unused).
 - Card approval: Cards.`controle` (`goedgekeurd|afgekeurd|blank` → `approved|rejected|''`, `CHECK_NL`/`checkCode_`)
   + Cards.`nakijken` (🚩 checkbox, never hides). With Settings.`require_approval` the API serves only approved
   cards (`cardServed_` in Util.gs; also the Dashboard curriculum). Teacher page: Goedkeuren (`reviewSetCheck`),

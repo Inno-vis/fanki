@@ -174,8 +174,8 @@ function reviewListInbox() {
 }
 
 /**
- * Cards, paged; optional text query (nl/fr/answer), tag, and filter on controle: 'unchecked' (default: not
- * approved or rejected yet), 'review' (🚩 nakijken), 'approved', 'rejected', 'all'. Also returns counts.
+ * Cards, paged; optional text query (see cardMatches_), tag, and filter on controle: 'all' (default), 'unchecked'
+ * (not approved or rejected yet), 'review' (old 🚩 nakijken), 'approved', 'rejected'. Also returns counts.
  */
 /** Search text: lower case, no accents, no {braces}, so "boot" finds "de veerboot" and "cafe" finds "café". */
 function searchText_(s) {

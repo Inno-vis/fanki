@@ -26,7 +26,7 @@
         <option value="review">🚩 Nakijken (oud)</option>
         <option value="approved">Goedgekeurd</option>
         <option value="rejected">Afgekeurd</option>
-        <option value="all">Alle kaarten</option>
+        <option value="all" selected>Alle kaarten</option>
       </select>
       <span class="meta" id="pageInfo" style="margin:0"></span>
       <button class="btn" id="pagePrev">‹ 50</button><button class="btn" id="pageNext">50 ›</button>
@@ -39,7 +39,7 @@
 
 <script>
 var S = { source: 'inbox', mode: 'list', items: [], idx: 0, listStart: 0, boot: null, approved: 0, rejected: 0,
-          cards: { offset: 0, total: 0, check: 'unchecked', counts: null, tagCounts: null }, tag: '', q: '', busy: false, all: [] };
+          cards: { offset: 0, total: 0, check: 'all', counts: null, tagCounts: null }, tag: '', q: '', busy: false, all: [] };
 var $ = function (id) { return document.getElementById(id); };
 
 function run(fn) {

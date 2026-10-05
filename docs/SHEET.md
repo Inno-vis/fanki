@@ -174,7 +174,7 @@ instructions for that page. All Dutch labels and instructions: `apps-script/Teac
   controle filter is ignored while searching). The subject menu and the tag chips are alphabetical.
 - **Controleren** (`?page=review`; no second title bar — the shared navigation is the header). **Inbox** (default):
   rows not yet in Cards, oldest first. **Kaarten**: search / filter by tag and by `controle` ("Nog niet goedgekeurd",
-  "🚩 Nakijken (oud)", "Goedgekeurd", "Afgekeurd", "Alle kaarten"). Per card you can edit type, nl, lidwoord, pos, fr,
+  "🚩 Nakijken (oud)", "Goedgekeurd", "Afgekeurd", "Alle kaarten" = the default). Per card you can edit type, nl, lidwoord, pos, fr,
   answer (enkel), examples, tags (at least one: every card needs a subject) and flags.
 - **Eén voor één** has five buttons: **Goedkeuren** (A; Inbox → Cards, added = today; Kaarten → `goedgekeurd`, also
   clears an old 🚩), **Afkeuren** (R; Kaarten only: the card goes back to the Inbox with your edits, same id, so her

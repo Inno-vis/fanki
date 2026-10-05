@@ -196,7 +196,7 @@ function cardMatches_(c, q) {
 function reviewListCards(offset, limit, query, tag, check) {
   requireTeacher_();
   var q = String(query || '').trim().toLowerCase();
-  check = check || 'unchecked';
+  check = check || 'all';
   var cards = readTable_(sheet_('Cards')).rows.filter(function (r) { return String(r.id).trim() && String(r.nl).trim(); })
     .map(function (r) { return reviewRow_(r, false); });
   var counts = { unchecked: 0, review: 0, approved: 0, rejected: 0, all: cards.length };

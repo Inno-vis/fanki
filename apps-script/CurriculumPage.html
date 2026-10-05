@@ -58,6 +58,24 @@ function apply(res) {
   if (res.dropped.length) alert(tr('cur.dropped', { list: res.dropped.join('; ') }));
 }
 
+/** Verwijderen: first count (dry run) and ask, then delete the subject everywhere and reload. */
+function deleteTopic(tag) {
+  if (E.dirty) { alert(tr('cur.delete.saveFirst')); return; }
+  run('curriculumEditorDeleteTopic', tag, E.version, true).then(function (r) {
+    if (r.conflict) { notice(tr('cur.conflict'), 'bad'); return; }
+    var lines = [tr('cur.delete.q', { tag: label(tag) }), tr('cur.delete.cards', { n: r.cards })];
+    if (r.toInbox) lines.push(tr('cur.delete.toInbox', { n: r.toInbox }) + (r.studiedToInbox ? ' ' + tr('cur.delete.studied', { n: r.studiedToInbox }) : ''));
+    if (r.inbox) lines.push(tr('cur.delete.inbox', { n: r.inbox }));
+    if (r.waiting.length) lines.push(tr('cur.delete.waiting', { list: r.waiting.map(label).join(', ') }));
+    lines.push(tr('cur.delete.final'));
+    if (!confirm(lines.join('\n'))) return;
+    return run('curriculumEditorDeleteTopic', tag, E.version, false).then(function (res) {
+      if (res.conflict) { notice(tr('cur.conflict'), 'bad'); return; }
+      return load().then(function () { notice(tr('cur.delete.done', { tag: tag }), 'ok'); });
+    });
+  }).catch(function (e) { notice((e && e.message) || String(e), 'bad'); });
+}
+
 /** The open editor follows its topic when two rows swap. */
 function follow(i, dir) { if (E.openIdx === i) E.openIdx = i + dir; else if (E.openIdx === i + dir) E.openIdx = i; }
 
@@ -133,7 +151,8 @@ function render() {
     var check = E.checks && E.checks[i];
     var tools = el('div', { 'class': 'tools' }, [
       el('button', { 'class': 'btn', type: 'button', text: tr('cur.up'), onclick: function (e) { e.stopPropagation(); apply(CurLogic.move(E.rows, i, -1)); follow(i, -1); changed(); } }),
-      el('button', { 'class': 'btn', type: 'button', text: tr('cur.down'), onclick: function (e) { e.stopPropagation(); apply(CurLogic.move(E.rows, i, 1)); follow(i, 1); changed(); } })
+      el('button', { 'class': 'btn', type: 'button', text: tr('cur.down'), onclick: function (e) { e.stopPropagation(); apply(CurLogic.move(E.rows, i, 1)); follow(i, 1); changed(); } }),
+      el('button', { 'class': 'btn bad', type: 'button', text: tr('cur.delete'), onclick: function (e) { e.stopPropagation(); deleteTopic(row.tag); } })
     ]);
     if (i === 0) tools.children[0].disabled = true;
     if (i === E.rows.length - 1) tools.children[1].disabled = true;

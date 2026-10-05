@@ -82,12 +82,13 @@ The repo is **public** and hosted on GitHub Pages.
 - `doGet ?page=…` serves a page only when the visitor's email is in Script Properties TEACHER_EMAILS /
   TEACHER_DOMAIN (`admin <env> setTeachers`). The anonymous API deployment has no userinfo scope → never
   serves it. Page ↔ server via google.script.run (`review*` functions, each `requireTeacher_()`); no token.
-- Inbox status `nakijken` (🚩 per row / F key): stays in the Inbox, skipped by "Keur alle 5 goed"
-  (`reviewApproveMany`), filter "alleen 🚩 nakijken".
+- Controleren, Eén voor één: Goedkeuren · Afkeuren (Kaarten only → back to the Inbox with the edits, `reviewCardToInbox`)
+  · Vorige · Volgende · Verwijderen (`reviewDelete`, Inbox or Cards row). No Opslaan: edits are saved by those buttons.
+  No more 🚩 nakijken marking (a card that needs another look goes to the Inbox); old flags: filter "🚩 Nakijken (oud)".
 - Card approval: Cards.`controle` (`goedgekeurd|afgekeurd|blank` → `approved|rejected|''`, `CHECK_NL`/`checkCode_`)
   + Cards.`nakijken` (🚩 checkbox, never hides). With Settings.`require_approval` the API serves only approved
-  cards (`cardServed_` in Util.gs; also the Dashboard curriculum). Teacher page: Goedkeuren/Afkeuren
-  (`reviewSetCheck`), 🚩 (`reviewSetCardFlag`). Turn on per env with `admin <env> enableApproval` (dry run;
+  cards (`cardServed_` in Util.gs; also the Dashboard curriculum). Teacher page: Goedkeuren (`reviewSetCheck`),
+  Afkeuren = back to the Inbox. Turn on per env with `admin <env> enableApproval` (dry run;
   approveStudied keeps her studied cards). All AI-made cards started blank (2026-10-02).
 
 ## Instellingen (phone only) and settings access

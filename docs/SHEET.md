@@ -169,21 +169,18 @@ instructions for that page. All Dutch labels and instructions: `apps-script/Teac
   needs edit access to this spreadsheet (Share it with them), AND their address must be on the allowlist:
   `node scripts/admin.mjs <env> setTeachers '{"emails":"a@x.be, b@y.be"}'` (or `{"domain":"school.be"}` for a
   whole Workspace domain). The first time, Google asks the teacher to allow the script.
-- **Inbox** (default): rows with status `voorgesteld`, oldest first. Per row you can edit type, nl, lidwoord, pos,
-  fr, answer (enkel), examples, tags (from the Tags tab) and flags.
-  - **Goedkeuren** (A): checks the required fields, then moves the row into Cards (added = today, active).
-  - **Afwijzen** (R): deletes the Inbox row. **Opslaan** (S): saves, stays `voorgesteld`.
-- **Kaarten**: search / filter by tag and by `controle`: "Nog niet goedgekeurd" (default), "🚩 Nakijken",
-  "Goedgekeurd", "Afgekeurd", "Alle kaarten" (counts in the menu). **Goedkeuren** (A) saves any edits, checks the
-  required fields and sets `goedgekeurd`; **Afkeuren** (R) sets `afgekeurd` (hidden, nothing deleted, undo by
-  approving); **🚩 Nakijken** (F) toggles `nakijken`. In Lijst (5) every row has Goedkeuren / Afkeuren and
-  **Keur alle 5 goed** approves the visible rows except the 🚩 ones. A line under the filters says whether
-  `require_approval` is on. **Opslaan** writes back to Cards;
-  **Terug naar Inbox** moves a card back (it disappears from the app until approved again; same id, so her
-  progress returns).
-- **Eén voor één** (full form, keys A/R/S, F 🚩 nakijken, J next, K previous, ⌘/Ctrl+Enter save & next) or
-  **Lijst (5)** to scan quickly: "Detail" opens a row, ⚐/🚩 marks it "nakijken", and **Keur alle 5 goed** (between
-  "‹ Vorige 5" and "Volgende 5 ›") approves the visible rows except the 🚩 ones. The page opens on Inbox in Lijst (5). One filter bar for Inbox and Kaarten: tag (with counts, applies at once) and search (nl/fr/answer); Inbox adds "alleen 🚩 nakijken", Kaarten the controle filter and paging. Switching Inbox/Kaarten resets the tag and search. The header shows "12 van 47" and the session's approved/rejected.
+- **Controleren** (`?page=review`; no second title bar — the shared navigation is the header). **Inbox** (default):
+  rows not yet in Cards, oldest first. **Kaarten**: search / filter by tag and by `controle` ("Nog niet goedgekeurd",
+  "🚩 Nakijken (oud)", "Goedgekeurd", "Afgekeurd", "Alle kaarten"). Per card you can edit type, nl, lidwoord, pos, fr,
+  answer (enkel), examples, tags (at least one: every card needs a subject) and flags.
+- **Eén voor één** has five buttons: **Goedkeuren** (A; Inbox → Cards, added = today; Kaarten → `goedgekeurd`, also
+  clears an old 🚩), **Afkeuren** (R; Kaarten only: the card goes back to the Inbox with your edits, same id, so her
+  progress returns when you approve it again; in the Inbox it is already "afgekeurd", so the button is not shown),
+  **‹ Vorige** (K), **Volgende ›** (J) and **Verwijderen** (deletes the Inbox row or the Cards row for good, after a
+  confirm). There is no Opslaan: edits are saved by Goedkeuren, Afkeuren, Vorige and Volgende.
+- **Lijst (5)**: per row Detail / Goedkeuren / Verwijderen (Inbox) or Afkeuren (Kaarten → Inbox), and
+  **Keur alle 5 goed**. The 🚩 "nakijken" marking is gone: a card that needs another look goes to the Inbox.
+  Old 🚩 cards can still be found with the filter "🚩 Nakijken (oud)".
 - The public card API never serves these pages and the browser never gets a token.
 
 ### Curriculum editor (`?page=curriculum`)
@@ -193,9 +190,14 @@ The intended way to change the curriculum (the Curriculum tab can still be edite
 `CurriculumPage.html` + pure logic `CurriculumLogic.html`.
 
 - The topics in order: number, label_nl + active cards, the rule as a sentence ("Altijd open", "Opent op 16 november
-  2026", "Opent als 80% bekend is van: klok-1, app", "Dicht"), a preview line, and Omhoog / Omlaag. Every subject (Tags row) is in the list; Dicht is how a
-  subject is kept out (no Verwijderen; a subject without a row, e.g. added in the Tags tab by hand, is added at the
+  2026", "Opent als 80% bekend is van: klok-1, app", "Dicht"), a preview line, and Omhoog / Omlaag / Verwijderen. Every subject (Tags row) is in the list; Dicht is how a
+  subject is kept out for a while (a subject without a row, e.g. added in the Tags tab by hand, is added at the
   bottom as Dicht when the page loads).
+- **Verwijderen** (a subject): asks first with the numbers (cards that lose it, cards that then have no subject and go
+  to the Inbox — and how many of those she already studied —, Inbox rows, topics that waited on it), then removes the
+  tag from Cards and Inbox, its Curriculum row, the tag from other rows' van_tags, and the Tags row
+  (`curriculumEditorDeleteTopic`, version-checked; only without unsaved changes). Dicht is the way to close a subject
+  for a while.
 - Tap a topic: rule picker (Altijd open / Op een datum / Als genoeg kaarten bekend zijn / Dicht (tijdelijk gesloten)).
   Only the fields of that rule show; switching rules never clears the hidden fields. van_tags can only be chosen from
   topics ABOVE; after a reorder or delete, van_tags that are no longer above are dropped and the page says which
@@ -234,7 +236,11 @@ The intended way to change the curriculum (the Curriculum tab can still be edite
 8. Ongedaan maken → the table from before the last Opslaan is back; the button disappears.
 9. Add a tag by hand in the Tags tab, reload the page → it is at the bottom as Dicht with "Klik op Opslaan".
 10. Nieuw onderwerp → it appears at the bottom as Dicht and in Controleren's tag chips.
-11. Controleren: Goedkeuren a card without a tag → refused with "kies minstens één onderwerp (tag)".
+11. Controleren: Goedkeuren a card without a tag → refused with "kies minstens één onderwerp (tag)". Eén voor één shows
+    Goedkeuren / Afkeuren (Kaarten) / Vorige / Volgende / Verwijderen; an edit is kept after Volgende; Afkeuren puts a
+    card in the Inbox.
+13. Curriculum › Verwijderen on a test subject → the confirm shows the numbers; afterwards its cards without another
+    subject are in the Inbox.
 12. On a phone: everything fits, buttons are tappable, Opslaan stays visible while scrolling.
 
 ## Inbox — proposed new cards

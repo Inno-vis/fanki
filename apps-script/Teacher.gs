@@ -293,7 +293,6 @@ function reviewApproveMany(ids) {
     return (ids || []).map(function (id) {
       try {
         var row = findById_(sheet_('Inbox'), id);
-        if (row && statusCode_(row.status) === 'review') return { id: id, ok: false, errors: ['gemarkeerd om na te kijken'] };
         var r = approveRow_(id, null);
         return { id: id, ok: r.ok, errors: r.errors || [] };
       } catch (e) {
@@ -317,6 +316,18 @@ function reviewSetFlag(id, flagged) {
 }
 
 /** Afwijzen: delete the Inbox row. */
+/** Verwijderen: deletes an Inbox row or a Cards row for good (her Progress/Log rows of that card stay, unused). */
+function reviewDelete(source, id) {
+  requireTeacher_();
+  return withLock_(function () {
+    var sh = sheet_(source === 'cards' ? 'Cards' : 'Inbox');
+    var row = findById_(sh, id);
+    if (!row) throw new Error('Rij niet gevonden (al verplaatst?)');
+    sh.deleteRow(row._row);
+    return { ok: true };
+  });
+}
+
 function reviewReject(id) {
   requireTeacher_();
   return withLock_(function () {
@@ -329,12 +340,13 @@ function reviewReject(id) {
 }
 
 /** Terug naar Inbox: move a card back (status voorgesteld; same id, so its progress returns if re-approved). */
-function reviewCardToInbox(id) {
+function reviewCardToInbox(id, fields) {
   requireTeacher_();
   return withLock_(function () {
     var cards = sheet_('Cards');
     var row = findById_(cards, id);
     if (!row) throw new Error('Kaart niet gevonden');
+    if (fields) row = writeFields_(cards, row, fields); // Afkeuren keeps the edits
     var inbox = sheet_('Inbox');
     var o = {};
     CARD_COLS.forEach(function (h) { o[h] = row[h]; });

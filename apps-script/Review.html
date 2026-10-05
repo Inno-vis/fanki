@@ -10,7 +10,6 @@
 <?!= include_('TeacherStrings') ?>
 <?!= include_('TeacherNav') ?>
 <header>
-  <h1>SpeesRep – controleren <span class="env" id="env"></span></h1>
   <div class="seg" id="source"><button data-v="inbox" class="on">Inbox</button><button data-v="cards">Kaarten</button></div>
   <div class="seg" id="mode"><button data-v="one">Eén voor één</button><button data-v="list" class="on">Lijst (5)</button></div>
   <div class="stats"><span id="progress"></span> · goedgekeurd <b id="nApproved">0</b> · afgekeurd <b id="nRejected">0</b> · <span id="who"></span> · <span id="build" title="versie van deze pagina"></span> <b id="pending"></b></div>
@@ -20,11 +19,11 @@
     <select id="tagFilter"><option value="">Alle tags</option></select>
     <input id="q" placeholder="Zoek (nl, fr, antwoord)…">
     <button class="btn" id="search">Zoeken</button>
-    <label id="inboxBar"><input type="checkbox" id="onlyFlagged"> alleen 🚩 nakijken (<span id="nFlagged">0</span>)</label>
+    <span id="inboxBar"></span>
     <span class="bar" id="cardsBar" style="margin:0" hidden>
       <select id="checkFilter">
         <option value="unchecked">Nog niet goedgekeurd</option>
-        <option value="review">🚩 Nakijken</option>
+        <option value="review">🚩 Nakijken (oud)</option>
         <option value="approved">Goedgekeurd</option>
         <option value="rejected">Afgekeurd</option>
         <option value="all">Alle kaarten</option>
@@ -40,7 +39,7 @@
 
 <script>
 var S = { source: 'inbox', mode: 'list', items: [], idx: 0, listStart: 0, boot: null, approved: 0, rejected: 0,
-          cards: { offset: 0, total: 0, check: 'unchecked', counts: null, tagCounts: null }, tag: '', q: '', busy: false, onlyFlagged: false, all: [] };
+          cards: { offset: 0, total: 0, check: 'unchecked', counts: null, tagCounts: null }, tag: '', q: '', busy: false, all: [] };
 var $ = function (id) { return document.getElementById(id); };
 
 function run(fn) {
@@ -72,7 +71,7 @@ function load() {
 function applyFilter() {
   S.items = S.all.filter(function (x) {
     var q = S.q.trim().toLowerCase();
-    return (!S.onlyFlagged || x.status === 'review') && (!S.tag || x.tags.indexOf(S.tag) !== -1)
+    return (!S.tag || x.tags.indexOf(S.tag) !== -1)
       && (!q || (x.nl + ' ' + x.fr + ' ' + x.answer).toLowerCase().indexOf(q) !== -1);
   });
 }
@@ -188,29 +187,19 @@ function act(kind, item, values) {
       done: function (r) { if (!r.ok) { putBack(); S.approved--; alert('"' + item.nl + '" niet goedgekeurd: ' + r.errors.join(', ')); return true; } return false; },
       fail: function (e) { putBack(); S.approved--; back('"' + item.nl + '" niet goedgekeurd')(e); }
     });
-  } else if (kind === 'reject') {
-    if (!confirm('"' + item.nl + '" afwijzen? De rij wordt uit de Inbox verwijderd.')) return;
-    var putBackR = takeOut(item); S.rejected++; toast('Afgewezen'); render();
-    enqueue({ run: function () { return run('reviewReject', id); }, fail: function (e) { putBackR(); S.rejected--; back('"' + item.nl + '" niet afgewezen')(e); } });
-  } else if (kind === 'toInbox') {
-    if (!confirm('"' + item.nl + '" terug naar de Inbox? De kaart verdwijnt uit de app tot ze weer goedgekeurd is.')) return;
-    var putBackT = takeOut(item); toast('Terug naar Inbox'); render();
-    enqueue({ run: function () { return run('reviewCardToInbox', id); }, fail: function (e) { putBackT(); back('"' + item.nl + '" niet verplaatst')(e); } });
-  } else if (kind === 'cardFlag') { // Kaarten: 🚩 nakijken aan/uit (the card stays in the app)
-    var was = item.review;
-    item.review = !was; if (S.cards.counts) S.cards.counts.review += was ? -1 : 1;
-    if (!matches(item)) takeOut(item);
-    toast(was ? 'Niet meer gemarkeerd' : '🚩 Nakijken'); render();
-    enqueue({ run: function () { return run('reviewSetCardFlag', [id], !was); }, fail: function (e) { item.review = was; back('🚩 niet opgeslagen')(e); } });
-  } else if (kind === 'flag') {
-    var flagged = item.status !== 'review';
-    item.status = flagged ? 'review' : 'proposed'; toast(flagged ? '🚩 Nakijken' : 'Niet meer gemarkeerd'); render();
-    enqueue({ run: function () { return run('reviewSetFlag', id, flagged); }, fail: function (e) { item.status = flagged ? 'proposed' : 'review'; back('🚩 niet opgeslagen')(e); } });
-  } else { // save / saveNext: keep the edits locally at once
+  } else if (kind === 'delete') {
+    var where = S.source === 'inbox' ? 'uit de Inbox' : 'uit Kaarten';
+    var extra = S.source === 'inbox' ? '' : ' Als de leerling hem al oefende, komt hij ook niet meer terug om te herhalen.';
+    if (!confirm('"' + item.nl + '" definitief ' + where + ' verwijderen?' + extra + ' Dit kan niet ongedaan worden.')) return;
+    var src = S.source, putBackD = takeOut(item); toast('Verwijderd'); render();
+    enqueue({ run: function () { return run('reviewDelete', src, id); }, fail: function (e) { putBackD(); back('"' + item.nl + '" niet verwijderd')(e); } });
+  } else if (kind === 'toInbox') { // Kaarten › Afkeuren: the card goes back to the Inbox (with the edits)
+    var putBackT = takeOut(item); S.rejected++; toast('Afgekeurd: naar de Inbox'); render();
+    enqueue({ run: function () { return run('reviewCardToInbox', id, values || null); }, fail: function (e) { putBackT(); S.rejected--; back('"' + item.nl + '" niet verplaatst')(e); } });
+  } else { // save (on Vorige / Volgende): keep the edits locally at once
     var before = merged(item, {});
     Object.keys(values || {}).forEach(function (k) { item[k] = Array.isArray(values[k]) ? values[k].slice() : values[k]; });
     toast('Opgeslagen');
-    if (kind === 'saveNext') S.idx = Math.min(S.idx + 1, S.items.length - 1);
     render();
     enqueue({
       run: function () { return run('reviewSave', S.source, id, values); },
@@ -222,13 +211,11 @@ function act(kind, item, values) {
 function approveMany(rows) {
   var ok = [], bad = [];
   rows.forEach(function (x) {
-    if (x.status === 'review') return;
     var errs = validate(x);
     if (errs.length) bad.push(x.nl + ': ' + errs.join(', ')); else ok.push(x);
   });
-  var skipped = rows.length - ok.length - bad.length;
-  if (!ok.length) { alert(bad.length ? 'Niet goed te keuren:\n' + bad.join('\n') : 'Alle rijen zijn gemarkeerd om na te kijken'); return; }
-  if (!confirm(ok.length + ' kaart(en) goedkeuren' + (skipped ? ' (' + skipped + ' met 🚩 overgeslagen)' : '') + (bad.length ? ' (' + bad.length + ' met fouten blijven staan)' : '') + '?')) return;
+  if (!ok.length) { alert('Niet goed te keuren:\n' + bad.join('\n')); return; }
+  if (!confirm(ok.length + ' kaart(en) goedkeuren' + (bad.length ? ' (' + bad.length + ' met fouten blijven staan)' : '') + '?')) return;
   var putBacks = ok.map(takeOut); S.approved += ok.length; toast(ok.length + ' goedgekeurd'); render();
   if (bad.length) alert('Blijven in de Inbox (eerst verbeteren):\n' + bad.join('\n'));
   enqueue({
@@ -280,13 +267,11 @@ function setCards(items, value) {
 function approveCardsMany(rows) {
   var ok = [], bad = [];
   rows.forEach(function (x) {
-    if (x.review) return;
     var errs = validate(x);
     if (errs.length) bad.push(x.nl + ': ' + errs.join(', ')); else ok.push(x);
   });
-  var skipped = rows.length - ok.length - bad.length;
-  if (!ok.length) { alert(bad.length ? 'Niet goed te keuren:\n' + bad.join('\n') : 'Alle rijen zijn gemarkeerd om na te kijken'); return; }
-  if (!confirm(ok.length + ' kaart(en) goedkeuren' + (skipped ? ' (' + skipped + ' met 🚩 overgeslagen)' : '') + (bad.length ? ' (' + bad.length + ' met fouten blijven staan)' : '') + '?')) return;
+  if (!ok.length) { alert('Niet goed te keuren:\n' + bad.join('\n')); return; }
+  if (!confirm(ok.length + ' kaart(en) goedkeuren' + (bad.length ? ' (' + bad.length + ' met fouten blijven staan)' : '') + '?')) return;
   if (bad.length) alert('Eerst verbeteren:\n' + bad.join('\n'));
   setCards(ok, 'approved');
 }
@@ -298,7 +283,6 @@ var current = null;
 function render() {
   $('cardsBar').hidden = S.source !== 'cards';
   $('inboxBar').hidden = S.source !== 'inbox';
-  $('nFlagged').textContent = S.all.filter(function (x) { return x.status === 'review'; }).length;
   $('gate').hidden = S.source !== 'cards';
   fillTagMenu();
   var total = S.source === 'cards' ? S.cards.total : S.items.length;
@@ -308,7 +292,7 @@ function render() {
   $('nApproved').textContent = S.approved; $('nRejected').textContent = S.rejected;
   if (S.cards.counts) {
     var o = $('checkFilter').options, c = S.cards.counts;
-    o[0].text = 'Nog niet goedgekeurd (' + c.unchecked + ')'; o[1].text = '🚩 Nakijken (' + c.review + ')';
+    o[0].text = 'Nog niet goedgekeurd (' + c.unchecked + ')'; o[1].text = '🚩 Nakijken (oud) (' + c.review + ')';
     o[2].text = 'Goedgekeurd (' + c.approved + ')'; o[3].text = 'Afgekeurd (' + c.rejected + ')'; o[4].text = 'Alle kaarten (' + c.all + ')';
   }
   if (S.boot) $('gate').textContent = S.boot.requireApproval ? 'De app krijgt alleen goedgekeurde kaarten.'
@@ -330,42 +314,28 @@ function renderOne(view) {
   var item = S.items[S.idx]; var form = formFor(item); current = { item: item, form: form };
   var inbox = S.source === 'inbox';
   var btn = function (label, cls, key, fn) { var b = el('button', { 'class': 'btn ' + cls }, [document.createTextNode(label), key ? el('kbd', { text: key }) : null]); b.disabled = S.busy; b.addEventListener('click', fn); return b; };
-  var actions = el('div', { 'class': 'actions' }, inbox ? [
-    btn('Goedkeuren', 'good', 'A', function () { act('approve', item, form.values); }),
-    btn('Afwijzen', 'bad', 'R', function () { act('reject', item); }),
-    btn('Opslaan', 'primary', 'S', function () { act('save', item, form.values); }),
-    btn('Opslaan & volgende', '', '⌘↵', function () { act('saveNext', item, form.values); }),
-    btn(item.status === 'review' ? '🚩 Nakijken (aan)' : '🚩 Nakijken', item.status === 'review' ? 'bad' : '', 'F', function () { act('flag', item); }),
-    btn('‹ Vorige', '', 'K', function () { step(-1); }), btn('Volgende ›', '', 'J', function () { step(1); })
-  ] : [
-    btn('Goedkeuren', 'good', 'A', function () { saveAndApprove(item, form.values); }),
-    btn('Afkeuren', 'bad', 'R', function () { setCards([item], 'rejected'); }),
-    btn(item.review ? '🚩 Nakijken (aan)' : '🚩 Nakijken', item.review ? 'bad' : '', 'F', function () { act('cardFlag', item); }),
-    btn('Opslaan', 'primary', 'S', function () { act('save', item, form.values); }),
-    btn('Opslaan & volgende', '', '⌘↵', function () { act('saveNext', item, form.values); }),
-    btn('Terug naar Inbox', '', '', function () { act('toInbox', item); }),
-    btn('‹ Vorige', '', 'K', function () { step(-1); }), btn('Volgende ›', '', 'J', function () { step(1); })
-  ]);
+  // Fewer buttons: edits are saved by Goedkeuren / Afkeuren and when you go to the previous or next card.
+  var actions = el('div', { 'class': 'actions' }, [
+    btn('Goedkeuren', 'good', 'A', function () { if (inbox) act('approve', item, form.values); else saveAndApprove(item, form.values); }),
+    inbox ? null : btn('Afkeuren', 'bad', 'R', function () { act('toInbox', item, changes(item, form.values)); }),
+    btn('‹ Vorige', '', 'K', function () { step(-1); }), btn('Volgende ›', '', 'J', function () { step(1); }),
+    btn('Verwijderen', 'bad', '', function () { act('delete', item); })
+  ].filter(Boolean));
   view.appendChild(el('div', { 'class': 'panel' }, [
     el('div', { 'class': 'meta', text: (inbox ? (item.status === 'review' ? '🚩 nakijken · Inbox · ' : 'Inbox · ') : (item.review ? '🚩 nakijken · ' : '') + checkText(item) + ' · Kaart · ') + item.id + ' · ' + typeNl(item.type) + ' · toegevoegd ' + item.added + (item.active === false ? ' · niet actief' : '') }),
     form.node, el('div', { 'class': 'errors' }), actions,
-    el('div', { 'class': 'help', text: 'Sneltoetsen (buiten een invoerveld): ' + (inbox ? 'A goedkeuren · R afwijzen · F nakijken · ' : 'A goedkeuren · R afkeuren · F nakijken · ') + 'S opslaan · J volgende · K vorige · ⌘/Ctrl+Enter opslaan & volgende (ook in een veld).' })
+    el('div', { 'class': 'help', text: 'Sneltoetsen (buiten een invoerveld): A goedkeuren · ' + (inbox ? '' : 'R afkeuren (naar de Inbox) · ') + 'J volgende · K vorige. Wijzigingen worden bewaard bij Goedkeuren, Afkeuren, Vorige en Volgende.' })
   ]));
 }
 
 function renderList(view) {
   var inbox = S.source === 'inbox';
   var rows = S.items.slice(S.listStart, S.listStart + 5);
-  var tbl = el('table', {}, [el('thead', {}, [el('tr', {}, ['🚩', 'type', 'nl', 'fr / answer', 'tags', ''].map(function (h) { return el('th', { text: h }); }))])]);
+  var tbl = el('table', {}, [el('thead', {}, [el('tr', {}, ['type', 'nl', 'fr / answer', 'tags', ''].map(function (h) { return el('th', { text: h }); }))])]);
   var tb = el('tbody'); tbl.appendChild(tb);
   rows.forEach(function (item, i) {
     var b = function (label, cls, fn) { var x = el('button', { 'class': 'btn ' + cls, text: label }); x.disabled = S.busy; x.addEventListener('click', fn); return x; };
-    var flagged = inbox ? item.status === 'review' : item.review;
-    var fb = el('button', { 'class': 'flagbtn' + (flagged ? ' on' : ''), title: 'Nakijken', text: flagged ? '🚩' : '⚐' });
-    fb.disabled = S.busy; fb.addEventListener('click', function () { act(inbox ? 'flag' : 'cardFlag', item); });
-    var flagCell = el('td', {}, [fb]);
-    tb.appendChild(el('tr', { 'class': flagged ? 'flagged' : '' }, [
-      flagCell,
+    tb.appendChild(el('tr', {}, [
       el('td', { text: typeNl(item.type) + (inbox ? '' : ' · ' + checkText(item)) }),
       el('td', { text: (item.article ? item.article + ' ' : '') + item.nl }),
       el('td', { text: item.type === 'oneway' ? item.answer : item.fr }),
@@ -374,21 +344,25 @@ function renderList(view) {
         b('Detail', '', function () { S.mode = 'one'; S.idx = S.listStart + i; syncSeg(); render(); }), document.createTextNode(' '),
         inbox ? b('Goedkeuren', 'good', function () { act('approve', item, null); })
           : item.check === 'approved' ? null : b('Goedkeuren', 'good', function () { approveCardsMany([item]); }), document.createTextNode(' '),
-        inbox ? b('Afwijzen', 'bad', function () { act('reject', item); })
-          : item.check === 'rejected' ? null : b('Afkeuren', 'bad', function () { setCards([item], 'rejected'); })
+        inbox ? b('Verwijderen', 'bad', function () { act('delete', item); })
+          : b('Afkeuren', 'bad', function () { act('toInbox', item, null); })
       ])
     ]));
   });
   var nav = el('div', { 'class': 'actions' }, [
     (function () { var x = el('button', { 'class': 'btn', text: '‹ Vorige 5' }); x.disabled = S.listStart === 0; x.onclick = function () { S.listStart = Math.max(0, S.listStart - 5); render(); }; return x; })(),
-    inbox ? (function () { var n = rows.filter(function (x) { return x.status !== 'review'; }).length; var x = el('button', { 'class': 'btn good', text: 'Keur alle ' + n + ' goed' }); x.disabled = S.busy || !n; x.onclick = function () { approveMany(rows); }; return x; })()
-      : (function () { var todo = rows.filter(function (x) { return !x.review && x.check !== 'approved'; }); var x = el('button', { 'class': 'btn good', text: 'Keur alle ' + todo.length + ' goed' }); x.disabled = S.busy || !todo.length; x.onclick = function () { approveCardsMany(todo); }; return x; })(),
+    inbox ? (function () { var n = rows.length; var x = el('button', { 'class': 'btn good', text: 'Keur alle ' + n + ' goed' }); x.disabled = S.busy || !n; x.onclick = function () { approveMany(rows); }; return x; })()
+      : (function () { var todo = rows.filter(function (x) { return x.check !== 'approved'; }); var x = el('button', { 'class': 'btn good', text: 'Keur alle ' + todo.length + ' goed' }); x.disabled = S.busy || !todo.length; x.onclick = function () { approveCardsMany(todo); }; return x; })(),
     (function () { var x = el('button', { 'class': 'btn', text: 'Volgende 5 ›' }); x.disabled = S.listStart + 5 >= S.items.length; x.onclick = function () { S.listStart += 5; render(); }; return x; })()
   ]);
   view.appendChild(tbl); view.appendChild(nav);
 }
 
-function step(d) { S.idx = Math.max(0, Math.min(S.items.length - 1, S.idx + d)); render(); }
+/** Vorige / Volgende: first keep the edits of this card (there is no Opslaan button). */
+function step(d) {
+  if (S.mode === 'one' && current) { var diff = changes(current.item, current.form.values); if (diff) act('save', current.item, diff); }
+  S.idx = Math.max(0, Math.min(S.items.length - 1, S.idx + d)); render();
+}
 function syncSeg() {
   [['source', S.source], ['mode', S.mode]].forEach(function (p) { [].forEach.call($(p[0]).children, function (b) { b.classList.toggle('on', b.dataset.v === p[1]); }); });
 }
@@ -405,7 +379,6 @@ function applySearch() {
   if (S.source === 'inbox') { applyFilter(); render(); } else { S.cards.offset = 0; load(); }
 }
 $('tagFilter').addEventListener('change', applySearch);
-$('onlyFlagged').addEventListener('change', function (e) { S.onlyFlagged = e.target.checked; applyFilter(); S.idx = 0; S.listStart = 0; render(); });
 $('checkFilter').addEventListener('change', function () { S.cards.check = $('checkFilter').value; S.cards.offset = 0; S.idx = 0; load(); });
 $('search').addEventListener('click', applySearch);
 $('q').addEventListener('keydown', function (e) { if (e.key === 'Enter') $('search').click(); });
@@ -414,22 +387,17 @@ $('pageNext').addEventListener('click', function () { if (S.cards.offset + 50 < 
 document.addEventListener('keydown', function (e) {
   if (S.mode !== 'one' || !current || S.busy) return; // S.busy = only while a list is loading
   var typing = /INPUT|SELECT|TEXTAREA/.test(e.target.tagName);
-  if ((e.metaKey || e.ctrlKey) && e.key === 'Enter') { e.preventDefault(); act('saveNext', current.item, current.form.values); return; }
   if (typing || e.metaKey || e.ctrlKey || e.altKey) return;
   var k = e.key.toLowerCase(), inbox = S.source === 'inbox';
   if (k === 'a' && inbox) act('approve', current.item, current.form.values);
   else if (k === 'a') saveAndApprove(current.item, current.form.values);
-  else if (k === 'r' && inbox) act('reject', current.item);
-  else if (k === 'r') setCards([current.item], 'rejected');
-  else if (k === 'f' && inbox) act('flag', current.item);
-  else if (k === 'f' && !inbox) act('cardFlag', current.item);
-  else if (k === 's') act('save', current.item, current.form.values);
+  else if (k === 'r' && !inbox) act('toInbox', current.item, changes(current.item, current.form.values));
   else if (k === 'j' || e.key === 'ArrowRight') step(1);
   else if (k === 'k' || e.key === 'ArrowLeft') step(-1);
 });
 
 run('reviewBootstrap').then(function (b) {
-  S.boot = b; $('env').textContent = b.env; $('who').textContent = b.email; $('build').textContent = 'versie ' + b.build;
+  S.boot = b; $('who').textContent = b.email; $('build').textContent = 'versie ' + b.build;
   load();
 }, function (e) { $('view').innerHTML = ''; $('view').appendChild(el('p', { 'class': 'empty', text: (e && e.message) || String(e) })); });
 </script>

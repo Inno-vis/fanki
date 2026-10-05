@@ -162,3 +162,54 @@ function curriculumEditorNewTopic(tag, labelNl, labelFr) {
     return { tag: key, label: String(labelNl).trim(), cards: 0 };
   });
 }
+
+/**
+ * Verwijderen (a subject): removes the tag from Cards and Inbox, its Curriculum row, the tag from other rows'
+ * van_tags, and its Tags row. Cards left WITHOUT any subject go to the Inbox (every card needs a subject).
+ * dryRun (default true) only counts, for the confirm question. Version-checked like Opslaan.
+ */
+function curriculumEditorDeleteTopic(tag, version, dryRun) {
+  requireTeacher_();
+  var key = String(tag || '').trim().toLowerCase();
+  return withLock_(function () {
+    var ss = ss_();
+    var cur = ss.getSheetByName('Curriculum');
+    if (curriculumVersion_(curriculumTabValues_(cur)) !== version) return { ok: false, conflict: true };
+    var studied = {};
+    readTable_(ss.getSheetByName('Progress')).rows.forEach(function (r) { if (r.card_id) studied[String(r.card_id)] = true; });
+    var cards = ss.getSheetByName('Cards'), ct = readTable_(cards), ccol = ct.headers.indexOf('tags') + 1;
+    var tagged = ct.rows.filter(function (r) { return splitTags_(r.tags).indexOf(key) !== -1; });
+    var toInbox = tagged.filter(function (r) { return splitTags_(r.tags).length === 1; });
+    var inbox = ss.getSheetByName('Inbox'), it = readTable_(inbox), icol = it.headers.indexOf('tags') + 1;
+    var inboxTagged = it.rows.filter(function (r) { return splitTags_(r.tags).indexOf(key) !== -1; });
+    var curRows = readCurriculum_();
+    var waiting = curRows.filter(function (r) { return r.from_tags.indexOf(key) !== -1; }).map(function (r) { return r.tag; });
+    var report = {
+      ok: true, dryRun: dryRun !== false, tag: key, cards: tagged.length, toInbox: toInbox.length,
+      studiedToInbox: toInbox.filter(function (r) { return studied[String(r.id)]; }).length, inbox: inboxTagged.length, waiting: waiting
+    };
+    if (dryRun !== false) return report;
+    var without = function (r) { return splitTags_(r.tags).filter(function (t) { return t !== key; }).join(', '); };
+    tagged.forEach(function (r) { if (toInbox.indexOf(r) === -1) cards.getRange(r._row, ccol).setValue(without(r)); });
+    inboxTagged.forEach(function (r) { inbox.getRange(r._row, icol).setValue(without(r)); });
+    if (toInbox.length) {
+      var moved = toInbox.map(function (r) {
+        var o = {}; CARD_COLS.forEach(function (h) { o[h] = r[h]; }); o.tags = ''; o.status = STATUS_NL.proposed;
+        return rowFromObject_(SCHEMA.Inbox, o);
+      });
+      inbox.getRange(nextRow_(inbox, 3), 1, moved.length, SCHEMA.Inbox.length).setValues(moved);
+      toInbox.slice().sort(function (a, b) { return b._row - a._row; }).forEach(function (r) { cards.deleteRow(r._row); });
+    }
+    var rows = curRows.filter(function (r) { return r.tag !== key; }).map(function (r) {
+      r.from_tags = r.from_tags.filter(function (t) { return t !== key; });
+      return r;
+    }).sort(function (a, b) { return a.order - b.order; });
+    writeCurriculumTab_(cur, rows.map(curriculumSheetValues_));
+    var tags = ss.getSheetByName('Tags');
+    readTable_(tags).rows.filter(function (r) { return String(r.tag).trim().toLowerCase() === key; })
+      .sort(function (a, b) { return b._row - a._row; }).forEach(function (r) { tags.deleteRow(r._row); });
+    SpreadsheetApp.flush();
+    try { updateCurriculumDashboard_(true); } catch (e) { /* ignore */ }
+    return report;
+  });
+}

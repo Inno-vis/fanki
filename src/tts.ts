@@ -24,6 +24,11 @@ export function dutchSpeech(card: Card): string {
   return dutchText(card);
 }
 
+/** Card directions whose answer (the back) is Dutch: read out loud when shown, if "Antwoord voorlezen" is on. */
+export function answerIsDutch(mode: string): boolean {
+  return mode === 'fr_nl' || mode === 'question' || mode === 'cloze' || mode === 'oneway';
+}
+
 /**
  * Is this word-recognition review a listening card? Deterministic per card and review number, so the same
  * card is not always audio, and about `share` of them are.

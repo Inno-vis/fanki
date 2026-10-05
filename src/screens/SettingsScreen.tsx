@@ -33,20 +33,21 @@ export function SettingsScreen({ onDone }: { onDone: () => void }) {
         </label>
       );
     }
+    const tog = c[key];
     return (
       <div class="setting-row" key={key}>
         <span class="setting-label">{t(label as UIKey)}</span>
         <button
-          class={`setting-toggle${c.listening.on ? ' on' : ''}`}
+          class={`setting-toggle${tog.on ? ' on' : ''}`}
           role="switch"
-          aria-checked={c.listening.on}
+          aria-checked={tog.on}
           aria-label={t(label as UIKey)}
-          disabled={!c.listening.available}
-          onClick={() => void setUserSetting('listeningEnabled', !c.listening.on)}
+          disabled={!tog.available}
+          onClick={() => void setUserSetting(key, !tog.on)}
         >
-          {c.listening.on ? t('settings.on') : t('settings.off')}
+          {tog.on ? t('settings.on') : t('settings.off')}
         </button>
-        {!c.listening.available && <p class="setting-note muted">{t('settings.noVoice')}</p>}
+        {!tog.available && <p class="setting-note muted">{t('settings.noVoice')}</p>}
       </div>
     );
   };

@@ -88,8 +88,9 @@ The repo is **public** and hosted on GitHub Pages.
 
 - Menu › ⚙️ Instellingen (`screens/SettingsScreen.tsx`): rows from `SETTING_ROWS` (src/userSettings.ts) — "Max.
   aantal nieuwe woorden per dag" (5/10/15/20, plus "Standaard (X)" when the Sheet value is not one of them) and
-  "Luisteroefeningen" (disabled + "Geen Nederlandse stem op dit toestel." without a Dutch voice). Stored in
-  IndexedDB `meta.userSettings` = {newPerDay, listeningEnabled} (null = default), saved instantly, NEVER sent to
+  "Luisteroefeningen" and "Antwoord voorlezen" (default on: a Dutch answer is read out once when shown, `answerIsDutch`
+  in src/tts.ts; both disabled + "Geen Nederlandse stem op dit toestel." without a Dutch voice). Stored in
+  IndexedDB `meta.userSettings` = {newPerDay, listeningEnabled, readAnswer} (null = default), saved instantly, NEVER sent to
   the Sheet or a server.
 - ONE accessor, `src/settings.ts`: `useSettings()` (components) / `currentSettings()` (other code) merge the Sheet
   Settings, her userSettings and `hasVoice`. `new_per_day` there is already `getNewPerDay(sheet, user)`;

@@ -84,6 +84,7 @@ export const UI = {
   'settings.newPerDay': { nl: 'Max. aantal nieuwe woorden per dag', fr: 'Nombre maximum de nouveaux mots par jour' },
   'settings.default': { nl: 'Standaard ({n})', fr: 'Par défaut ({n})' },
   'settings.listening': { nl: 'Luisteroefeningen', fr: 'Exercices d’écoute' },
+  'settings.readAnswer': { nl: 'Antwoord voorlezen', fr: 'Lire la réponse à voix haute' },
   'settings.on': { nl: 'Aan', fr: 'Activé' },
   'settings.off': { nl: 'Uit', fr: 'Désactivé' },
   'settings.noVoice': { nl: 'Geen Nederlandse stem op dit toestel.', fr: 'Pas de voix néerlandaise sur cet appareil.' },
@@ -196,7 +197,8 @@ export const HELP = {
     fr:
       'Ces réglages restent sur ton téléphone. « Max. aantal nieuwe woorden per dag » = combien de nouveaux mots ' +
       'au maximum chaque jour (« Standaard » = le choix de ton professeur). « Luisteroefeningen » = parfois la carte ' +
-      'commence seulement par le son ; « Uit » = jamais. « Back-up opslaan » enregistre ta progression dans un ' +
+      'commence seulement par le son ; « Uit » = jamais. « Antwoord voorlezen » = le téléphone lit la réponse ' +
+      'néerlandaise à voix haute quand tu la montres. « Back-up opslaan » enregistre ta progression dans un ' +
       'fichier ; « Back-up terugzetten » la remet depuis ce fichier (par exemple sur un nouveau téléphone). ' +
       'Les changements comptent tout de suite, pour la prochaine carte.'
   },

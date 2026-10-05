@@ -11,13 +11,16 @@ import { cleanUserSettings, newPerDayChoices, saveUserSettings, type UserSetting
 export type EffectiveSettings = Settings & {
   /** Listening cards are on: a Dutch voice exists and she did not switch them off. */
   listening: boolean;
+  /** "Antwoord voorlezen": a Dutch answer is read out loud when it is shown (default on, needs a Dutch voice). */
+  readAnswer: boolean;
 };
 
 export function effectiveSettings(sheet: Settings, user: UserSettings, hasVoice: boolean): EffectiveSettings {
   return {
     ...sheet,
     new_per_day: getNewPerDay(sheet, user),
-    listening: hasVoice && (user.listeningEnabled ?? true)
+    listening: hasVoice && (user.listeningEnabled ?? true),
+    readAnswer: hasVoice && (user.readAnswer ?? true)
   };
 }
 
@@ -44,7 +47,8 @@ export function useSettingControls() {
   const eff = effectiveSettings(s.settings, s.userSettings, s.hasVoice);
   return {
     newPerDay: newPerDayChoices(s.settings.new_per_day, s.userSettings),
-    listening: { on: eff.listening, available: s.hasVoice }
+    listeningEnabled: { on: eff.listening, available: s.hasVoice },
+    readAnswer: { on: eff.readAnswer, available: s.hasVoice }
   };
 }
 

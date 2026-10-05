@@ -186,6 +186,7 @@ var APP_SEED_CARDS = [
   'word|toestel|het|noun|l\'appareil|Mijn toestel heeft geen stem.|Mon appareil n\'a pas de voix.|app|manual|',
   'word|back-up|de|noun|la sauvegarde|Ik maak een back-up.|Je fais une sauvegarde.|app|manual|',
   'word|terugzetten||verb (separable)|remettre, restaurer|Ik zet de back-up terug.|Je restaure la sauvegarde.|app|manual|separable',
+  'word|voorlezen||verb (separable)|lire à voix haute|De telefoon leest het antwoord voor.|Le téléphone lit la réponse à voix haute.|app|manual|separable',
   'word|ander||adj|autre (andere = autre, avec -e)|Heb je een andere dag?|Tu as un autre jour ?|app|manual|',
   // Over SpeesRep words (2026-10-04)
   'word|aanpassen||verb (separable)|adapter, modifier|Ik pas de tekst aan.|J\'adapte le texte.|app|manual|separable',

@@ -3,7 +3,7 @@ import type { Mode } from '../session';
 import { clozeParts, dutchText, flagLabel, visibleFlags } from '../display';
 import { useEffect } from 'preact/hooks';
 import { t } from '../i18n';
-import { dutchSpeech, speakDutch } from '../tts';
+import { answerIsDutch, dutchSpeech, speakDutch } from '../tts';
 import { SpeakButton } from './SpeakButton';
 import { openmojiFor } from '../openmoji';
 
@@ -15,7 +15,7 @@ import { openmojiFor } from '../openmoji';
  *   question  front: French prompt            back: expected Dutch answer
  *   oneway    front: nl (Dutch prompt)        back: answer
  */
-export function CardFace({ card, mode, revealed }: { card: Card; mode: Mode; revealed: boolean }) {
+export function CardFace({ card, mode, revealed, readAnswer = false }: { card: Card; mode: Mode; revealed: boolean; readAnswer?: boolean }) {
   const shown = visibleFlags(card);
   const flags =
     shown.length > 0 ? (
@@ -51,6 +51,10 @@ export function CardFace({ card, mode, revealed }: { card: Card; mode: Mode; rev
   useEffect(() => {
     if (mode === 'listen' && !revealed) speakDutch(speech);
   }, [card.id, mode]);
+  // "Antwoord voorlezen": a Dutch answer is read out once when it is shown.
+  useEffect(() => {
+    if (revealed && readAnswer && answerIsDutch(mode)) speakDutch(speech);
+  }, [card.id, mode, revealed]);
 
   // Listening card: only the sound first; the reveal shows the Dutch word and the French.
   if (mode === 'listen') {

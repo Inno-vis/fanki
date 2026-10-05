@@ -64,10 +64,25 @@ export const OPENMOJI: Record<string, string> = {
   "🍨": '1F368',
   "🍽️": '1F37D',
   "🧾": '1F9FE',
+  "🪵": '1FAB5',
+  "🧀": '1F9C0',
+  "🧈": '1F9C8',
+  "🚿": '1F6BF',
+  "🍌": '1F34C',
+  "📈": '1F4C8',
+  "🖌️": '1F58C',
+  "💅": '1F485',
+  "🎈": '1F388',
+  "🎨": '1F3A8',
+  "openmoji:E0C0": 'E0C0',
 };
 
-/** The OpenMoji hexcode for a card front that is one emoji (with or without the FE0F selector), else null. */
+/**
+ * The OpenMoji hexcode for a card front that is one emoji (with or without the FE0F selector) or an OpenMoji-only
+ * picture written as "openmoji:E0C0", else null.
+ */
 export function openmojiFor(text: string): string | null {
   const t = text.trim();
+  if (/^openmoji:/i.test(t)) return OPENMOJI['openmoji:' + t.slice(9).toUpperCase()] ?? null;
   return OPENMOJI[t] ?? OPENMOJI[t.replace(/\uFE0F/g, '')] ?? OPENMOJI[t + '\uFE0F'] ?? null;
 }

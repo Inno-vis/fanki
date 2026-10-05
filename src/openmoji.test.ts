@@ -12,6 +12,12 @@ describe('OpenMoji pictures (self-hosted)', () => {
     expect(openmojiFor('het bed')).toBeNull();
   });
 
+  it('an OpenMoji-only picture is written "openmoji:<hexcode>" (case-insensitive); an unknown one has none', () => {
+    expect(openmojiFor('openmoji:E0C0')).toBe('E0C0');
+    expect(openmojiFor(' openmoji:e0c0 ')).toBe('E0C0');
+    expect(openmojiFor('openmoji:E1DB')).toBeNull(); // not in OpenMoji 17.0.0
+  });
+
   it('every emoji card in the seeds has a picture, and only used SVGs are shipped', () => {
     const schema = readFileSync(join(root, 'apps-script/Schema.gs'), 'utf8');
     const block = schema.slice(schema.indexOf('var EMOJI_SEED_CARDS'), schema.indexOf('];', schema.indexOf('var EMOJI_SEED_CARDS')));

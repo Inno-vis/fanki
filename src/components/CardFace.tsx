@@ -91,7 +91,7 @@ export function CardFace({ card, mode, revealed, readAnswer = false }: { card: C
         {flags}
         {picture ? (
           // OpenMoji picture (self-hosted, precached): the same image on every phone.
-          <img class="card-picture" src={`${import.meta.env.BASE_URL}openmoji/${picture}.svg`} alt={card.nl} width={320} height={320} />
+          <img class="card-picture" src={`${import.meta.env.BASE_URL}openmoji/${picture}.svg`} alt={card.nl.startsWith('openmoji:') ? '' : card.nl} width={320} height={320} />
         ) : (
           <p class="card-prompt card-prompt-big" lang="nl">
             {card.nl}

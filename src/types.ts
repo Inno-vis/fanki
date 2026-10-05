@@ -11,7 +11,6 @@ export type Card = {
   example_nl: string;
   example_fr: string;
   tags: string[];
-  tags_source: string;
   flags: string[];
   answer: string; // back of an enkel (oneway) card; display text only, never checked
   added: string; // yyyy-mm-dd

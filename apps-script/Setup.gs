@@ -89,15 +89,14 @@ function applyCardValidation_(sh, isInbox) {
   };
   sh.getRange('B2:B').setDataValidation(list(CARD_TYPES));
   sh.getRange('D2:D').setDataValidation(list(['de', 'het']));
-  sh.getRange('J2:J').setDataValidation(list(TAG_SOURCES));
-  sh.getRange('M2:M').setNumberFormat('yyyy-mm-dd');
+  sh.getRange('L2:L').setNumberFormat('yyyy-mm-dd');
   // Text columns stay text: otherwise Sheets turns "7:15" into a time and "1/2" into a date.
   sh.getRange('C2:C').setNumberFormat('@');
   sh.getRange('F2:H').setNumberFormat('@');
-  sh.getRange('L2:L').setNumberFormat('@').clearDataValidations(); // answer
-  sh.getRange('N2:N').setDataValidation(SpreadsheetApp.newDataValidation().requireCheckbox().build());
-  if (isInbox) sh.getRange('O2:O').setDataValidation(list([STATUS_NL.proposed, STATUS_NL.approved]));
-  else sh.getRange('O2:O').setDataValidation(list([CHECK_NL.approved, CHECK_NL.rejected])); // Cards.controle
+  sh.getRange('K2:K').setNumberFormat('@').clearDataValidations(); // answer
+  sh.getRange('M2:M').setDataValidation(SpreadsheetApp.newDataValidation().requireCheckbox().build()); // active
+  if (isInbox) sh.getRange('N2:N').setDataValidation(list([STATUS_NL.proposed, STATUS_NL.approved])); // Inbox.status
+  else sh.getRange('N2:N').setDataValidation(list([CHECK_NL.approved, CHECK_NL.rejected])); // Cards.controle
 }
 
 function migrateControle_(sh) {
@@ -193,7 +192,7 @@ function klokRows_() {
   var added = new Date(Number(parts[0]), Number(parts[1]) - 1, Number(parts[2]));
   return KLOK_SEED_CARDS.map(function (line) {
     var f = line.split('|');
-    return [f[0], typeNl_(f[1]), f[2], f[3], posNl_(f[4]), f[5], f[6], f[7], f[8], sourceNl_('manual'), f[9], f[10], added, true];
+    return [f[0], typeNl_(f[1]), f[2], f[3], posNl_(f[4]), f[5], f[6], f[7], f[8], f[9], f[10], added, true];
   });
 }
 
@@ -202,7 +201,7 @@ function writeCardRows_(sh, rows) {
   var start = nextRow_(sh, 3);
   sh.getRange(start, 3, rows.length, 1).setNumberFormat('@');
   sh.getRange(start, 6, rows.length, 3).setNumberFormat('@');
-  sh.getRange(start, 12, rows.length, 1).setNumberFormat('@');
+  sh.getRange(start, 11, rows.length, 1).setNumberFormat('@'); // answer
   sh.getRange(start, 1, rows.length, rows[0].length).setValues(rows);
 }
 
@@ -224,7 +223,7 @@ function seedAbbrevCards_(sh) {
     var o = {};
     SCHEMA.Cards.forEach(function (h) { o[h] = cur ? cur[h] : ''; }); // keeps controle when moved
     o.id = id; o.type = typeNl_('oneway'); o.nl = f[1]; o.pos = 'afkorting'; o.answer = f[2]; o.tags = f[3];
-    o.tags_source = sourceNl_('manual'); o.flags = 'abbreviation';
+    o.flags = 'abbreviation';
     o.added = target ? target.added : appAdded;
     if (!cur || cur.active === '' ) o.active = true;
     var row = rowFromObject_(SCHEMA.Cards, o);
@@ -239,7 +238,7 @@ function seedAbbrevCards_(sh) {
       sh.insertRowBefore(at);
       sh.getRange(at, 3).setNumberFormat('@');
       sh.getRange(at, 6, 1, 3).setNumberFormat('@');
-      sh.getRange(at, 12).setNumberFormat('@');
+      sh.getRange(at, 11).setNumberFormat('@'); // answer
       sh.getRange(at, 1, 1, row.length).setValues([row]);
     } else {
       writeCardRows_(sh, [row]);
@@ -271,11 +270,11 @@ function applyCurriculumValidation_(sh) {
 
 /** Seed line fields (brief format, English codes) → a Cards row with Dutch sheet values. */
 function toSheetRow_(f, id, added) {
-  return [id, typeNl_(f[0]), f[1], f[2], posNl_(f[3]), f[4], f[5], f[6], tagsNl_(f[7]), sourceNl_(f[8]), f[9], '', added, true];
+  return [id, typeNl_(f[0]), f[1], f[2], posNl_(f[3]), f[4], f[5], f[6], tagsNl_(f[7]), f[9], '', added, true];
 }
 
 /**
- * Converts English sheet values to Dutch: Cards/Inbox type, pos, tags, tags_source; Tags keys and
+ * Converts English sheet values to Dutch: Cards/Inbox type, pos, tags; Tags keys and
  * descriptions; Curriculum tags. Runs once per spreadsheet (Script Property MIGRATED_NL). Returns the
  * number of rows changed.
  */
@@ -292,7 +291,6 @@ function migrateToDutch_(ss) {
       st.setValues(st.getValues().map(function (r) { return [statusCode_(r[0]) ? STATUS_NL[statusCode_(r[0])] : r[0]]; }));
     }
     sh.getRange('B2:B').clearDataValidations();
-    sh.getRange('J2:J').clearDataValidations();
     var range = sh.getRange(2, 1, last - 1, CARD_COLS.length);
     var values = range.getValues();
     values.forEach(function (r) {
@@ -300,7 +298,6 @@ function migrateToDutch_(ss) {
       if (typeCode_(r[1])) r[1] = typeNl_(r[1]);
       r[4] = posNl_(r[4]);
       r[8] = tagsNl_(r[8]);
-      if (sourceCode_(r[9])) r[9] = sourceNl_(r[9]);
       if (r.join('\u0001') !== before) changed++;
     });
     range.setValues(values);
@@ -349,7 +346,7 @@ function buildDashboard_(sh) {
     ['Te herhalen (alle richtingen)', '=COUNTIFS(Progress!D2:D,"<="&NOW())'],
     ['Goed onthouden (30 dagen)', '=IFERROR(COUNTIFS(Log!E2:E,">1",Log!D2:D,">="&NOW()-30)/COUNTIFS(Log!D2:D,">="&NOW()-30),"—")'],
     ['Herhalingen deze week', '=COUNTIFS(Log!D2:D,">="&(TODAY()-WEEKDAY(TODAY(),3)))'],
-    ['Actieve kaarten', '=COUNTIF(Cards!N2:N,TRUE)'],
+    ['Actieve kaarten', '=COUNTIF(Cards!M2:M,TRUE)'],
     ['Laatst gesynchroniseerd', '=IF(COUNT(Log!D2:D)=0,"—",MAX(Log!D2:D))'],
     ['', ''],
     ['Vaakst vergeten (nl | richting | keer vergeten)', '']

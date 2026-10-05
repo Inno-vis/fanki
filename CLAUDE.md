@@ -46,7 +46,7 @@ The repo is **public** and hosted on GitHub Pages.
   → `{accepted, duplicate, rejected}`. Idempotent on `event_id`.
 - Admin-only (ADMIN_TOKEN): `listCards, listUntagged, tags, setTags, appendInbox, listInbox,
   promoteInbox, rebuildProgress, setup, readTab, reseedDev (DEV only), purgeSmoke,
-  setCurriculum, addCurriculum, curriculumStatus, migrateToDutch, userInfo, setTeachers, enableApproval, setCheck, removeTags, deleteRejected (DEV only), importCards, cardsToInbox, setSetting, cleanSettings, deleteTabs, splitInbox, splitCards, migrateCurriculum, deleteCards, updateCards, replaceTag, dropNakijken, replaceKlok, seedEmoji (dry run unless
+  setCurriculum, addCurriculum, curriculumStatus, migrateToDutch, userInfo, setTeachers, enableApproval, setCheck, removeTags, deleteRejected (DEV only), importCards, cardsToInbox, setSetting, cleanSettings, deleteTabs, splitInbox, splitCards, migrateCurriculum, deleteCards, updateCards, replaceTag, dropNakijken, dropTagsSource, replaceKlok, seedEmoji (dry run unless
   dryRun:false; seedEmoji is DEV only)`. Open items: docs/todo.md.
 - All writes are inside `LockService`. All actions are idempotent, so clients **retry** on
   `no_action` (POST body lost on Google's redirect), `busy`, or non-JSON responses.
@@ -153,8 +153,8 @@ The repo is **public** and hosted on GitHub Pages.
 
 ## Sheet values are Dutch
 
-Types `dubbel|enkel|zin|vraag` (old `woord`/`calc` still read), tags_source `handmatig|automatisch`, Dutch tag
-keys, pos and descriptions. The API maps them to internal codes (`typeCode_`/`sourceCode_` in
+Types `dubbel|enkel|zin|vraag` (old `woord`/`calc` still read), Dutch tag
+keys, pos and descriptions (no tags_source column since 2026-10-05). The API maps them to internal codes (`typeCode_` in
 `apps-script/Util.gs`); the client only sees `word|oneway|sentence|question` and `manual|auto`. Text columns
 (incl. `answer`) are plain text, so times stay text.
 
@@ -283,9 +283,8 @@ npm run ui-vocab         # UI words not yet taught (warning)
 
 Slash commands in `.claude/commands/` (all go through `scripts/admin.mjs`, default env dev):
 - `/retag` — propose 0–3 existing tags per untagged card (new tag only if ≥ 3 cards use it), table, wait
-  for OK, `setTags` (tags_source automatisch; handmatig rows are refused unless `manual:true`, the teacher's own
-  choice, which keeps them handmatig).
-- Word lists from files: parse, merge duplicates (tags combined), `appendInbox` (keeps tags_source; dedupes on
+  for OK, `setTags`.
+- Word lists from files: parse, merge duplicates (tags combined), `appendInbox` (dedupes on
   type + nl + article). Source lists stay out of git (`.gitignore`, e.g. docs/klim-op-woordenlijst-frans.csv).
 - `/addwords <theme, n, level>` — dedupe against Cards + Inbox, table, wait for OK, `appendInbox`
   (status voorgesteld). Never writes Cards.

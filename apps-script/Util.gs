@@ -127,7 +127,6 @@ function nextRow_(sh, col) {
 // The sheet is in Dutch; the API speaks fixed codes. Both spellings are accepted when reading.
 var TYPE_NL = { word: 'dubbel', oneway: 'enkel', sentence: 'zin', question: 'vraag' };
 var TYPE_ALIASES = { woord: 'word', calc: 'oneway' }; // older sheet values, still read
-var SOURCE_NL = { manual: 'handmatig', auto: 'automatisch' };
 var STATUS_NL = { proposed: 'voorgesteld', approved: 'goedgekeurd' };
 var CHECK_NL = { approved: 'goedgekeurd', rejected: 'afgekeurd' }; // Cards.controle ('' = not checked yet)
 var CHECK_ALIASES = { gecontroleerd: 'approved' }; // value of the first version (2026-10-02)
@@ -169,11 +168,6 @@ function typeCode_(v) {
 }
 
 /** Sheet value → 'manual' | 'auto' | ''. */
-function sourceCode_(v) {
-  var s = String(v || '').trim().toLowerCase();
-  if (SOURCE_NL[s]) return s;
-  return invert_(SOURCE_NL)[s] || '';
-}
 
 /** Inbox status (Dutch or English) → 'proposed' | 'approved' | ''. */
 function statusCode_(v) {
@@ -183,7 +177,6 @@ function statusCode_(v) {
 }
 
 function typeNl_(code) { return TYPE_NL[typeCode_(code)] || String(code || ''); }
-function sourceNl_(code) { return SOURCE_NL[sourceCode_(code)] || ''; }
 function posNl_(v) { var s = String(v || '').trim(); return POS_NL[s.toLowerCase()] || s; }
 function tagsNl_(v) {
   return splitTags_(v).map(function (t) { return TAG_RENAME[t] || t; }).join(', ');

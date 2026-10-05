@@ -7,10 +7,9 @@ Two spreadsheets, created by `setup()` in their Apps Script projects:
 | DEV  | "Dutch DEV"  | `.clasp.dev.json`  |
 | PROD | "Dutch PROD" | `.clasp.prod.json` |
 
-**The sheet is in Dutch.** Card types are `dubbel` | `enkel` | `zin` | `vraag` (see below), tags_source is `handmatig` |
-`automatisch`, part of speech is Dutch (`zelfstandig naamwoord`, `werkwoord`, `scheidbaar werkwoord`,
+**The sheet is in Dutch.** Card types are `dubbel` | `enkel` | `zin` | `vraag` (see below), part of speech is Dutch (`zelfstandig naamwoord`, `werkwoord`, `scheidbaar werkwoord`,
 `bijvoeglijk naamwoord`, `bijwoord`, `uitdrukking`…), tag keys are Dutch (`huishouden`, `familie`…) and all
-descriptions are Dutch. The API translates types/tags_source to fixed internal codes, so only these
+descriptions are Dutch. The API translates types to fixed internal codes, so only these
 spellings matter. The text columns (nl, fr, examples) are plain text, so "7:15" stays "7:15".
 
 Row 1 is always the header row (frozen). Setup sets readable column widths and wraps long text on every
@@ -46,7 +45,6 @@ from `apps-script/UserInfo.gs` (your own edits in the tab are then replaced).
 | fr | text | **dubbel/zin**: French translation. **vraag**: the prompt (front, e.g. "Demande…"). **enkel**: optional small French hint under the prompt. |
 | example_nl / example_fr | text | optional example shown after the answer |
 | tags | `huishouden, school` | comma-separated keys from the Tags tab; may be empty |
-| tags_source | `handmatig` \| `automatisch` \| blank | `handmatig` = the teacher chose; `/retag` never touches these. `automatisch` = set by `/retag`. |
 | flags | `false-friend`, `separable`, `abbreviation` | comma-separated content markers. `false-friend` shows the badge "valse vriend", `abbreviation` the badge "afkorting"; `separable` is for you only (not shown to her). |
 | answer | text | **enkel only**: the back of the card, shown after "Antwoord tonen". Display text — never checked. |
 | added | date | New cards are introduced in `added` order. Filled with today if blank. |
@@ -67,7 +65,7 @@ from `apps-script/UserInfo.gs` (your own edits in the tab are then replaced).
   the first card that uses it: `min` in klok-1 just above "5 min + 5 min" (K1-07), `u` in klok-1 just above
   "Het is 3:00u" (K1-05). `d`, `wk`, `mnd`, `jr` (rating buttons) and `ev`, `mv` (not used yet) go first in `app`
   (added 2026-09-26). New abbreviations: add a line to ABBREV_SEED_CARDS with the card it must precede.
-- DEV **and** PROD: the 50 interface words (tag `app`, `tags_source` manual, `added` 2026-09-27 so they are
+- DEV **and** PROD: the 50 interface words (tag `app`, `added` 2026-09-27 so they are
   introduced before everything else). `setup()` adds any that are missing and never duplicates.
 
 Emoji cards: the app shows the self-hosted OpenMoji picture for the emoji in `nl` (`npm run openmoji` after

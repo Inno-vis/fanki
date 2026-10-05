@@ -1,5 +1,5 @@
 ---
-description: Propose Dutch tags for untagged cards (never touches handmatig tags), then write them after approval
+description: Propose Dutch tags for untagged cards, then write them after approval
 argument-hint: "[dev|prod]  (default dev)"
 ---
 
@@ -13,7 +13,7 @@ Rules:
   (the API returns `word|sentence|question`).
 
 Steps:
-1. `node scripts/admin.mjs <env> listUntagged` → cards with no tags whose tags_source is not handmatig.
+1. `node scripts/admin.mjs <env> listUntagged` → active cards with no tags.
    `node scripts/admin.mjs <env> tags` → the tag vocabulary (tag, label_nl, label_fr, description).
 2. For each card propose 0–3 tags from the existing vocabulary, based on nl, fr and the example. 0 tags is
    fine when nothing fits. Never propose `app` or `klok-*` (curriculum tags are handled by hand).
@@ -25,5 +25,5 @@ Steps:
    - new tags first: write `{"add":[{"tag":…,"label_nl":…,"label_fr":…,"description":…}]}` to a scratch
      file and run `node scripts/admin.mjs <env> tags @<file>`.
    - then `{"updates":[{"id":…,"tags":[…]}]}` → `node scripts/admin.mjs <env> setTags @<file>`
-     (skip cards with 0 tags). The API writes tags_source = automatisch and refuses handmatig rows.
-6. Report updated/skipped counts from the response (skipped reasons: manual, unknown_tags, not_found).
+     (skip cards with 0 tags).
+6. Report updated/skipped counts from the response (skipped reasons: unknown_tags, too_many_tags, not_found).

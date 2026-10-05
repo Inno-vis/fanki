@@ -1,7 +1,7 @@
 // Sheet schema — keep in sync with docs/SHEET.md.
 
 var CARD_COLS = ['id', 'type', 'nl', 'article', 'pos', 'fr', 'example_nl', 'example_fr',
-  'tags', 'tags_source', 'flags', 'answer', 'added', 'active'];
+  'tags', 'flags', 'answer', 'added', 'active']; // tags_source was removed on 2026-10-05
 
 var SCHEMA = {
   // Cards only (last column): `controle` = the teacher's approval ('' = nog niet, goedgekeurd, afgekeurd);
@@ -20,7 +20,6 @@ var SCHEMA = {
 // Sheet values → API codes: dubbel = word (both directions), enkel = oneway (nl → answer),
 // zin = sentence (cloze), vraag = question (fr prompt → nl). Old values woord/calc are still read.
 var CARD_TYPES = ['dubbel', 'enkel', 'zin', 'vraag'];
-var TAG_SOURCES = ['handmatig', 'automatisch']; // sheet values (API codes: manual, auto)
 var TRACKS = ['recog', 'prod'];
 var MODES = ['nl_fr', 'fr_nl', 'cloze', 'question', 'listen'];
 
@@ -69,7 +68,7 @@ var CURRICULUM_SEED = [
   [4, 'klok-3', 'bekend', '', 80, 'klok-2']
 ];
 
-// type|nl|article|pos|fr|example_nl|example_fr|tags|tags_source|flags
+// type|nl|article|pos|fr|example_nl|example_fr|tags|(unused, was tags_source)|flags
 // (brief format, English codes; converted to Dutch sheet values by toSheetRow_ in Setup.gs)
 var SEED_CARDS = [
   'word|huis|het|noun|la maison|Het huis is groot.|La maison est grande.|household|manual|',

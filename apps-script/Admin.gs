@@ -6,7 +6,7 @@ function adminListCards_() {
 
 function adminListUntagged_() {
   var cards = readTable_(sheet_('Cards')).rows.filter(function (r) {
-    return r.id && bool_(r.active) && splitTags_(r.tags).length === 0 && sourceCode_(r.tags_source) !== 'manual';
+    return r.id && bool_(r.active) && splitTags_(r.tags).length === 0;
   }).map(cardToJson_);
   return { cards: cards };
 }
@@ -35,11 +35,8 @@ function adminTags_(add) {
   return { tags: tags, added: added };
 }
 
-/**
- * updates = [{id, tags: [..]}]. Writes tags_source=automatisch and never touches handmatig rows — unless
- * manual:true (the teacher's own choice): then any row is updated and marked handmatig.
- */
-function adminSetTags_(updates, manual) {
+/** updates = [{id, tags: [..]}] (Cards; at most 3 tags, each from the Tags tab). */
+function adminSetTags_(updates) {
   if (!Array.isArray(updates)) throw apiError_('bad_request', 'updates[] required');
   return withLock_(function () {
     var sh = sheet_('Cards');
@@ -52,12 +49,11 @@ function adminSetTags_(updates, manual) {
     updates.forEach(function (u) {
       var r = byId[String(u && u.id)];
       if (!r) { skipped.push({ id: u && u.id, reason: 'not_found' }); return; }
-      if (!manual && sourceCode_(r.tags_source) === 'manual') { skipped.push({ id: r.id, reason: 'manual' }); return; }
       var tags = (u.tags || []).map(function (x) { return String(x).trim().toLowerCase(); }).filter(function (x) { return x; });
       var unknown = tags.filter(function (x) { return known.indexOf(x) === -1; });
       if (unknown.length) { skipped.push({ id: r.id, reason: 'unknown_tags:' + unknown.join(',') }); return; }
       if (tags.length > 3) { skipped.push({ id: r.id, reason: 'too_many_tags' }); return; }
-      sh.getRange(r._row, tagsCol, 1, 2).setValues([[tags.join(', '), sourceNl_(manual ? 'manual' : 'auto')]]);
+      sh.getRange(r._row, tagsCol).setValue(tags.join(', '));
       updated.push(r.id);
     });
     return { updated: updated, skipped: skipped };
@@ -65,8 +61,7 @@ function adminSetTags_(updates, manual) {
 }
 
 /**
- * rows = [{type, nl, article, pos, fr, example_nl, example_fr, tags, tags_source?, flags}] → Inbox, status=proposed.
- * tags_source is kept when given (handmatig/automatisch or manual/auto), else automatisch when there are tags.
+ * rows = [{type, nl, article, pos, fr, example_nl, example_fr, tags, flags}] → Inbox, status=proposed.
  */
 function adminAppendInbox_(rows) {
   if (!Array.isArray(rows) || !rows.length) throw apiError_('bad_request', 'rows[] required');
@@ -98,7 +93,7 @@ function adminAppendInbox_(rows) {
         article: r.article === 'de' || r.article === 'het' ? r.article : '', pos: posNl_(r.pos),
         fr: String(r.fr || ''), example_nl: String(r.example_nl || ''), example_fr: String(r.example_fr || ''),
         answer: String(r.answer || ''),
-        tags: tagsNl_(tags), tags_source: tags ? sourceNl_(sourceCode_(r.tags_source) || 'auto') : '', flags: flags,
+        tags: tagsNl_(tags), flags: flags,
         added: today, active: true, status: STATUS_NL.proposed
       });
     });
@@ -393,7 +388,7 @@ function adminSeedEmoji_(dryRun, allowProd) {
     var parts = EMOJI_SEED_ADDED.split('-');
     var added = new Date(Number(parts[0]), Number(parts[1]) - 1, Number(parts[2]));
     var add = EMOJI_SEED_CARDS.map(function (l) { return l.split('|'); }).filter(function (f) { return !have[f[0]]; })
-      .map(function (f) { return [f[0], typeNl_('oneway'), f[1], '', 'emoji', '', '', '', 'emoji', sourceNl_('manual'), '', f[2], added, true]; });
+      .map(function (f) { return [f[0], typeNl_('oneway'), f[1], '', 'emoji', '', '', '', 'emoji', '', f[2], added, true]; });
     var report = {
       dryRun: dryRun,
       tag: hasTag ? 'exists' : 'add emoji',
@@ -567,7 +562,7 @@ function adminDeleteRejected_(dryRun) {
 }
 
 /**
- * Appends cards straight to Cards: {rows:[{id?, type, nl, article, pos, fr, example_nl, example_fr, tags, tags_source,
+ * Appends cards straight to Cards: {rows:[{id?, type, nl, article, pos, fr, example_nl, example_fr, tags,
  * flags, answer, added?, active?, controle}]} (e.g. DEV → PROD). Keeps the id when free; skips a row whose id or
  * (type, nl, article) is already in Cards. Dry run unless dryRun:false.
  */
@@ -592,7 +587,6 @@ function adminImportCards_(rows, dryRun) {
         id: id, type: typeNl_(typeCode_(r.type) || 'word'), nl: String(r.nl), article: r.article === 'de' || r.article === 'het' ? r.article : '',
         pos: posNl_(r.pos), fr: String(r.fr || ''), example_nl: String(r.example_nl || ''), example_fr: String(r.example_fr || ''),
         tags: tagsNl_(Array.isArray(r.tags) ? r.tags.join(', ') : String(r.tags || '')),
-        tags_source: sourceNl_(sourceCode_(r.tags_source) || 'manual'),
         flags: Array.isArray(r.flags) ? r.flags.join(', ') : String(r.flags || ''), answer: String(r.answer || ''),
         added: isNaN(added) ? today : added, active: r.active === undefined ? true : bool_(r.active),
         controle: code ? CHECK_NL[code] : ''
@@ -792,9 +786,8 @@ function adminDeleteCards_(ids, dryRun) {
 
 /**
  * Changes card fields by id: {updates:[{id, fields:{answer, fr, nl, …}}]} — only the fields the review page may edit
- * (REVIEW_EDITABLE), plus `added` (YYYY-MM-DD; changes where a new card comes in the queue) and `tags_source`
- * (handmatig | automatisch | blank). Other fields or bad values are not written and listed in `ignored`. Same id,
- * so her progress stays. Dry run unless dryRun:false.
+ * (REVIEW_EDITABLE), plus `added` (YYYY-MM-DD; changes where a new card comes in the queue). Other fields or bad
+ * values are not written and listed in `ignored`. Same id, so her progress stays. Dry run unless dryRun:false.
  */
 function adminUpdateCards_(updates, dryRun) {
   if (!Array.isArray(updates) || !updates.length) throw apiError_('bad_request', 'updates[] required');
@@ -809,8 +802,7 @@ function adminUpdateCards_(updates, dryRun) {
         var v = u.fields[k];
         if (REVIEW_EDITABLE.indexOf(k) !== -1) f[k] = v;
         else if (k === 'added' && /^\d{4}-\d\d-\d\d$/.test(String(v))) extra[k] = new Date(String(v) + 'T00:00:00');
-        else if (k === 'tags_source' && (!v || sourceCode_(v))) extra[k] = v ? sourceNl_(sourceCode_(v)) : '';
-        // Anything else (unknown field, date not YYYY-MM-DD, tags_source not handmatig/automatisch) is NOT written.
+        // Anything else (unknown field, date not YYYY-MM-DD) is NOT written.
         else report.ignored.push(u.id + ' ' + k + ': "' + v + '"');
       });
       Object.keys(f).concat(Object.keys(extra)).forEach(function (k) {
@@ -924,6 +916,23 @@ function adminDropNakijken_(dryRun) {
     if (dryRun) return report;
     flaggedInbox.forEach(function (r) { inbox.getRange(r._row, sc).setValue(STATUS_NL.proposed); });
     if (col) { cards.getRange(2, col, Math.max(cards.getMaxRows() - 1, 1), 1).clearDataValidations(); cards.deleteColumn(col); }
+    return report;
+  });
+}
+
+/**
+ * One-off (2026-10-05): removes the tags_source column from Cards and Inbox (the code no longer has it; run right
+ * after deploying, since rows are written in schema order). Dry run unless dryRun:false.
+ */
+function adminDropTagsSource_(dryRun) {
+  return withLock_(function () {
+    var report = { dryRun: dryRun };
+    ['Cards', 'Inbox'].forEach(function (name) {
+      var sh = sheet_(name), col = headersOf_(sh).indexOf('tags_source') + 1;
+      report[name] = col ? 'column ' + col + ' removed' : 'not there';
+      if (!dryRun && col) { sh.getRange(1, col, sh.getMaxRows(), 1).clearDataValidations(); sh.deleteColumn(col); }
+    });
+    if (!dryRun) applyCardValidation_(sheet_('Cards'), false), applyCardValidation_(sheet_('Inbox'), true);
     return report;
   });
 }

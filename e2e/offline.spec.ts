@@ -14,7 +14,7 @@ function mockServer(
   let loseNextReply = false;
   const cards = ['huis', 'tafel', 'stoel', 'raam', 'boek'].map((nl, i) => ({
     id: `c_${i}`, type: 'word', nl, article: 'de', pos: 'noun', fr: `fr-${nl}`, example_nl: '', example_fr: '',
-    tags: i < 2 ? ['huishouden'] : ['reizen'], tags_source: 'manual', flags: [], added: '2026-09-27', active: true
+    tags: i < 2 ? ['huishouden'] : ['reizen'], flags: [], added: '2026-09-27', active: true
   }));
   cards.unshift(...(extraCards as typeof cards));
   const json = (route: Route, body: unknown) =>
@@ -201,7 +201,7 @@ test('enkel/emoji card, 🔊 without a Dutch voice, and 🚩 flags (flag, note, 
   await context.grantPermissions(['clipboard-read', 'clipboard-write']);
   const emoji = {
     id: 'E-01', type: 'oneway', nl: '🛏️', article: '', pos: 'emoji', fr: '', example_nl: '', example_fr: '', tags: ['emoji'],
-    tags_source: 'manual', flags: [], answer: 'het bed', added: '2026-09-01', active: true
+    flags: [], answer: 'het bed', added: '2026-09-01', active: true
   };
   const server = mockServer({ new_per_day: 5, show_french_help: true }, [emoji]);
   await server.install(page);

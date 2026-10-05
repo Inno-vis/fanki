@@ -6,7 +6,7 @@ import type { Card } from './types';
 
 const card = (id: string, over: Partial<Card> = {}): Card => ({
   id, type: 'word', nl: 'huis', article: 'het', pos: '', fr: 'la maison', example_nl: '', example_fr: '', tags: [],
-  tags_source: '', flags: [], answer: '', added: '2026-09-30', active: true, ...over
+  flags: [], answer: '', added: '2026-09-30', active: true, ...over
 });
 const at = (h: number) => new Date(Date.UTC(2026, 8, 30, h));
 

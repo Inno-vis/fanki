@@ -21,7 +21,6 @@ export function cleanCard(raw: Partial<Card>, order: number): (Card & { order: n
     example_nl: String(raw.example_nl ?? ''),
     example_fr: String(raw.example_fr ?? ''),
     tags: list(raw.tags).map((t) => t.toLowerCase()),
-    tags_source: String(raw.tags_source ?? ''),
     flags: list(raw.flags).map((f) => f.toLowerCase()),
     answer: String(raw.answer ?? '').trim(),
     added: String(raw.added ?? ''),

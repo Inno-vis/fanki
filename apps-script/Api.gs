@@ -45,7 +45,7 @@ function doPost(e) {
       case 'listCards': return adminListCards_();
       case 'listUntagged': return adminListUntagged_();
       case 'tags': return adminTags_(body.add);
-      case 'setTags': return adminSetTags_(body.updates, body.manual === true);
+      case 'setTags': return adminSetTags_(body.updates);
       case 'appendInbox': return adminAppendInbox_(body.rows);
       case 'listInbox': return adminListInbox_();
       case 'seedEmoji': return adminSeedEmoji_(body.dryRun !== false, body.allowProd === true);
@@ -62,6 +62,7 @@ function doPost(e) {
       case 'cleanSettings': return adminCleanSettings_(body.dryRun !== false);
       case 'deleteTabs': return adminDeleteTabs_(body.tabs, body.dryRun !== false);
       case 'setSetting': return adminSetSetting_(body.key, body.value, body.dryRun !== false);
+      case 'dropTagsSource': return adminDropTagsSource_(body.dryRun !== false);
       case 'dropNakijken': return adminDropNakijken_(body.dryRun !== false);
       case 'splitInbox': return adminSplitInbox_(body.dryRun !== false, body.parts || null);
       case 'replaceTag': return adminReplaceTag_(body.from, body.to, body.tab, body.dryRun !== false);
@@ -111,7 +112,7 @@ function cardToJson_(r) {
   return {
     id: String(r.id), type: typeCode_(r.type) || 'word', nl: text_(r.nl), article: String(r.article || ''),
     pos: String(r.pos || ''), fr: text_(r.fr), example_nl: text_(r.example_nl),
-    example_fr: text_(r.example_fr), answer: text_(r.answer), tags: splitTags_(r.tags), tags_source: sourceCode_(r.tags_source),
+    example_fr: text_(r.example_fr), answer: text_(r.answer), tags: splitTags_(r.tags),
     flags: splitTags_(r.flags), added: isoDate_(r.added), active: bool_(r.active)
   };
 }

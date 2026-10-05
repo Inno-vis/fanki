@@ -3,9 +3,9 @@
 
 var LAYOUT = {
   Cards: { id: 110, type: 80, nl: 230, article: 60, pos: 170, fr: 230, example_nl: 260, example_fr: 260, tags: 170,
-    tags_source: 110, flags: 120, answer: 260, added: 100, active: 70, controle: 120 },
+    flags: 120, answer: 260, added: 100, active: 70, controle: 120 },
   Inbox: { id: 110, type: 80, nl: 230, article: 60, pos: 170, fr: 230, example_nl: 260, example_fr: 260, tags: 170,
-    tags_source: 110, flags: 120, answer: 260, added: 100, active: 70, status: 120 },
+    flags: 120, answer: 260, added: 100, active: 70, status: 120 },
   Progress: { card_id: 130, track: 70, state: 100, due: 150, stability: 90, difficulty: 90, reps: 60, lapses: 60,
     last_review: 150 },
   Log: { event_id: 290, card_id: 130, track: 70, ts: 170, rating: 60, mode: 80, duration_ms: 100, snapshot: 600 },

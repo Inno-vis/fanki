@@ -8,7 +8,7 @@ import type { Card } from './types';
 
 const raw = (over: Partial<Card> = {}): Partial<Card> => ({
   id: 'c_1', type: 'word', nl: 'huis', article: 'het', pos: 'noun', fr: 'la maison',
-  example_nl: '', example_fr: '', tags: ['household'], tags_source: 'manual', flags: [], added: '2026-09-28', active: true,
+  example_nl: '', example_fr: '', tags: ['household'], flags: [], added: '2026-09-28', active: true,
   ...over
 });
 

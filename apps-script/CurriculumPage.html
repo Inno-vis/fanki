@@ -167,8 +167,9 @@ function render() {
       tools
     ]);
     var box = el('div', { 'class': 'topic' + (E.openIdx === i ? ' open-ed' : '') }, [head]);
+    if (check && check.errors.length) box.classList.add('has-err');
     if (check) {
-      check.errors.forEach(function (m) { box.appendChild(el('div', { 'class': 'msg-err', text: m })); });
+      check.errors.forEach(function (m) { box.appendChild(el('div', { 'class': 'msg-err', text: '⚠ ' + m })); });
       check.warnings.forEach(function (m) { box.appendChild(el('div', { 'class': 'msg-warn', text: m })); });
     }
     if (E.openIdx === i) box.appendChild(ruleEditor(row, i));
@@ -182,7 +183,17 @@ $('save').addEventListener('click', function () {
     E.busy = false;
     if (res.conflict) { notice(tr('cur.conflict'), 'bad'); render(); return; }
     E.checks = res.checks;
-    if (!res.ok) { notice(tr('cur.errors'), 'bad'); render(); return; }
+    if (!res.ok) {
+      // Name the topics with errors, open the first one and scroll to it (errors further down are easy to miss).
+      var bad = [];
+      res.checks.forEach(function (c, i) { if (c.errors.length) bad.push(i); });
+      notice(tr('cur.errors') + ' ' + tr('cur.errorsIn', { list: bad.map(function (i) { return label(E.rows[i].tag) + ' (' + (i + 1) + ')'; }).join(', ') }), 'bad');
+      if (bad.length) E.openIdx = bad[0];
+      render();
+      var first = document.querySelectorAll('#list .topic')[bad[0]];
+      if (first) first.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      return;
+    }
     E.version = res.version; E.dirty = false; E.hasBackup = true;
     notice(tr('cur.saved'), 'ok');
     render();

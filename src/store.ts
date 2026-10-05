@@ -20,6 +20,7 @@ export type State = {
   intro: Intro;
   pending: number; // reviews not yet sent
   curriculum: CurriculumRow[];
+  curriculumOpened: Record<string, string>; // topics that opened (latch)
   studyTags: string[];
   doneToday: DoneToday; // items finished today (daily due cap)
   round: Round; // the current round ("Vandaag" bar)
@@ -42,6 +43,7 @@ let state: State = {
   intro: todaysIntro(undefined),
   pending: 0,
   curriculum: [],
+  curriculumOpened: {},
   studyTags: [],
   doneToday: todaysDone(undefined),
   round: todaysRound(undefined),
@@ -79,7 +81,7 @@ export function byAdded(a: Card & { order?: number }, b: Card & { order?: number
 }
 
 export async function loadFromDb(): Promise<void> {
-  const [cards, settings, tags, lastSync, progress, intro, pending, curriculum, studyTags, doneToday, dayCounts, userSettings, round] = await Promise.all([
+  const [cards, settings, tags, lastSync, progress, intro, pending, curriculum, studyTags, doneToday, dayCounts, userSettings, round, curriculumOpened] = await Promise.all([
     allCards(),
     getSettings(),
     getMeta('tags'),
@@ -92,7 +94,8 @@ export async function loadFromDb(): Promise<void> {
     getMeta('doneToday'),
     getMeta('dayCounts'),
     getMeta('userSettings'),
-    getMeta('round')
+    getMeta('round'),
+    getMeta('curriculumOpened')
   ]);
   setState({
     loaded: true,
@@ -104,6 +107,7 @@ export async function loadFromDb(): Promise<void> {
     intro: todaysIntro(intro),
     pending,
     curriculum: curriculum ?? [],
+    curriculumOpened: curriculumOpened ?? {},
     studyTags: studyTags ?? [],
     doneToday: todaysDone(doneToday),
     dayCounts: dayCounts ?? {},

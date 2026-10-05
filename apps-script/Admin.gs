@@ -203,21 +203,116 @@ function adminPurgeSmoke_() {
   });
 }
 
-/** Changes one field of one Curriculum row (by tag). Fields: unlock_threshold, min_reviews, max_wait_days, active, order. */
+/** Changes one field of one Curriculum row (by tag). Fields: order, regel, datum, percentage, van_tags. */
 function adminSetCurriculum_(tag, field, value) {
-  var allowed = ['order', 'unlock_threshold', 'min_reviews', 'max_wait_days', 'active', 'open'];
+  var allowed = ['order', 'regel', 'datum', 'percentage', 'van_tags'];
   if (allowed.indexOf(field) === -1) throw apiError_('bad_request', 'field must be one of ' + allowed.join(', '));
   return withLock_(function () {
     var sh = sheet_('Curriculum');
     var t = readTable_(sh);
     var row = t.rows.filter(function (r) { return String(r.tag).trim().toLowerCase() === String(tag || '').trim().toLowerCase(); })[0];
     if (!row) throw apiError_('not_found', 'No Curriculum row for tag ' + tag);
-    var v = field === 'active' ? bool_(value) : field === 'open' ? OPEN_NL[openCode_(value)] :
-      (value === '' || value === null ? '' : Number(value));
-    if (field === 'unlock_threshold' && v !== '' && !(v >= 0 && v <= 1)) throw apiError_('bad_request', 'unlock_threshold must be 0–1');
+    var v = field === 'regel' ? (RULE_NL[ruleCode_(value)] || String(value)) :
+      field === 'van_tags' ? (Array.isArray(value) ? value.join(', ') : String(value || '')) :
+      field === 'datum' ? String(value || '') : (value === '' || value === null ? '' : Number(value));
     sh.getRange(row._row, t.headers.indexOf(field) + 1).setValue(v);
     updateCurriculumDashboard_(true);
     return { tag: tag, field: field, value: v };
+  });
+}
+
+/**
+ * Old Curriculum tab (unlock_threshold … open) → the new one (order, tag, regel, datum, percentage, van_tags),
+ * see migrateCurriculumRows_ + CURRICULUM_MIGRATION_SEED. Also removes the unused Progress.first_review column
+ * and the old Settings rows (mature_stability_days, curriculum_only; adds known_*). Topics with 0 active cards become
+ * dicht (other columns kept); a bekend row waiting on one of them waits on the nearest topic above it with cards.
+ * Dry run unless dryRun:false.
+ */
+function adminMigrateCurriculum_(dryRun) {
+  return withLock_(function () {
+    var ss = ss_();
+    var cur = ss.getSheetByName('Curriculum');
+    var t = readTable_(cur);
+    if (t.headers.indexOf('unlock_threshold') === -1) return { dryRun: dryRun, already: true, rows: readCurriculum_().map(curriculumRowToSheet_) };
+    var old = t.rows.filter(function (r) { return String(r.tag).trim(); }).map(function (r) {
+      var o = String(r.open || '').trim().toLowerCase();
+      return {
+        order: Number(r.order) || 0, tag: String(r.tag).trim().toLowerCase(),
+        unlock_threshold: r.unlock_threshold === '' ? 0.8 : Number(r.unlock_threshold),
+        max_wait_days: r.max_wait_days === '' || r.max_wait_days === null ? null : Number(r.max_wait_days),
+        active: r.active === '' ? true : bool_(r.active),
+        open: o === 'altijd open' || o === 'always' ? 'always' : o === 'dicht' || o === 'closed' ? 'closed' : 'auto'
+      };
+    });
+    var m = migrateCurriculumRows_(old);
+    var seeded = [];
+    m.rows.forEach(function (r) {
+      var s = CURRICULUM_MIGRATION_SEED[r.tag];
+      if (!s) return;
+      var before = curriculumRowToSheet_(r).slice(2).join(' | ');
+      r.rule = s.rule; r.percentage = s.percentage || null; r.from_tags = s.from_tags || []; r.date = '';
+      var after = curriculumRowToSheet_(r).slice(2).join(' | ');
+      if (before !== after) seeded.push(r.tag + ': ' + before + '  →  ' + after);
+    });
+    // Topics without active cards are parked as dicht (teacher, 2026-10-05); their other columns are kept.
+    var gate = bool_(readSettings_().require_approval), counts = {};
+    readTable_(ss.getSheetByName('Cards')).rows.filter(function (r) { return cardServed_(r, gate); })
+      .forEach(function (r) { splitTags_(r.tags).forEach(function (t) { counts[t] = (counts[t] || 0) + 1; }); });
+    var emptyToDicht = [];
+    m.rows.forEach(function (r) { if (!counts[r.tag] && r.rule !== 'closed') { r.rule = 'closed'; emptyToDicht.push(r.tag); } });
+    // A bekend row that waited on such a topic now waits on the nearest topic above it that has cards (option A).
+    var repointed = [];
+    m.rows.forEach(function (r, i) {
+      if (r.rule !== 'known') return;
+      var from = r.from_tags.map(function (ft) {
+        if (emptyToDicht.indexOf(ft) === -1) return ft;
+        for (var k = i - 1; k >= 0; k--) {
+          var up = m.rows[k];
+          if (up.rule !== 'closed' && counts[up.tag]) { repointed.push(r.tag + ': ' + ft + ' → ' + up.tag); return up.tag; }
+        }
+        return ft;
+      });
+      r.from_tags = from.filter(function (t, j) { return from.indexOf(t) === j; });
+    });
+    var tagKeys = readTable_(ss.getSheetByName('Tags')).rows.map(function (r) { return String(r.tag).trim().toLowerCase(); });
+    var checks = validateCurriculum_(m.rows, tagKeys);
+    var prog = ss.getSheetByName('Progress');
+    var fr = headersOf_(prog).indexOf('first_review') + 1;
+    var setRows = readTable_(ss.getSheetByName('Settings')).rows;
+    var report = {
+      dryRun: dryRun,
+      before: old.sort(function (a, b) { return a.order - b.order; }).map(function (r) {
+        return [r.order, r.tag, r.unlock_threshold, r.max_wait_days === null ? '' : r.max_wait_days, r.active, r.open].join(' | ');
+      }),
+      after: m.rows.map(function (r, i) {
+        return curriculumRowToSheet_(r).join(' | ') + (checks[i].errors.length ? '  ⚠ ' + checks[i].errors.join(' ') : '') +
+          (checks[i].warnings.length ? '  (' + checks[i].warnings.join(' ') + ')' : '');
+      }),
+      seedChanged: seeded,
+      emptyToDicht: emptyToDicht,
+      repointed: repointed,
+      reliedOnMaxWaitDays: m.reliedOnWait,
+      oldDicht: m.closed,
+      dependedOnDichtCascade: m.belowClosed,
+      inactive: m.inactive,
+      progressFirstReview: fr ? 'column ' + fr + ' removed' : 'not there',
+      settings: setRows.filter(function (r) { return OBSOLETE_SETTINGS.indexOf(String(r.key).trim()) !== -1; }).map(function (r) { return 'remove ' + r.key + ' = ' + r.value; })
+        .concat(SETTINGS_DEFAULTS.filter(function (d) { return !setRows.some(function (r) { return String(r.key).trim() === d[0]; }); })
+          .map(function (d) { return 'add ' + d[0] + ' = ' + d[1]; }))
+    };
+    if (dryRun) return report;
+    cur.clearContents();
+    cur.getRange('A2:G').clearDataValidations();
+    if (cur.getMaxColumns() > SCHEMA.Curriculum.length) cur.deleteColumns(SCHEMA.Curriculum.length + 1, cur.getMaxColumns() - SCHEMA.Curriculum.length);
+    cur.getRange(1, 1, 1, SCHEMA.Curriculum.length).setValues([SCHEMA.Curriculum]).setFontWeight('bold').setBackground('#e8eaed');
+    cur.getRange('F2:F').setNumberFormat('@');
+    if (m.rows.length) cur.getRange(2, 1, m.rows.length, SCHEMA.Curriculum.length).setValues(m.rows.map(curriculumRowToSheet_));
+    applyCurriculumValidation_(cur);
+    if (fr) prog.deleteColumn(fr);
+    seedSettings_(ss.getSheetByName('Settings'));
+    applyLayout_(ss);
+    updateCurriculumDashboard_(true);
+    return report;
   });
 }
 
@@ -312,7 +407,7 @@ function adminSeedEmoji_(dryRun, allowProd) {
     }
     if (!hasRow) {
       shift.forEach(function (r) { cur.getRange(r._row, 1).setValue(Number(r.order) + 1); });
-      cur.getRange(nextRow_(cur, 2), 1, 1, SCHEMA.Curriculum.length).setValues([[3, 'emoji', 0.8, 2, 21, true, OPEN_NL.auto]]);
+      cur.getRange(nextRow_(cur, 2), 1, 1, SCHEMA.Curriculum.length).setValues([[3, 'emoji', RULE_NL.always, '', '', '']]);
       var data = cur.getRange(2, 1, Math.max(nextRow_(cur, 2) - 2, 1), SCHEMA.Curriculum.length); // filled rows only
       data.sort({ column: 1, ascending: true });
     }
@@ -407,8 +502,8 @@ function adminSetCheck_(updates, dryRun) {
 }
 
 /**
- * Adds Curriculum rows: {rows:[{order, tag, unlock_threshold, min_reviews, max_wait_days, active, open}]}.
- * Skips tags that already have a row; refuses tags missing from the Tags tab. Dry run unless dryRun:false.
+ * Adds Curriculum rows: {rows:[{order, tag, regel, datum, percentage, van_tags}]} (regel default altijd). Skips tags that
+ * already have a row; refuses tags missing from the Tags tab. Dry run unless dryRun:false.
  */
 function adminAddCurriculum_(rows, dryRun) {
   if (!Array.isArray(rows) || !rows.length) throw apiError_('bad_request', 'rows[] required');
@@ -421,14 +516,9 @@ function adminAddCurriculum_(rows, dryRun) {
       var tag = String(r.tag || '').trim().toLowerCase();
       if (have.indexOf(tag) !== -1) { skipped.push(tag + ': already in Curriculum'); return; }
       if (known.indexOf(tag) === -1) { skipped.push(tag + ': not in Tags'); return; }
-      var th = r.unlock_threshold === undefined ? 0.8 : Number(r.unlock_threshold);
-      if (!(th >= 0 && th <= 1)) { skipped.push(tag + ': unlock_threshold must be 0–1'); return; }
-      add.push(rowFromObject_(SCHEMA.Curriculum, {
-        order: Number(r.order), tag: tag, unlock_threshold: th,
-        min_reviews: r.min_reviews === undefined ? 2 : Number(r.min_reviews),
-        max_wait_days: r.max_wait_days === undefined ? 21 : r.max_wait_days === '' ? '' : Number(r.max_wait_days),
-        active: r.active === undefined ? true : bool_(r.active), open: OPEN_NL[openCode_(r.open || 'auto')]
-      }));
+      add.push(curriculumRowToSheet_({ order: Number(r.order), tag: tag, rule: ruleCode_(r.regel || 'altijd'), date: String(r.datum || ''),
+        percentage: r.percentage === undefined || r.percentage === '' ? null : Number(r.percentage),
+        from_tags: Array.isArray(r.van_tags) ? r.van_tags : splitTags_(r.van_tags) }));
       have.push(tag);
     });
     var report = { dryRun: dryRun, add: add.map(function (r) { return r.join(' | '); }), skipped: skipped };

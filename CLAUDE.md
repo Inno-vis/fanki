@@ -46,7 +46,7 @@ The repo is **public** and hosted on GitHub Pages.
   → `{accepted, duplicate, rejected}`. Idempotent on `event_id`.
 - Admin-only (ADMIN_TOKEN): `listCards, listUntagged, tags, setTags, appendInbox, listInbox,
   promoteInbox, rebuildProgress, setup, readTab, reseedDev (DEV only), purgeSmoke,
-  setCurriculum, addCurriculum, curriculumStatus, migrateToDutch, userInfo, setTeachers, enableApproval, setCheck, removeTags, deleteRejected (DEV only), importCards, cardsToInbox, setSetting, cleanSettings, deleteTabs, flagCards, splitInbox, splitCards, replaceKlok, seedEmoji (dry run unless
+  setCurriculum, addCurriculum, curriculumStatus, migrateToDutch, userInfo, setTeachers, enableApproval, setCheck, removeTags, deleteRejected (DEV only), importCards, cardsToInbox, setSetting, cleanSettings, deleteTabs, flagCards, splitInbox, splitCards, migrateCurriculum, replaceKlok, seedEmoji (dry run unless
   dryRun:false; seedEmoji is DEV only)`. Open items: docs/todo.md.
 - All writes are inside `LockService`. All actions are idempotent, so clients **retry** on
   `no_action` (POST body lost on Google's redirect), `busy`, or non-JSON responses.
@@ -120,7 +120,7 @@ The repo is **public** and hosted on GitHub Pages.
 - "Voortgang" (`screens/ProgressScreen.tsx`, `src/stats.ts`): geoefend / bekend / reviews this week / streak /
   7-day chart / due today-tomorrow-7 days. Per-day counts are stored on the phone (`meta.dayCounts`, written
   in the same transaction as each rating) — they start counting from that update.
-- `src/curriculumParity.test.ts` loads the real Curriculum.gs and compares it with curriculum.ts.
+- `src/curriculumParity.test.ts` loads the real Curriculum.gs and compares validation + status with curriculum.ts.
 
 ## Android (additive; same service worker, caching and IndexedDB)
 
@@ -158,10 +158,14 @@ keys, pos and descriptions. The API maps them to internal codes (`typeCode_`/`so
 
 ## Curriculum and today's work
 
-- Curriculum tab + Settings decide which NEW cards are introduced (`src/curriculum.ts`, pure, recalculated
-  on every render). `apps-script/Curriculum.gs` mirrors the status for the Dashboard only — keep in sync.
-  Full algorithm: docs/SHEET.md › Curriculum. Per-row `open` (automatisch|altijd open|dicht → auto|always|
-  closed) overrides the chain; Settings.curriculum_only (default TRUE) locks every non-curriculum topic.
+- Curriculum tab (`order, tag, regel, datum, percentage, van_tags`) decides which topics bring NEW cards
+  (`src/curriculum.ts`, pure, recalculated on every render). Each row has its OWN rule: altijd | datum | bekend
+  (every van_tag ≥ percentage % bekend; van_tags only from higher rows) | dicht (parked, other columns kept) →
+  always|date|known|closed. Latch: open topics are stored in `meta.curriculumOpened` (dicht clears it). No row =
+  never; untagged cards never. `order` only orders the new-card slots. Bekend = Settings `known_stability_days` (7)
+  + `known_min_reviews` (2). Shared validation `validateCurriculum` / `validateCurriculum_` (broken row = closed,
+  latch kept). `apps-script/Curriculum.gs` mirrors validation + status (Dashboard) — parity test. Full rules:
+  docs/SHEET.md › Curriculum.
 - Studying now (no sessions, no timers, no cooldown): `planToday` (src/session.ts) + `src/today.ts`. The round = started
   cards due in LESS than `due_window_minutes` (strict), capped at `max_reviews_per_day` (overflow rolls over), + new
   cards from `getNewPerDay()` — the ONLY reader of `new_per_day`. `interleave`: due first, 1 new per 3 due. A rated
@@ -177,8 +181,8 @@ keys, pos and descriptions. The API maps them to internal codes (`typeCode_`/`so
 
 ## Study by topic, new-card pacing
 
-- "Kies een onderwerp" (`src/screens/Topics.tsx`): multi-select of tags that have cards, alphabetical by label_nl (🔒 for
-  locked curriculum tags). Stored in `meta.studyTags`; today's work then uses due + new cards with ANY selected
+- "Kies een onderwerp" (`src/screens/Topics.tsx`): multi-select of the Curriculum topics that are not dicht and have
+  cards, alphabetical by label_nl (🔒 = not open yet). Stored in `meta.studyTags`; today's work then uses due + new cards with ANY selected
   tag. Empty = everything.
 - A new card waits while ≥ `max_learning_backlog` cards are in short learning steps
   (`pickNextIndex` in src/session.ts).

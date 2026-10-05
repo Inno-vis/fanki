@@ -15,10 +15,10 @@ export type Backup = {
   progress: Progress[];
   queue: ReviewEvent[]; // reviews not yet sent to the server
   flags: StudentFlag[];
-  meta: Partial<Pick<Meta, 'intro' | 'doneToday' | 'dayCounts' | 'studyTags' | 'userSettings'>>;
+  meta: Partial<Pick<Meta, 'intro' | 'doneToday' | 'dayCounts' | 'studyTags' | 'userSettings' | 'curriculumOpened'>>;
 };
 
-const META_KEYS = ['intro', 'doneToday', 'dayCounts', 'studyTags', 'userSettings'] as const;
+const META_KEYS = ['intro', 'doneToday', 'dayCounts', 'studyTags', 'userSettings', 'curriculumOpened'] as const;
 
 export async function exportBackup(now = new Date()): Promise<Backup> {
   const d = await db();
@@ -90,6 +90,15 @@ export async function importBackup(raw: unknown, now = new Date()): Promise<{ pr
     const merged = { ...cur };
     for (const [day, n] of Object.entries(b.meta.dayCounts)) merged[day] = Math.max(merged[day] ?? 0, Number(n) || 0);
     await meta.put({ key: 'dayCounts', value: merged });
+  }
+  if (b.meta.curriculumOpened && typeof b.meta.curriculumOpened === 'object') {
+    // Opened topics: union, the earliest date wins (a dicht row clears its tag again at the next evaluation).
+    const cur = ((await meta.get('curriculumOpened'))?.value ?? {}) as Record<string, string>;
+    const merged = { ...cur };
+    for (const [tag, day] of Object.entries(b.meta.curriculumOpened)) {
+      if (typeof day === 'string' && (!merged[tag] || day < merged[tag])) merged[tag] = day;
+    }
+    await meta.put({ key: 'curriculumOpened', value: merged });
   }
   // Today's records (new-card intro list, "Vandaag" bar) only matter when the backup is from today.
   const today = localDate(now);

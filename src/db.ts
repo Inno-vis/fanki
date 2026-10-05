@@ -32,6 +32,7 @@ export type Meta = {
   lastSync: string; // ISO time of the last successful sync
   intro: Intro; // new cards introduced today
   curriculum: CurriculumRow[];
+  curriculumOpened: Record<string, string>; // latch: tag → local date it opened (src/curriculum.ts)
   studyTags: string[]; // tag filter ("Kies een onderwerp"); [] = everything
   doneToday: DoneToday; // items finished today (silent daily due cap); another date counts as empty
   round: Round; // the current round (the "Vandaag" bar); see src/today.ts

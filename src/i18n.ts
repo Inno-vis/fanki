@@ -223,7 +223,7 @@ export const HELP = {
     fr:
       'Choisis un ou plusieurs thèmes : « Starten » ne montre plus que les cartes de ces thèmes ' +
       '(révisions et nouvelles cartes). « Alle onderwerpen » = tous les thèmes. 🔒 « nog dicht » = pas encore ' +
-      'ouvert : ce thème s’ouvrira quand le précédent sera bien su. Touche « Klaar » pour revenir.'
+      'ouvert : ce thème s’ouvrira plus tard (à une date, ou quand tu connais bien d’autres thèmes). Touche « Klaar » pour revenir.'
   },
   review: {
     nl: 'Lees de kaart. Tik op Antwoord tonen. Kies dan een knop.',

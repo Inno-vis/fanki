@@ -7,11 +7,11 @@ var LAYOUT = {
   Inbox: { id: 110, type: 80, nl: 230, article: 60, pos: 170, fr: 230, example_nl: 260, example_fr: 260, tags: 170,
     tags_source: 110, flags: 120, answer: 260, added: 100, active: 70, status: 120 },
   Progress: { card_id: 130, track: 70, state: 100, due: 150, stability: 90, difficulty: 90, reps: 60, lapses: 60,
-    last_review: 150, first_review: 150 },
+    last_review: 150 },
   Log: { event_id: 290, card_id: 130, track: 70, ts: 170, rating: 60, mode: 80, duration_ms: 100, snapshot: 600 },
   Tags: { tag: 120, label_nl: 170, label_fr: 170, description: 340, subject_nl: 130 },
   Settings: { key: 230, value: 90, description: 560 },
-  Curriculum: { order: 70, tag: 120, unlock_threshold: 130, min_reviews: 110, max_wait_days: 130, active: 70, open: 120 }
+  Curriculum: { order: 70, tag: 160, regel: 90, datum: 110, percentage: 100, van_tags: 220 }
 };
 var WRAP = { nl: 1, fr: 1, example_nl: 1, example_fr: 1, answer: 1, description: 1, text_nl: 1, text: 1, pos: 1, tags: 1 };
 

@@ -18,7 +18,6 @@ export type Progress = {
   last_review: string; // ISO or ''
   learning_steps: number;
   scheduled_days: number;
-  first_review?: string; // ISO — first time she saw it (curriculum "first shown")
 };
 
 /** What the server keeps per review (Log.snapshot) — enough to restore Progress exactly. */

@@ -118,7 +118,7 @@ Above each card the app shows `subject_nl` of the FIRST tag on the card that has
 
 ## Progress — scheduling state (written by the API; rebuildable from Log)
 
-`card_id, track, state, due, stability, difficulty, reps, lapses, last_review, first_review`
+`card_id, track, state, due, stability, difficulty, reps, lapses, last_review`
 
 - One row per **(card_id, track)**.
 - `track`: `recog` (recognise: NL → FR, listening) or `prod` (produce: FR → typed NL, cloze, questions).
@@ -126,8 +126,6 @@ Above each card the app shows `subject_nl` of the FIRST tag on the card that has
   - sentence and question cards only have `prod`.
 - `state`: `New` | `Learning` | `Review` | `Relearning` (FSRS).
 - Updated from each review's snapshot when the review is at least as new as `last_review`.
-- `first_review`: the first time she saw that card+track (set by the API; backfilled from Log by setup).
-  The curriculum uses it as "first shown".
 - To rebuild exactly: `npm run admin -- dev rebuildProgress` (latest Log snapshot per card+track).
 
 ## Log — review events (append-only, written by the API)
@@ -198,9 +196,9 @@ to move them into Cards. Nothing is ever written to Cards by `/addwords`.
 | desired_retention | 0.9 | FSRS target recall probability (0.7–0.97) |
 | unlock_prod_stability_days | 3 | When a word's `recog` stability reaches this many days, the typing (`prod`) track starts |
 | show_french_help | TRUE | Shows the "Hulp" button (French help) and the one-time rating overlay. Untick when she's ready. |
-| mature_stability_days | 21 | A card counts as "bekend" (mature) for the curriculum at this FSRS stability |
+| known_stability_days | 7 | A card is "bekend" from this FSRS stability (main track: words recognising, others the only track). Curriculum rule `bekend` and Voortgang |
+| known_min_reviews | 2 | … and only after at least this many reviews |
 | require_approval | FALSE | ☑ = the app gets only Cards with `controle` = goedgekeurd. Turn on with `admin <env> enableApproval` (dry run first; `approveStudied` approves + 🚩 the cards she has studied, default on). On in DEV and PROD since 2026-10-02 |
-| curriculum_only | TRUE | New cards only from open Curriculum topics; other topics and untagged cards stay locked (reviews of started cards continue) |
 | listen_share | 0.3 | Share of word-recognition reviews that start with only the sound (🔊 "Wat hoor je?"); 0 = off. Only on phones with a Dutch voice |
 | max_learning_backlog | 3 | The next NEW card waits while this many cards are still in their short "again in minutes" steps |
 | due_window_minutes | 5 | Cards due in LESS than this many minutes count as due now (the round), and only such short steps come back in the same run. Keep it below the "Goed" step of a new card (10 min). Set to 5 on 2026-10-04 |
@@ -208,7 +206,8 @@ to move them into Cards. Nothing is ever written to Cards by `/addwords`.
 
 Removed 2026-10-04 (`admin <env> cleanSettings` deletes the rows, dry run first): `cooldown_minutes`,
 `session_max_cards`, `session_max_minutes`, `session_extra_cards`, `session_resume_minutes`,
-`min_reviews_to_count`, `compliments_enabled`. The Breaks and Compliments tabs are gone too
+`min_reviews_to_count`, `compliments_enabled`; on 2026-10-05 `mature_stability_days` and `curriculum_only`
+(replaced by `known_stability_days` / `known_min_reviews`; every topic now needs a Curriculum row). The Breaks and Compliments tabs are gone too
 (`admin <env> deleteTabs`).
 
 All settings are read by the phone on every sync — change them here, no redeploy.
@@ -222,50 +221,60 @@ Sheet or any server; they leave the phone only in her own JSON backup.
 - "Antwoord voorlezen" aan/uit (default aan, needs a Dutch voice): when she taps "Antwoord tonen" and the answer is
   Dutch (fr→nl, vraag, zin, enkel), the phone reads it out once. Never the French back of nl→fr or a listening card.
 
-## Curriculum — which new cards come first
+## Curriculum — which topics bring new cards
 
-`order, tag, unlock_threshold, min_reviews, max_wait_days, active, open`
+`order, tag, regel, datum, percentage, van_tags` (row 1 = headers; the API reads them by name). In plain words for
+the teacher: docs/teacher-manual.md.
 
-| column | default | meaning |
-|---|---|---|
-| order | | 1, 2, 3… (lowest first) |
-| tag | | a key from the Tags tab (dropdown) |
-| unlock_threshold | 0.8 | share of this tag's cards that must be "bekend" before the next row opens |
-| min_reviews | 2 | a card also needs at least this many reviews to count as "bekend" |
-| max_wait_days | 21 | the next row opens anyway this many days after this tag's first card was first shown (blank = never) |
-| active | ☑ | unticked rows are skipped: their cards are FREE to come, and they don't hold back the next row (this does NOT lock a topic) |
-| open | automatisch | `automatisch` = the rules below · `altijd open` = open now, whatever the rules say · `dicht` = locked (and every automatic row after it stays locked) |
+Each topic has its OWN rule. The row above no longer opens the next one.
 
-**Lock / unlock a topic yourself:** set its `open` to `dicht` or `altijd open`; back to `automatisch` to let
-the rules decide again. With Settings `curriculum_only` = TRUE (default), topics that have NO row here
-(huishouden, reizen…) and cards without a tag are locked too — add a row (e.g. `altijd open`) to open one.
+| column | meaning |
+|---|---|
+| order | 1, 2, 3 … Only decides which OPEN topic fills the daily new-card slots first. Never when a topic opens |
+| tag | a key from the Tags tab (dropdown) |
+| regel | `altijd` · `datum` · `bekend` · `dicht` (see below) |
+| datum | only for `datum`: the topic opens at local midnight (the phone's time zone) on this day |
+| percentage | only for `bekend`: whole number 1–100 |
+| van_tags | only for `bekend`: comma-separated tag keys; each must stand HIGHER in the list (lower order), so loops are impossible |
 
-**Current setup (DEV and PROD, 2026-10-02):** 1 app · 2 emoji · 3 klok-1 — all three `altijd open` with
-`unlock_threshold` 0 · 4 klok-2 · 5 klok-3 (automatisch, 0.8, 21 days). Because klok-1's threshold is 0, klok-2 is
-open too; klok-3 opens when 80 % of klok-2 is bekend or 21 days after her first klok-2 card. Topics without a row
-(huishouden, reizen…) stay locked (`curriculum_only`). New cards come from app first, then emoji, klok-1, klok-2.
+**The four rules**
+- `altijd`: open from the start.
+- `datum`: open from midnight on `datum`.
+- `bekend`: open when EVERY tag in `van_tags` has at least `percentage` % of its active cards bekend.
+- `dicht`: closed now. The other columns are ignored but kept, so switching back restores them. Use it to park a
+  topic with its settings. No effect on other rows (a row that waits on a dicht topic gets a warning).
 
-**How the columns work together:** `unlock_threshold` of a row decides when the NEXT row opens (share of this
-row's cards that must be bekend; 0 = next opens right away; `max_wait_days` = open anyway that many days after her
-first card of this row). `open` decides the row ITSELF: automatisch (follow the row above), altijd open (open now),
-dicht (closed now, and every automatisch row below it too).
+**Bekend:** a card's main track (word: recognising; zin/vraag/enkel: the only track) has stability ≥
+Settings `known_stability_days` (7) AND reps ≥ `known_min_reviews` (2). A tag's score = bekend / active cards with
+that tag; a tag with no active cards scores 100 %.
 
-**Algorithm** (phone: `src/curriculum.ts`; the Dashboard mirrors it in `apps-script/Curriculum.gs`):
+**Latch:** the phone evaluates the rules at every sync/launch and on every screen. Once a topic is open it stays
+open: the phone stores it with the date in IndexedDB `meta.curriculumOpened`, so a later lapse never re-locks it.
+`dicht` overrides the latch and removes the tag; when the rule changes away from `dicht`, the topic is evaluated from
+scratch. A tag whose row is deleted, or whose date is moved into the future, stays open only if it was already
+latched. A row with an error (see below) is closed and opens nothing, but an existing latch stays (no new latch).
+The latch lives only on the phone (also in her JSON backup); the Dashboard cannot see it.
 
-1. A card is **bekend** (mature) when the stability of its main direction (woord: recognising; zin/vraag:
-   the only direction) is ≥ `mature_stability_days` AND its reps ≥ the row's `min_reviews`.
-2. A tag's **score** = bekend cards / active cards with that tag (a tag without cards scores 1).
-3. The first active row is open. Row N+1 opens when row N is open AND (score(N) ≥ unlock_threshold OR
-   `max_wait_days` have passed since row N's first card was first shown). This is recalculated on every
-   sync/launch; nothing is stored, so reordering or retuning the tab takes effect immediately.
-4. **Eligible new cards**: a card is eligible if AT LEAST ONE of its tags is an open Curriculum topic
-   (inactive rows count as open). With `curriculum_only` = FALSE, cards without any curriculum tag are
-   also eligible. The `open` column overrides step 3 per row.
-5. **Filling today's `new_per_day` slots**: first the open curriculum tags by `order` (cards in `added`
-   order), then the next open tag, then all other eligible cards by `added`. A card that matches several
-   open tags is introduced once.
-6. Cards she already started keep coming back for review even if their tag is (again) locked — the
-   curriculum only decides what is *new*.
+**No row = never.** A tag without a row never opens; cards without any curriculum tag are never introduced. There
+is no other state (`curriculum_only`, `active`, `unlock_threshold`, `min_reviews`, `max_wait_days` and the old
+`open` column are gone since 2026-10-05).
+
+**New cards:** a card is eligible when at least ONE of its tags is open. The day's quota (`getNewPerDay()`) is filled
+from the open topics in `order` (cards by `added`); a card matching several open tags is introduced once. Cards she
+already started keep coming back for review whatever their topic's state. "Kies een onderwerp" lists the topics
+with a row that is not `dicht` (and that have cards); 🔒 = not open yet.
+
+**Validation** (`validateCurriculum_` in apps-script/Curriculum.gs, the same rules as `validateCurriculum` in
+src/curriculum.ts; plain Dutch messages, shown on the Dashboard): tag present, in Tags and only once; order a
+whole number ≥ 1 and unique; `regel` one of the four; `datum` needs a valid date; `bekend` needs a percentage 1–100
+and at least one van_tag that is in Tags, in the Curriculum and higher in the list. A `dicht` row skips the rule
+checks. Warnings (no error): a topic with no active cards; a `bekend` row waiting on a `dicht` topic.
+
+**Migration (2026-10-05, `admin <env> migrateCurriculum`, dry run first):** old row N+1 became `bekend`
+round(100 × row N's `unlock_threshold`) van row N; threshold 0, `altijd open` and the first row became `altijd`;
+old `dicht` became `dicht` (the old "dicht closes every automatic row below" no longer exists). Then the seed
+app/klok-1 = altijd, klok-2 = bekend 80 van klok-1, klok-3 = bekend 80 van klok-2, and every topic with 0 active
+cards = `dicht` (a `bekend` row that waited on one of them now waits on the nearest topic above it with cards). It also removed Progress.`first_review` and the old Settings rows.
 
 ## Studying now (phone only)
 
@@ -299,6 +308,7 @@ src/session.ts):
 Column A–B: te herhalen (all directions), goed onthouden (30 days), herhalingen deze week, actieve
 kaarten, laatst gesynchroniseerd (= newest Log `ts`), and the 10 most-forgotten cards.
 
-Columns D–I: **Curriculum** — one row per active Curriculum tag: bekend / cards, score, open (ja/nee),
-days until it opens automatically (blank if open, no cap, or the previous tag wasn't shown yet), first
-shown. Refreshed after reviews arrive (at most every 10 minutes) and by setup.
+Columns D–I: **Curriculum** — one row per Curriculum tag: regel, status (open / opent op <datum> / wacht op <tags> /
+dicht / fout), bekend / cards, the score of each van_tag against the percentage, and errors/warnings in plain Dutch.
+Same logic as the phone (`curriculumStatus_` mirrors src/curriculum.ts) but without her latch. Refreshed after
+reviews arrive (at most every 10 minutes) and by setup.

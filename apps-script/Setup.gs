@@ -23,7 +23,11 @@ function setup() {
   }
   ss.setSpreadsheetTimeZone('Europe/Brussels');
 
-  // 3. Tabs, headers, frozen row.
+  // 3. Tabs, headers, frozen row. (An old Curriculum tab must be migrated first, or its columns would shift.)
+  var oldCur = ss.getSheetByName('Curriculum');
+  if (oldCur && headersOf_(oldCur).indexOf('unlock_threshold') !== -1) {
+    throw new Error('Old Curriculum tab: run `admin <env> migrateCurriculum` first (dry run, then dryRun:false).');
+  }
   Object.keys(SCHEMA).forEach(function (name, i) {
     var sh = ss.getSheetByName(name) || ss.insertSheet(name, i);
     var headers = SCHEMA[name];
@@ -48,7 +52,7 @@ function setup() {
   applyCardValidation_(ss.getSheetByName('Inbox'), true);
   var prog = ss.getSheetByName('Progress');
   prog.getRange('D2:D').setNumberFormat('yyyy-mm-dd hh:mm');
-  prog.getRange('I2:J').setNumberFormat('yyyy-mm-dd hh:mm');
+  prog.getRange('I2:I').setNumberFormat('yyyy-mm-dd hh:mm');
   var log = ss.getSheetByName('Log');
   log.getRange('D2:D').setNumberFormat('yyyy-mm-dd hh:mm:ss');
   log.getRange('A2:A').setNumberFormat('@');
@@ -65,7 +69,6 @@ function setup() {
   seedAbbrevCards_(ss.getSheetByName('Cards'));
   seedCurriculum_(ss.getSheetByName('Curriculum'));
   applyCurriculumValidation_(ss.getSheetByName('Curriculum'));
-  backfillFirstReview_(ss);
   buildDashboard_(ss.getSheetByName('Dashboard'));
   seedUserInfo_(ss, env);
   applyLayout_(ss);
@@ -128,7 +131,7 @@ function seedSettings_(sh) {
     if (desc[r.key] && r.description !== desc[r.key]) sh.getRange(r._row, 3).setValue(desc[r.key]);
   });
   rows.forEach(function (r) {
-    if (r.key === 'show_french_help' || r.key === 'curriculum_only' || r.key === 'require_approval') {
+    if (r.key === 'show_french_help' || r.key === 'require_approval') {
       sh.getRange(r._row, 2).setDataValidation(SpreadsheetApp.newDataValidation().requireCheckbox().build());
     }
   });
@@ -254,41 +257,19 @@ function seedCurriculum_(sh) {
 
 function applyCurriculumValidation_(sh) {
   var tags = sh.getParent().getSheetByName('Tags');
-  sh.getRange('A2:A').setDataValidation(SpreadsheetApp.newDataValidation().requireNumberGreaterThanOrEqualTo(0)
-    .setAllowInvalid(false).setHelpText('Volgorde (1, 2, 3…)').build());
+  sh.getRange('A2:A').setDataValidation(SpreadsheetApp.newDataValidation().requireNumberGreaterThanOrEqualTo(1)
+    .setAllowInvalid(false).setHelpText('Volgorde (1, 2, 3…): bepaalt alleen welk open onderwerp eerst nieuwe kaarten geeft').build());
   sh.getRange('B2:B').setDataValidation(SpreadsheetApp.newDataValidation().requireValueInRange(tags.getRange('A2:A'), true)
     .setAllowInvalid(false).setHelpText('Een tag uit het tabblad Tags').build());
-  sh.getRange('C2:C').setDataValidation(SpreadsheetApp.newDataValidation().requireNumberBetween(0, 1)
-    .setAllowInvalid(false).setHelpText('Tussen 0 en 1 (0,8 = 80 % van de kaarten bekend)').build());
-  sh.getRange('D2:D').setDataValidation(SpreadsheetApp.newDataValidation().requireNumberGreaterThanOrEqualTo(0)
-    .setAllowInvalid(false).setHelpText('Minimum aantal herhalingen (2)').build());
-  sh.getRange('E2:E').setDataValidation(SpreadsheetApp.newDataValidation().requireNumberGreaterThanOrEqualTo(0)
-    .setAllowInvalid(false).setHelpText('Max. dagen voordat het volgende onderwerp opengaat (leeg = geen limiet)').build());
-  sh.getRange('F2:F').setDataValidation(SpreadsheetApp.newDataValidation().requireCheckbox().build());
-  sh.getRange('G2:G').setDataValidation(SpreadsheetApp.newDataValidation()
-    .requireValueInList([OPEN_NL.auto, OPEN_NL.always, OPEN_NL.closed], true).setAllowInvalid(false)
-    .setHelpText('automatisch = volgens de regels · altijd open · dicht').build());
-  var rows = readTable_(sh).rows;
-  rows.forEach(function (r) { if (String(r.tag).trim() && !String(r.open || '').trim()) sh.getRange(r._row, 7).setValue(OPEN_NL.auto); });
-  sh.getRange('C2:C').setNumberFormat('0%');
-}
-
-/** Fills Progress.first_review where blank, from the earliest Log ts of that card+track. */
-function backfillFirstReview_(ss) {
-  var prog = ss.getSheetByName('Progress');
-  var t = readTable_(prog);
-  var col = t.headers.indexOf('first_review') + 1;
-  var missing = t.rows.filter(function (r) { return r.card_id && !(r.first_review instanceof Date); });
-  if (!missing.length || !col) return;
-  var first = {};
-  readTable_(ss.getSheetByName('Log')).rows.forEach(function (r) {
-    var k = r.card_id + '|' + r.track, ts = toDate_(r.ts);
-    if (ts && (!first[k] || ts < first[k])) first[k] = ts;
-  });
-  missing.forEach(function (r) {
-    var ts = first[r.card_id + '|' + r.track] || toDate_(r.last_review);
-    if (ts) prog.getRange(r._row, col).setValue(ts);
-  });
+  sh.getRange('C2:C').setDataValidation(SpreadsheetApp.newDataValidation()
+    .requireValueInList([RULE_NL.always, RULE_NL.date, RULE_NL.known, RULE_NL.closed], true).setAllowInvalid(false)
+    .setHelpText('altijd = meteen open · datum = open vanaf de datum · bekend = als genoeg kaarten van van_tags bekend zijn · dicht = gesloten').build());
+  sh.getRange('D2:D').setDataValidation(SpreadsheetApp.newDataValidation().requireDate().setAllowInvalid(false)
+    .setHelpText('Alleen voor regel datum: open vanaf middernacht op deze dag').build());
+  sh.getRange('D2:D').setNumberFormat('yyyy-mm-dd');
+  sh.getRange('E2:E').setDataValidation(SpreadsheetApp.newDataValidation().requireNumberBetween(1, 100)
+    .setAllowInvalid(false).setHelpText('Alleen voor regel bekend: heel getal 1–100 (80 = 80 % van de kaarten bekend)').build());
+  sh.getRange('F2:F').setNumberFormat('@');
 }
 
 /** Seed line fields (brief format, English codes) → a Cards row with Dutch sheet values. */

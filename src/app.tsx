@@ -9,9 +9,9 @@ import { UpdateBanner } from './components/Banners';
 import { HelpButton } from './components/Help';
 import { Home } from './screens/Home';
 import { Review } from './screens/Review';
-import { interleave, planToday, todaysIntro, type Item } from './session';
+import { interleave, localDate, planToday, todaysIntro, type Item } from './session';
 import { dueDoneCount, laterToday, nextRound, todayBar, todaysDone, todaysRound } from './today';
-import { curriculumStatus, makePicker } from './curriculum';
+import { curriculumStatus, latchChanged, makePicker } from './curriculum';
 import { Topics } from './screens/Topics';
 import { Marked } from './screens/Marked';
 import { ProgressScreen } from './screens/ProgressScreen';
@@ -67,8 +67,8 @@ export function App() {
   const plan = useMemo(() => {
     const now = new Date();
     const done = todaysDone(s.doneToday, now);
-    const status = curriculumStatus(s.curriculum, s.cards, s.progress, settings.mature_stability_days, now);
-    const picker = makePicker(s.curriculum, status, settings.curriculum_only);
+    const cur = curriculumStatus(s.curriculum, s.cards, s.progress, settings, localDate(now), s.curriculumOpened, s.tags.map((tg) => tg.tag));
+    const picker = makePicker(cur.open);
     const topics = new Set(s.studyTags);
     const eligible = topics.size ? (c: Card) => c.tags.some((tg) => topics.has(tg)) : undefined;
     const p = planToday(s.cards, s.progress, settings, todaysIntro(s.intro, now), now, {
@@ -80,12 +80,20 @@ export function App() {
     // The bar covers the current round: a finished round + new cards → a new round at 0; cards arriving while a
     // round is going join it.
     const round = nextRound(todaysRound(s.round, now), keys.length);
-    return { ...p, round, bar: todayBar(round, keys), later: laterToday(s.cards, s.progress, settings, now, eligible) };
+    return { ...p, opened: cur.opened, round, bar: todayBar(round, keys), later: laterToday(s.cards, s.progress, settings, now, eligible) };
   }, [
     s.cards, s.progress, s.intro, s.curriculum, s.studyTags, s.doneToday, s.round, focus, screen.name,
     settings.new_per_day, settings.due_window_minutes, settings.max_reviews_per_day, settings.unlock_prod_stability_days,
-    settings.curriculum_only, settings.mature_stability_days
+    s.curriculumOpened, s.tags, settings.known_stability_days, settings.known_min_reviews
   ]);
+
+  // The curriculum latch: a topic that opened stays open (a dicht row clears it). Stored on the phone.
+  useEffect(() => {
+    if (latchChanged(plan.opened, s.curriculumOpened)) {
+      setState({ curriculumOpened: plan.opened });
+      void setMeta('curriculumOpened', plan.opened);
+    }
+  }, [plan.opened]);
 
   // Keep the round on the phone when it finished or a new one started (survives closing the app).
   useEffect(() => {

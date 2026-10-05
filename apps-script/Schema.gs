@@ -8,12 +8,12 @@ var SCHEMA = {
   // with Settings.require_approval only goedgekeurd cards go to the app. `nakijken` = 🚩 checkbox (to look at
   // again; does not hide the card).
   Cards: CARD_COLS.concat(['controle', 'nakijken']),
-  Progress: ['card_id', 'track', 'state', 'due', 'stability', 'difficulty', 'reps', 'lapses', 'last_review', 'first_review'],
+  Progress: ['card_id', 'track', 'state', 'due', 'stability', 'difficulty', 'reps', 'lapses', 'last_review'],
   Log: ['event_id', 'card_id', 'track', 'ts', 'rating', 'mode', 'duration_ms', 'snapshot'],
   Tags: ['tag', 'label_nl', 'label_fr', 'description', 'subject_nl'],
   Inbox: CARD_COLS.concat(['status']),
   Settings: ['key', 'value', 'description'],
-  Curriculum: ['order', 'tag', 'unlock_threshold', 'min_reviews', 'max_wait_days', 'active', 'open'],
+  Curriculum: ['order', 'tag', 'regel', 'datum', 'percentage', 'van_tags'],
   Dashboard: ['metric', 'value']
 };
 
@@ -26,17 +26,18 @@ var MODES = ['nl_fr', 'fr_nl', 'cloze', 'question', 'listen'];
 
 // Settings rows that setup removes from the sheet (features that no longer exist).
 var OBSOLETE_SETTINGS = ['cooldown_minutes', 'session_max_cards', 'session_max_minutes', 'session_extra_cards',
-  'session_resume_minutes', 'min_reviews_to_count', 'new_per_session', 'max_cards_per_round', 'compliments_enabled'];
+  'session_resume_minutes', 'min_reviews_to_count', 'new_per_session', 'max_cards_per_round', 'compliments_enabled',
+  'mature_stability_days', 'curriculum_only'];
 
 var SETTINGS_DEFAULTS = [
   ['new_per_day', 10, 'Nieuwe kaarten per dag (per kalenderdag)'],
   ['desired_retention', 0.9, 'Gewenste kans om het te onthouden (FSRS, 0.7–0.97)'],
   ['unlock_prod_stability_days', 3, 'Stabiliteit (dagen) van herkennen voordat de richting FR → NL start'],
-  ['mature_stability_days', 21, 'Een kaart is "bekend" vanaf deze stabiliteit in dagen (curriculum)'],
+  ['known_stability_days', 7, 'Een kaart is "bekend" vanaf deze stabiliteit in dagen (curriculum-regel bekend, Voortgang)'],
+  ['known_min_reviews', 2, '… en na minstens zoveel herhalingen'],
   ['show_french_help', true, 'Knop "Hulp" en Franse uitleg tonen (uitvinken als ze klaar is)'],
   ['max_learning_backlog', 3, 'Een nieuwe kaart komt pas als minder dan dit aantal kaarten nog in de korte stappen zit'],
   ['require_approval', false, 'Alleen kaarten met controle = goedgekeurd gaan naar de app (aan = de leerling ziet geen ongecontroleerde kaarten)'],
-  ['curriculum_only', true, 'Nieuwe kaarten alleen uit open onderwerpen van het tabblad Curriculum; andere onderwerpen en kaarten zonder tag blijven dicht'],
   ['listen_share', 0.3, 'Deel van de herkenningskaarten als luisterkaart (0 = uit; alleen met een Nederlandse stem op de telefoon)'],
   ['due_window_minutes', 5, 'Kaarten die binnen minder dan zoveel minuten terugkomen, tellen al mee (en komen terug in dezelfde ronde)'],
   ['max_reviews_per_day', 100, 'Maximaal aantal herhalingen per dag (stil; de rest schuift door naar morgen)']
@@ -60,14 +61,13 @@ var TAGS_SEED = [
   ['klok-3', 'klok niveau 3', 'horloge niveau 3', 'Elke minuut lezen, over middernacht rekenen', 'De tijd']
 ];
 
-// order | tag | unlock_threshold | min_reviews | max_wait_days | active | open
+// order | tag | regel | datum | percentage | van_tags (a new, empty sheet only)
 var CURRICULUM_SEED = [
-  [1, 'app', 0, 2, 21, true, 'automatisch'], // threshold 0: klok-1 is open from the start
-  [2, 'klok-1', 0.8, 2, 21, true, 'automatisch'],
-  [3, 'klok-2', 0.8, 2, 21, true, 'automatisch'],
-  [4, 'klok-3', 0.8, 2, 21, true, 'automatisch']
+  [1, 'app', 'altijd', '', '', ''],
+  [2, 'klok-1', 'altijd', '', '', ''],
+  [3, 'klok-2', 'bekend', '', 80, 'klok-1'],
+  [4, 'klok-3', 'bekend', '', 80, 'klok-2']
 ];
-var OPEN_NL = { auto: 'automatisch', always: 'altijd open', closed: 'dicht' };
 
 // type|nl|article|pos|fr|example_nl|example_fr|tags|tags_source|flags
 // (brief format, English codes; converted to Dutch sheet values by toSheetRow_ in Setup.gs)

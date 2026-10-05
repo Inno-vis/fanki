@@ -3,7 +3,8 @@ import { t } from '../i18n';
 import { setMeta } from '../db';
 import { setState, useStore } from '../store';
 import { useSettings } from '../settings';
-import { curriculumStatus, isTopicLocked } from '../curriculum';
+import { curriculumStatus, topicChoices } from '../curriculum';
+import { localDate } from '../session';
 
 /** "Kies een onderwerp": choose one or more tags; the next sessions use only cards with any of them. */
 export function Topics({ onDone }: { onDone: () => void }) {
@@ -14,17 +15,14 @@ export function Topics({ onDone }: { onDone: () => void }) {
   const rows = useMemo(() => {
     const counts = new Map<string, number>();
     for (const c of s.cards) for (const tag of c.tags) counts.set(tag, (counts.get(tag) ?? 0) + 1);
-    const status = curriculumStatus(s.curriculum, s.cards, s.progress, settings.mature_stability_days, new Date());
-    return s.tags
-      .filter((tg) => counts.has(tg.tag))
-      .map((tg) => ({
-        tag: tg.tag,
-        label: tg.label_nl || tg.tag,
-        count: counts.get(tg.tag)!,
-        locked: isTopicLocked(tg.tag, s.curriculum, status, settings.curriculum_only)
-      }))
+    const cur = curriculumStatus(s.curriculum, s.cards, s.progress, settings, localDate(), s.curriculumOpened, s.tags.map((tg) => tg.tag));
+    const label = new Map(s.tags.map((tg) => [tg.tag, tg.label_nl || tg.tag]));
+    // Only topics with a Curriculum row that is not dicht (and that have cards); 🔒 = not open yet.
+    return topicChoices(cur)
+      .filter((c) => counts.has(c.tag))
+      .map((c) => ({ tag: c.tag, label: label.get(c.tag) ?? c.tag, count: counts.get(c.tag)!, locked: c.locked }))
       .sort((a, b) => a.label.localeCompare(b.label, 'nl', { sensitivity: 'base' })); // alphabetical
-  }, [s.cards, s.tags, s.curriculum, s.progress, settings.curriculum_only, settings.mature_stability_days]);
+  }, [s.cards, s.tags, s.curriculum, s.curriculumOpened, s.progress, settings.known_stability_days, settings.known_min_reviews]);
 
   const save = async (next: string[]) => {
     setState({ studyTags: next });

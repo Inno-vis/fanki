@@ -62,6 +62,7 @@ function doPost(e) {
       case 'setSetting': return adminSetSetting_(body.key, body.value, body.dryRun !== false);
       case 'flagCards': return adminFlagCards_(body.ids, body.on !== false, body.dryRun !== false);
       case 'splitInbox': return adminSplitInbox_(body.dryRun !== false, body.parts || null);
+      case 'migrateCurriculum': return adminMigrateCurriculum_(body.dryRun !== false);
       case 'splitCards': return adminSplitCards_(body.dryRun !== false, body.includeStudied === true);
       case 'setCurriculum': return adminSetCurriculum_(body.tag, body.field, body.value);
       case 'promoteInbox': return adminPromoteInbox_();
@@ -132,7 +133,7 @@ function getCards_() {
       return { tag: String(r.tag).trim().toLowerCase(), label_nl: String(r.label_nl || r.tag || ''), label_fr: String(r.label_fr || ''),
         subject_nl: String(r.subject_nl || '').trim() };
     }).filter(function (x) { return x.tag; }),
-    curriculum: readCurriculum_()
+    curriculum: curriculumForApi_()
   };
 }
 
@@ -154,8 +155,7 @@ function progressToJson_(r) {
   return {
     card_id: String(r.card_id), track: String(r.track), state: String(r.state),
     due: isoDateTime_(r.due), stability: Number(r.stability) || 0, difficulty: Number(r.difficulty) || 0,
-    reps: Number(r.reps) || 0, lapses: Number(r.lapses) || 0, last_review: isoDateTime_(r.last_review),
-    first_review: isoDateTime_(r.first_review)
+    reps: Number(r.reps) || 0, lapses: Number(r.lapses) || 0, last_review: isoDateTime_(r.last_review)
   };
 }
 
@@ -237,8 +237,7 @@ function applyToProgress_(items) {
     var key = it.card_id + '|' + it.track;
     var row = byKey[key];
     if (row && row.last_review instanceof Date && row.last_review > it.ts) return;
-    if (!row) { row = { card_id: it.card_id, track: it.track, first_review: it.ts }; byKey[key] = row; appended.push(row); }
-    if (!(row.first_review instanceof Date) || row.first_review > it.ts) row.first_review = it.ts;
+    if (!row) { row = { card_id: it.card_id, track: it.track }; byKey[key] = row; appended.push(row); }
     var s = it.snapshot;
     row.state = s.state; row.due = new Date(s.due); row.stability = s.stability; row.difficulty = s.difficulty;
     row.reps = s.reps; row.lapses = s.lapses; row.last_review = it.ts;

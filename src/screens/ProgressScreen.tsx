@@ -9,8 +9,8 @@ export function ProgressScreen({ onDone }: { onDone: () => void }) {
   const s = useStore();
   const settings = useSettings();
   const o = useMemo(
-    () => overview(s.cards, s.progress, s.dayCounts, settings.mature_stability_days, new Date()),
-    [s.cards, s.progress, s.dayCounts, settings.mature_stability_days]
+    () => overview(s.cards, s.progress, s.dayCounts, settings, new Date()),
+    [s.cards, s.progress, s.dayCounts, settings.known_stability_days, settings.known_min_reviews]
   );
   const tile = (value: number | string, label: string) => (
     <div class="stat">

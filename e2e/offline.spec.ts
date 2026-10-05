@@ -9,7 +9,6 @@ function mockServer(
   settings: Record<string, unknown> = { new_per_day: 5, show_french_help: true },
   extraCards: Record<string, unknown>[] = []
 ) {
-  settings = { curriculum_only: false, ...settings }; // the mock has no Curriculum tab
   const log = new Map<string, Event>();
   let posts = 0;
   let loseNextReply = false;
@@ -41,7 +40,7 @@ function mockServer(
               { tag: 'reizen', label_nl: 'reizen', label_fr: 'voyages' },
               { tag: 'emoji', label_nl: 'emoji', label_fr: 'emoji', subject_nl: 'Wat is dit?' }
             ],
-            curriculum: []
+            curriculum: ['emoji', 'huishouden', 'reizen'].map((tag, i) => ({ order: i + 1, tag, rule: 'always', date: '', percentage: null, from_tags: [] }))
           });
         }
         posts++;

@@ -40,12 +40,12 @@ export function cleanSettings(raw: Partial<Settings> | undefined): Settings {
     new_per_day: Math.round(num(s.new_per_day, 10, 0, 100)),
     desired_retention: num(s.desired_retention, 0.9, 0.7, 0.97),
     unlock_prod_stability_days: num(s.unlock_prod_stability_days, 3, 0, 365),
-    mature_stability_days: num(s.mature_stability_days, 21, 1, 3650),
+    known_stability_days: num(s.known_stability_days, 7, 0, 3650),
+    known_min_reviews: Math.round(num(s.known_min_reviews, 2, 0, 1000)),
     show_french_help: s.show_french_help !== false,
     max_learning_backlog: Math.round(num(s.max_learning_backlog, 3, 1, 100)),
     due_window_minutes: num(s.due_window_minutes, 5, 0, 24 * 60),
     max_reviews_per_day: Math.round(num(s.max_reviews_per_day, 100, 1, 10_000)),
-    curriculum_only: s.curriculum_only !== false,
     listen_share: num(s.listen_share, 0.3, 0, 1)
   };
 }
@@ -54,20 +54,18 @@ export function cleanCurriculum(raw: unknown): CurriculumRow[] {
   if (!Array.isArray(raw)) return [];
   return raw
     .map((r: Record<string, unknown>) => {
-      const n = (v: unknown, d: number) => (v === '' || v === null || v === undefined || isNaN(Number(v)) ? d : Number(v));
-      const wait = r.max_wait_days;
+      const order = Number(r.order);
+      const pct = r.percentage === '' || r.percentage === null || r.percentage === undefined ? null : Number(r.percentage);
       return {
-        order: n(r.order, 0),
+        order: r.order === '' || r.order === null || r.order === undefined || isNaN(order) ? 0 : order,
         tag: String(r.tag ?? '').trim().toLowerCase(),
-        unlock_threshold: Math.min(1, Math.max(0, n(r.unlock_threshold, 0.8))),
-        min_reviews: Math.max(0, n(r.min_reviews, 2)),
-        max_wait_days: wait === '' || wait === null || wait === undefined || isNaN(Number(wait)) ? null : Math.max(0, Number(wait)),
-        active: r.active !== false,
-        open: (r.open === 'always' || r.open === 'closed' ? r.open : 'auto') as CurriculumRow['open']
+        rule: String(r.rule ?? '').trim(),
+        date: String(r.date ?? '').trim(),
+        percentage: pct === null || isNaN(pct) ? null : pct,
+        from_tags: Array.isArray(r.from_tags) ? r.from_tags.map((t) => String(t).trim().toLowerCase()).filter(Boolean) : []
       };
     })
-    .filter((r) => r.tag)
-    .sort((a, b) => a.order - b.order);
+    .filter((r) => r.tag || r.rule);
 }
 
 const PUSH_BATCH = 200;
@@ -109,8 +107,7 @@ export function cleanProgress(raw: Record<string, unknown>): Progress | null {
     lapses: Number(raw.lapses) || 0,
     last_review: raw.last_review ? new Date(String(raw.last_review)).toISOString() : '',
     learning_steps: Number(raw.learning_steps) || 0,
-    scheduled_days: Number(raw.scheduled_days) || 0,
-    first_review: raw.first_review ? new Date(String(raw.first_review)).toISOString() : undefined
+    scheduled_days: Number(raw.scheduled_days) || 0
   };
 }
 

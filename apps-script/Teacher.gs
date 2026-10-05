@@ -177,6 +177,22 @@ function reviewListInbox() {
  * Cards, paged; optional text query (nl/fr/answer), tag, and filter on controle: 'unchecked' (default: not
  * approved or rejected yet), 'review' (🚩 nakijken), 'approved', 'rejected', 'all'. Also returns counts.
  */
+/** Search text: lower case, no accents, no {braces}, so "boot" finds "de veerboot" and "cafe" finds "café". */
+function searchText_(s) {
+  return String(s || '').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/[{}]/g, '');
+}
+
+/** Does a card match the search? Looks in nl (with de/het), fr, answer, examples, tags and id. */
+function cardMatches_(c, q) {
+  if (!q) return true;
+  var hay = searchText_([c.article, c.nl, c.fr, c.answer, c.example_nl, c.example_fr, (c.tags || []).join(' '), c.id].join(' '));
+  return searchText_(q).split(/\s+/).filter(String).every(function (w) { return hay.indexOf(w) !== -1; });
+}
+
+/**
+ * Kaarten list. A search (query) looks in ALL cards, whatever the controle filter, so an approved card is found too;
+ * without a search the controle filter applies.
+ */
 function reviewListCards(offset, limit, query, tag, check) {
   requireTeacher_();
   var q = String(query || '').trim().toLowerCase();
@@ -187,10 +203,10 @@ function reviewListCards(offset, limit, query, tag, check) {
   cards.forEach(function (c) { counts[c.check || 'unchecked']++; if (c.review) counts.review++; });
   var tagCounts = {};
   var all = cards.filter(function (c) {
-    if (check === 'review' ? !c.review : check !== 'all' && (c.check || 'unchecked') !== check) return false;
+    if (!q && (check === 'review' ? !c.review : check !== 'all' && (c.check || 'unchecked') !== check)) return false;
     c.tags.forEach(function (t) { tagCounts[t] = (tagCounts[t] || 0) + 1; });
     if (tag && c.tags.indexOf(tag) === -1) return false;
-    return !q || (c.nl + ' ' + c.fr + ' ' + c.answer).toLowerCase().indexOf(q) !== -1;
+    return cardMatches_(c, q);
   });
   offset = Math.max(0, Number(offset) || 0);
   limit = Math.min(200, Math.max(1, Number(limit) || 50));

@@ -68,12 +68,15 @@ function load() {
   return p.then(function () { S.idx = Math.min(S.idx, Math.max(0, S.items.length - 1)); S.listStart = 0; S.busy = false; render(); }, fail);
 }
 
+/** Same search as the server (cardMatches_ in Teacher.gs): every word, anywhere, accents and case ignored. */
+function searchText(s) { return String(s || '').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/[{}]/g, ''); }
+function matchesSearch(x, q) {
+  if (!q) return true;
+  var hay = searchText([x.article, x.nl, x.fr, x.answer, x.example_nl, x.example_fr, (x.tags || []).join(' '), x.id].join(' '));
+  return searchText(q).split(/\s+/).filter(String).every(function (w) { return hay.indexOf(w) !== -1; });
+}
 function applyFilter() {
-  S.items = S.all.filter(function (x) {
-    var q = S.q.trim().toLowerCase();
-    return (!S.tag || x.tags.indexOf(S.tag) !== -1)
-      && (!q || (x.nl + ' ' + x.fr + ' ' + x.answer).toLowerCase().indexOf(q) !== -1);
-  });
+  S.items = S.all.filter(function (x) { return (!S.tag || x.tags.indexOf(S.tag) !== -1) && matchesSearch(x, S.q.trim()); });
 }
 /** The one tag menu: every tag that has rows here (Inbox: counted on the page; Kaarten: counts from the server). */
 function fillTagMenu() {
@@ -297,7 +300,9 @@ function render() {
   }
   if (S.boot) $('gate').textContent = S.boot.requireApproval ? 'De app krijgt alleen goedgekeurde kaarten.'
     : 'Let op: require_approval staat uit, dus de app krijgt alle actieve kaarten (ook niet goedgekeurde).';
-  if (S.source === 'cards') $('pageInfo').textContent = 'kaarten ' + (S.cards.offset + 1) + '–' + Math.min(S.cards.offset + 50, S.cards.total) + ' van ' + S.cards.total;
+  if (S.source === 'cards') $('pageInfo').textContent = 'kaarten ' + (S.cards.offset + 1) + '–' + Math.min(S.cards.offset + 50, S.cards.total) + ' van ' + S.cards.total
+    + (S.q.trim() ? ' · zoekt in alle kaarten' : '');
+  $('checkFilter').disabled = S.source === 'cards' && !!S.q.trim();
   // Keep the cursor where it was if a redraw happens while typing.
   var act = document.activeElement, focusKey = act && act.getAttribute && act.getAttribute('data-k'), caret = focusKey ? act.selectionStart : null;
   var view = $('view'); view.innerHTML = '';
@@ -397,6 +402,7 @@ document.addEventListener('keydown', function (e) {
 });
 
 run('reviewBootstrap').then(function (b) {
+  b.tags.sort(function (x, y) { return x.label.localeCompare(y.label, 'nl', { sensitivity: 'base' }); }); // menu + chips A–Z
   S.boot = b; $('who').textContent = b.email; $('build').textContent = 'versie ' + b.build;
   load();
 }, function (e) { $('view').innerHTML = ''; $('view').appendChild(el('p', { 'class': 'empty', text: (e && e.message) || String(e) })); });

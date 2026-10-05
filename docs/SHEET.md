@@ -169,6 +169,9 @@ instructions for that page. All Dutch labels and instructions: `apps-script/Teac
   needs edit access to this spreadsheet (Share it with them), AND their address must be on the allowlist:
   `node scripts/admin.mjs <env> setTeachers '{"emails":"a@x.be, b@y.be"}'` (or `{"domain":"school.be"}` for a
   whole Workspace domain). The first time, Google asks the teacher to allow the script.
+- **Search** (Inbox and Kaarten): every word anywhere in nl (with de/het), fr, answer, examples, tags or id; case and
+  accents ignored ("boot" finds "de veerboot", "cafe" finds "café"). In Kaarten a search looks in ALL cards (the
+  controle filter is ignored while searching). The subject menu and the tag chips are alphabetical.
 - **Controleren** (`?page=review`; no second title bar — the shared navigation is the header). **Inbox** (default):
   rows not yet in Cards, oldest first. **Kaarten**: search / filter by tag and by `controle` ("Nog niet goedgekeurd",
   "🚩 Nakijken (oud)", "Goedgekeurd", "Afgekeurd", "Alle kaarten"). Per card you can edit type, nl, lidwoord, pos, fr,

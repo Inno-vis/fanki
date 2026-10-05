@@ -788,3 +788,22 @@ function adminSplitCards_(dryRun, includeStudied) {
     return report;
   });
 }
+
+/**
+ * Deletes Cards rows by id: {ids:[...]} (the teacher's explicit choice, also on PROD). Reports which of them she
+ * studied (their Progress/Log rows stay, unused). Dry run unless dryRun:false.
+ */
+function adminDeleteCards_(ids, dryRun) {
+  if (!Array.isArray(ids) || !ids.length) throw apiError_('bad_request', 'ids[] required');
+  return withLock_(function () {
+    var ss = ss_(), sh = ss.getSheetByName('Cards');
+    var studied = {};
+    readTable_(ss.getSheetByName('Progress')).rows.forEach(function (r) { if (r.card_id) studied[String(r.card_id)] = true; });
+    var rows = ids.map(function (id) { return findById_(sh, id); }).filter(function (r) { return r; });
+    var report = { dryRun: dryRun, delete: rows.map(function (r) { return r.id + ' | ' + r.nl + (studied[String(r.id)] ? ' (studied)' : ''); }),
+      notFound: ids.length - rows.length };
+    if (dryRun) return report;
+    rows.sort(function (a, b) { return b._row - a._row; }).forEach(function (r) { sh.deleteRow(r._row); });
+    return report;
+  });
+}

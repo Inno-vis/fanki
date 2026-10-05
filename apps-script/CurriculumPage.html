@@ -87,10 +87,8 @@ function load() {
     E.tagList = d.tags; E.version = d.version; E.today = d.today; E.scores = d.scores; E.known = d.known; E.hasBackup = d.hasBackup;
     E.openIdx = -1; E.checks = null; E.dirty = false; E.busy = false;
     notice('');
-    // Every subject belongs in the list: one without a row (e.g. made in the Tags tab) is added as Dicht.
-    var missing = d.tags.filter(function (t) { return !E.rows.some(function (r) { return r.tag === t.tag; }); });
-    missing.forEach(function (t) { E.rows = CurLogic.add(E.rows, t.tag); });
-    if (missing.length) { E.dirty = true; notice(tr('cur.missing', { list: missing.map(function (t) { return t.label; }).join(', ') })); }
+    // Subjects that had no row were added (as Dicht) by the server while loading: just say so.
+    if (d.added && d.added.length) notice(tr('cur.missing', { list: d.added.map(label).join(', ') }), 'ok');
     render();
   }, function (e) { E.busy = false; alert((e && e.message) || e); });
 }
@@ -216,11 +214,13 @@ $('newLabel').addEventListener('input', function () { $('newKey').textContent = 
 $('newAdd').addEventListener('click', function () {
   var label = $('newLabel').value.trim(), key = tagKey(label);
   if (!key) { notice(tr('cur.new.bad'), 'bad'); return; }
-  run('curriculumEditorNewTopic', key, label, $('newFr').value.trim()).then(function (t) {
+  run('curriculumEditorNewTopic', key, label, $('newFr').value.trim(), E.version).then(function (t) {
     E.tagList.push(t); E.tags[t.tag] = t;
     E.rows = CurLogic.add(E.rows, t.tag); E.openIdx = E.rows.length - 1;
     $('newLabel').value = ''; $('newFr').value = ''; $('newKey').textContent = '—';
-    E.dirty = true; E.checks = null;
+    // Saved on the server already (t.version): only unsaved if the tab had changed meanwhile.
+    if (t.version) E.version = t.version; else E.dirty = true;
+    E.checks = null;
     notice(tr('cur.new.done', { label: t.label }), 'ok');
     render();
   }, function (e) { notice((e && e.message) || String(e), 'bad'); });

@@ -87,6 +87,8 @@ function curriculumEditorLoad() {
   var ss = ss_();
   var sh = ss.getSheetByName('Curriculum');
   var info = editorTagInfo_(ss);
+  // Every subject belongs in the list: one without a row (e.g. added to the Tags tab by hand) is added as dicht now.
+  var added = withLock_(function () { return appendMissingTopics_(sh, info.keys); });
   var settings = readSettings_();
   var known = { known_stability_days: Number(settings.known_stability_days), known_min_reviews: Number(settings.known_min_reviews) };
   var progress = readTable_(ss.getSheetByName('Progress')).rows.filter(function (r) { return r.card_id; });
@@ -100,8 +102,21 @@ function curriculumEditorLoad() {
   var backup = ss.getSheetByName(CURRICULUM_BACKUP);
   return {
     env: env_(), today: isoDate_(new Date()), rows: rows, tags: info.tags, scores: scores, known: known,
-    version: curriculumVersion_(curriculumTabValues_(sh)), hasBackup: !!backup && backup.getLastRow() > 1
+    version: curriculumVersion_(curriculumTabValues_(sh)), hasBackup: !!backup && backup.getLastRow() > 1, added: added
   };
+}
+
+/** Appends a dicht row (order = last + 1) for every subject in `keys` without a Curriculum row. Returns the tags. */
+function appendMissingTopics_(sh, keys) {
+  var rows = readCurriculum_();
+  var have = rows.map(function (r) { return r.tag; });
+  var max = rows.reduce(function (m, r) { return Math.max(m, r.order || 0); }, 0);
+  var add = keys.filter(function (k) { return have.indexOf(k) === -1; });
+  if (!add.length) return [];
+  var values = add.map(function (k, i) { return curriculumSheetValues_({ order: max + i + 1, tag: k, rule: 'closed', date: '', percentage: null, from_tags: [] }); });
+  sh.getRange(nextRow_(sh, 2), 1, values.length, SCHEMA.Curriculum.length).setValues(values);
+  SpreadsheetApp.flush();
+  return add;
 }
 
 /**
@@ -148,7 +163,7 @@ function curriculumEditorUndo(version) {
 }
 
 /** "Nieuw onderwerp": a new Tags row (key a-z0-9-, label_nl, label_fr). It is not in the curriculum yet. */
-function curriculumEditorNewTopic(tag, labelNl, labelFr) {
+function curriculumEditorNewTopic(tag, labelNl, labelFr, version) {
   requireTeacher_();
   var key = String(tag || '').trim().toLowerCase();
   if (!/^[a-z0-9]+(-[a-z0-9]+)*$/.test(key)) throw new Error('Gebruik voor de code alleen a-z, 0-9 en -.');
@@ -159,7 +174,12 @@ function curriculumEditorNewTopic(tag, labelNl, labelFr) {
     if (have.indexOf(key) !== -1) throw new Error('Onderwerp "' + key + '" bestaat al.');
     sh.getRange(nextRow_(sh, 1), 1, 1, SCHEMA.Tags.length).setValues([rowFromObject_(SCHEMA.Tags,
       { tag: key, label_nl: String(labelNl).trim(), label_fr: String(labelFr || '').trim(), description: '', subject_nl: '' })]);
-    return { tag: key, label: String(labelNl).trim(), cards: 0 };
+    // Its Curriculum row (dicht) is written at once — no Opslaan needed. If the tab changed meanwhile, the page adds
+    // the row itself and the next Opslaan stores it.
+    var cur = sheet_('Curriculum');
+    var same = curriculumVersion_(curriculumTabValues_(cur)) === version;
+    if (same) appendMissingTopics_(cur, [key]);
+    return { tag: key, label: String(labelNl).trim(), cards: 0, version: same ? curriculumVersion_(curriculumTabValues_(cur)) : null };
   });
 }
 

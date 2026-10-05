@@ -121,7 +121,7 @@ Above each card the app shows `subject_nl` of the FIRST tag on the card that has
 `card_id, track, state, due, stability, difficulty, reps, lapses, last_review`
 
 - One row per **(card_id, track)**.
-- `track`: `recog` (recognise: NL → FR, listening) or `prod` (produce: FR → typed NL, cloze, questions).
+- `track`: `recog` (recognise: NL → FR, listening) or `prod` (produce: FR → NL, cloze, questions; self-rated, nothing is typed).
   - word cards have both tracks; `prod` unlocks once `recog` stability ≥ `unlock_prod_stability_days`.
   - sentence and question cards only have `prod`.
 - `state`: `New` | `Learning` | `Review` | `Relearning` (FSRS).
@@ -192,8 +192,8 @@ The intended way to change the curriculum (the Curriculum tab can still be edite
 
 - The topics in order: number, label_nl + active cards, the rule as a sentence ("Altijd open", "Opent op 16 november
   2026", "Opent als 80% bekend is van: klok-1, app", "Dicht"), a preview line, and Omhoog / Omlaag / Verwijderen. Every subject (Tags row) is in the list; Dicht is how a
-  subject is kept out for a while (a subject without a row, e.g. added in the Tags tab by hand, is added at the
-  bottom as Dicht when the page loads).
+  subject is kept out for a while (a subject without a row, e.g. added in the Tags tab by hand, is written to the
+  Curriculum as Dicht when the page loads — no Opslaan needed).
 - **Verwijderen** (a subject): asks first with the numbers (cards that lose it, cards that then have no subject and go
   to the Inbox — and how many of those she already studied —, Inbox rows, topics that waited on it), then removes the
   tag from Cards and Inbox, its Curriculum row, the tag from other rows' van_tags, and the Tags row
@@ -207,8 +207,8 @@ The intended way to change the curriculum (the Curriculum tab can still be edite
   ("klok-1: 62% van 80%") from the Progress tab, or "voortgang staat alleen op de telefoon" when Progress is empty;
   dicht → "Dicht: wordt niet aangeboden." It cannot see her latch.
 - **Nieuw onderwerp** (bottom of the page): name (label_nl), optional French name; the code (tag key) is made from the
-  name ("Op het werk" → `op-het-werk`). It becomes a Tags row (`curriculumEditorNewTopic`) and is added at the bottom
-  of the list as Dicht (Opslaan stores it); it is in the tag chips of Controleren at once. The Tags tab is the list of subjects; new ones are made here.
+  name ("Op het werk" → `op-het-werk`). It becomes a Tags row and, at once, a Dicht row at the bottom of the
+  Curriculum (`curriculumEditorNewTopic`; no Opslaan needed); it is in the tag chips of Controleren at once. The Tags tab is the list of subjects; new ones are made here.
 - **Every card needs a subject:** Goedkeuren (Inbox and Kaarten) refuses a card without a tag, and saving a card in
   Kaarten without any tag is refused ("Terug naar Inbox" instead). Untagged cards were moved to the Inbox on 2026-10-05.
 - Opslaan / Laad opnieuw / Ongedaan maken sit in a bar fixed at the bottom of the screen. "Tik op een
@@ -235,7 +235,7 @@ The intended way to change the curriculum (the Curriculum tab can still be edite
 6. Fix it, Opslaan → "Opgeslagen…"; the tab and the Dashboard show the change; Curriculum_backup holds the old one.
 7. Open the page in two tabs, save in one, then save in the other → "Het curriculum is intussen gewijzigd…".
 8. Ongedaan maken → the table from before the last Opslaan is back; the button disappears.
-9. Add a tag by hand in the Tags tab, reload the page → it is at the bottom as Dicht with "Klik op Opslaan".
+9. Add a tag by hand in the Tags tab, reload the page → it is at the bottom as Dicht ("Toegevoegd als Dicht: …").
 10. Nieuw onderwerp → it appears at the bottom as Dicht and in Controleren's tag chips.
 11. Controleren: Goedkeuren a card without a tag → refused with "kies minstens één onderwerp (tag)". Eén voor één shows
     Goedkeuren / Afkeuren (Kaarten) / Vorige / Volgende / Verwijderen; an edit is kept after Volgende; Afkeuren puts a
@@ -257,7 +257,7 @@ to move them into Cards. Nothing is ever written to Cards by `/addwords`.
 |---|---|---|
 | new_per_day | 10 | New cards introduced per local day. The app reads it only through `getNewPerDay()` (src/today.ts) |
 | desired_retention | 0.9 | FSRS target recall probability (0.7–0.97) |
-| unlock_prod_stability_days | 3 | When a word's `recog` stability reaches this many days, the typing (`prod`) track starts |
+| unlock_prod_stability_days | 3 | When a word's `recog` stability reaches this many days, the FR → NL (`prod`) track starts |
 | show_french_help | TRUE | Shows the "Hulp" button (French help) and the one-time rating overlay. Untick when she's ready. |
 | known_stability_days | 7 | A card is "bekend" from this FSRS stability (main track: words recognising, others the only track). Curriculum rule `bekend` and Voortgang |
 | known_min_reviews | 2 | … and only after at least this many reviews |

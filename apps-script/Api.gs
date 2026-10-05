@@ -64,6 +64,7 @@ function doPost(e) {
       case 'setSetting': return adminSetSetting_(body.key, body.value, body.dryRun !== false);
       case 'flagCards': return adminFlagCards_(body.ids, body.on !== false, body.dryRun !== false);
       case 'splitInbox': return adminSplitInbox_(body.dryRun !== false, body.parts || null);
+      case 'deleteCards': return adminDeleteCards_(body.ids, body.dryRun !== false);
       case 'migrateCurriculum': return adminMigrateCurriculum_(body.dryRun !== false);
       case 'splitCards': return adminSplitCards_(body.dryRun !== false, body.includeStudied === true);
       case 'setCurriculum': return adminSetCurriculum_(body.tag, body.field, body.value);

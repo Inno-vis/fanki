@@ -87,3 +87,25 @@ npm run admin -- prod setup
 
 Reviews are never lost on rollback: they wait in the phone's queue and the server de-duplicates
 by `event_id`.
+
+## Rotating tokens (LEARNER / ADMIN)
+
+Do it when a token may have leaked, or once in a while. Two tokens per environment, both random strings:
+`LEARNER_TOKEN` (inside the public app: read cards/progress, append reviews) and `ADMIN_TOKEN` (only on this
+computer: `scripts/admin.mjs`). They live in three places: `.env.local` (this computer, git-ignored), Script
+Properties of the Apps Script project, and GitHub Actions secrets (`LEARNER_TOKEN_DEV|PROD`; the admin token is not
+there). Never paste a token into chat, an issue or a commit.
+
+1. Make a new value, e.g. `openssl rand -hex 24`, and put it in `.env.local` (`LEARNER_TOKEN_<ENV>` and/or
+   `ADMIN_TOKEN_<ENV>`). Do DEV first and check it before PROD.
+2. `scripts/push-secrets.sh <env>` → open the Apps Script editor, run `setup()` (it copies the values to Script
+   Properties) → `npm run gas:push:<env>` (puts the blank `Secrets.gs` back) → `npm run gas:deploy:<env>`.
+   From now on the old token is refused.
+3. ADMIN only: done. Check with `npm run admin -- <env> listInbox`.
+4. LEARNER: also update the GitHub secret (`gh secret set LEARNER_TOKEN_<ENV>`, paste the value when asked), then
+   rebuild the site: DEV = push to `main` (or `gh workflow run deploy.yml --ref main`); PROD = the next `release`
+   push (ask first) — the PROD site is built from `release`.
+5. LEARNER on PROD — her phone: until it has the new app version, syncs fail (unauthorized). Nothing is lost: every
+   rating stays in the phone's outbox until the server accepts it, and goes out after the update. Do it when she can
+   open the app soon afterwards (the update banner), and check the Log tab for her next reviews.
+6. `npm run smoke:<env>` and `npm run backup:prod` (PROD).

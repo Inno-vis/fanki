@@ -46,7 +46,7 @@ The repo is **public** and hosted on GitHub Pages.
   → `{accepted, duplicate, rejected}`. Idempotent on `event_id`.
 - Admin-only (ADMIN_TOKEN): `listCards, listUntagged, tags, setTags, appendInbox, listInbox,
   promoteInbox, rebuildProgress, setup, readTab, reseedDev (DEV only), purgeSmoke,
-  setCurriculum, addCurriculum, curriculumStatus, migrateToDutch, userInfo, setTeachers, enableApproval, setCheck, removeTags, deleteRejected (DEV only), importCards, cardsToInbox, setSetting, cleanSettings, deleteTabs, flagCards, splitInbox, splitCards, migrateCurriculum, replaceKlok, seedEmoji (dry run unless
+  setCurriculum, addCurriculum, curriculumStatus, migrateToDutch, userInfo, setTeachers, enableApproval, setCheck, removeTags, deleteRejected (DEV only), importCards, cardsToInbox, setSetting, cleanSettings, deleteTabs, flagCards, splitInbox, splitCards, migrateCurriculum, deleteCards, replaceKlok, seedEmoji (dry run unless
   dryRun:false; seedEmoji is DEV only)`. Open items: docs/todo.md.
 - All writes are inside `LockService`. All actions are idempotent, so clients **retry** on
   `no_action` (POST body lost on Google's redirect), `busy`, or non-JSON responses.
@@ -216,7 +216,7 @@ keys, pos and descriptions. The API maps them to internal codes (`typeCode_`/`so
 
 - Card types (internal codes): `word` (dubbel), `oneway` (enkel: nl → answer), `sentence` (target word in
   `{braces}` → cloze), `question` (fr = prompt/front, nl = answer/back).
-- Two FSRS tracks: word cards have `recog` (NL→FR, listening) and `prod` (FR→typed NL);
+- Two FSRS tracks: word cards have `recog` (NL→FR, listening) and `prod` (FR→NL, self-rated like every card);
   sentence/question cards only `prod`. `prod` unlocks when `recog` stability ≥ `unlock_prod_stability_days`.
 - Scheduling (`src/scheduler.ts`, `src/session.ts`): ts-fsrs, fuzz on, retention from Settings. The four
   outcomes are computed once when the answer is revealed; the tapped one is applied, so the interval on

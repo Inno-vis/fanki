@@ -14,9 +14,6 @@
   <h1 id="title"></h1>
   <div class="hint" id="hint" hidden></div>
   <div id="list"><p class="empty" id="loading"></p></div>
-  <h2 class="sec" id="outTitle"></h2>
-  <p class="meta" id="outText"></p>
-  <div id="out"></div>
   <h2 class="sec" id="newTitle"></h2>
   <p class="meta" id="newText"></p>
   <div class="topic newtopic">
@@ -28,7 +25,7 @@
   <div class="savebar">
     <button class="btn primary" id="save"></button>
     <button class="btn" id="reload"></button>
-    <button class="btn" id="restore" hidden></button>
+    <button class="btn" id="undo" hidden></button>
     <span class="notice" id="notice" role="status"></span>
   </div>
 </main>
@@ -72,6 +69,10 @@ function load() {
     E.tagList = d.tags; E.version = d.version; E.today = d.today; E.scores = d.scores; E.known = d.known; E.hasBackup = d.hasBackup;
     E.openIdx = -1; E.checks = null; E.dirty = false; E.busy = false;
     notice('');
+    // Every subject belongs in the list: one without a row (e.g. made in the Tags tab) is added as Dicht.
+    var missing = d.tags.filter(function (t) { return !E.rows.some(function (r) { return r.tag === t.tag; }); });
+    missing.forEach(function (t) { E.rows = CurLogic.add(E.rows, t.tag); });
+    if (missing.length) { E.dirty = true; notice(tr('cur.missing', { list: missing.map(function (t) { return t.label; }).join(', ') })); }
     render();
   }, function (e) { E.busy = false; alert((e && e.message) || e); });
 }
@@ -114,8 +115,8 @@ function ruleEditor(row, i) {
 
 function render() {
   $('title').textContent = tr('cur.title');
-  $('save').textContent = tr('cur.save'); $('reload').textContent = tr('cur.reload'); $('restore').textContent = tr('cur.restore');
-  $('restore').hidden = !E.hasBackup;
+  $('save').textContent = tr('cur.save'); $('reload').textContent = tr('cur.reload'); $('undo').textContent = tr('cur.undo');
+  $('undo').hidden = !E.hasBackup;
   $('save').disabled = E.busy;
   if (E.known && !$('knownInfo')) {
     // "Bekend = …" (values from Settings) goes into the ⓘ panel, under the other instructions.
@@ -132,12 +133,7 @@ function render() {
     var check = E.checks && E.checks[i];
     var tools = el('div', { 'class': 'tools' }, [
       el('button', { 'class': 'btn', type: 'button', text: tr('cur.up'), onclick: function (e) { e.stopPropagation(); apply(CurLogic.move(E.rows, i, -1)); follow(i, -1); changed(); } }),
-      el('button', { 'class': 'btn', type: 'button', text: tr('cur.down'), onclick: function (e) { e.stopPropagation(); apply(CurLogic.move(E.rows, i, 1)); follow(i, 1); changed(); } }),
-      el('button', { 'class': 'btn bad', type: 'button', text: tr('cur.remove'), onclick: function (e) {
-        e.stopPropagation();
-        if (!confirm(tr('cur.remove.confirm', { tag: t.label }))) return;
-        apply(CurLogic.remove(E.rows, i)); E.openIdx = -1; changed();
-      } })
+      el('button', { 'class': 'btn', type: 'button', text: tr('cur.down'), onclick: function (e) { e.stopPropagation(); apply(CurLogic.move(E.rows, i, 1)); follow(i, 1); changed(); } })
     ]);
     if (i === 0) tools.children[0].disabled = true;
     if (i === E.rows.length - 1) tools.children[1].disabled = true;
@@ -159,18 +155,6 @@ function render() {
     if (E.openIdx === i) box.appendChild(ruleEditor(row, i));
     list.appendChild(box);
   });
-  var out = $('out'); out.innerHTML = '';
-  $('outTitle').textContent = tr('cur.out.title'); $('outText').textContent = tr('cur.out.text');
-  var inList = E.rows.map(function (r) { return r.tag; });
-  var rest = E.tagList.filter(function (t) { return inList.indexOf(t.tag) === -1; });
-  if (!rest.length) out.appendChild(el('p', { 'class': 'meta', text: tr('cur.out.none') }));
-  rest.forEach(function (t) {
-    out.appendChild(el('div', { 'class': 'topic' }, [el('div', { 'class': 'head' }, [
-      el('div', {}, [el('span', { 'class': 'name', text: t.label }), ' · ', el('span', { 'class': 'meta', text: cardsText(t.cards) })]),
-      el('div', { 'class': 'tools' }, [el('button', { 'class': 'btn', type: 'button', text: tr('cur.out.add'),
-        onclick: function () { E.rows = CurLogic.add(E.rows, t.tag); E.openIdx = E.rows.length - 1; changed(); } })])
-    ])]));
-  });
 }
 
 $('save').addEventListener('click', function () {
@@ -186,12 +170,12 @@ $('save').addEventListener('click', function () {
   }, function (e) { E.busy = false; notice((e && e.message) || String(e), 'bad'); render(); });
 });
 $('reload').addEventListener('click', function () { if (!E.dirty || confirm(tr('cur.leave'))) load(); });
-$('restore').addEventListener('click', function () {
-  if (!confirm(tr('cur.restore.confirm'))) return;
-  run('curriculumEditorRestore', E.version).then(function (res) {
+$('undo').addEventListener('click', function () {
+  if (!confirm(tr('cur.undo.confirm'))) return;
+  run('curriculumEditorUndo', E.version).then(function (res) {
     if (res.conflict) { notice(tr('cur.conflict'), 'bad'); return; }
     if (!res.ok) { notice(res.message || '', 'bad'); return; }
-    load().then(function () { notice(tr('cur.restored'), 'ok'); });
+    load().then(function () { notice(tr('cur.undone'), 'ok'); });
   }, function (e) { notice((e && e.message) || String(e), 'bad'); });
 });
 /** Code for a new topic: lowercase, a-z 0-9 and -, from the name ("Op het werk" → op-het-werk). */
@@ -204,7 +188,9 @@ $('newAdd').addEventListener('click', function () {
   if (!key) { notice(tr('cur.new.bad'), 'bad'); return; }
   run('curriculumEditorNewTopic', key, label, $('newFr').value.trim()).then(function (t) {
     E.tagList.push(t); E.tags[t.tag] = t;
+    E.rows = CurLogic.add(E.rows, t.tag); E.openIdx = E.rows.length - 1;
     $('newLabel').value = ''; $('newFr').value = ''; $('newKey').textContent = '—';
+    E.dirty = true; E.checks = null;
     notice(tr('cur.new.done', { label: t.label }), 'ok');
     render();
   }, function (e) { notice((e && e.message) || String(e), 'bad'); });

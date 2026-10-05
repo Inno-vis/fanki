@@ -22,7 +22,6 @@ const page = new Function(`${script('TeacherStrings.html')}\n${script('Curriculu
   CurLogic: {
     setRule: (r: Row, rule: string) => Row;
     move: (rows: Row[], i: number, dir: number) => { rows: Row[]; dropped: string[] };
-    remove: (rows: Row[], i: number) => { rows: Row[]; dropped: string[] };
     add: (rows: Row[], tag: string) => Row[];
     candidates: (rows: Row[], i: number) => string[];
     sentence: (r: Row, tr: unknown) => string;
@@ -104,9 +103,8 @@ describe('editor logic (page)', () => {
     expect(L.move(rows, 1, -1)).toEqual({ rows: [rows[1], rows[0]], dropped: [] });
   });
 
-  it('Verwijderen drops it from rows below; Toevoegen adds at the bottom as dicht', () => {
+  it('a new subject (or one without a row) is added at the bottom as dicht', () => {
     const rows = [row('app', 'always'), row('klok-2', 'known', { percentage: 80, from_tags: ['app'] })];
-    expect(L.remove(rows, 0)).toEqual({ rows: [{ ...rows[1], from_tags: [] }], dropped: ['klok-2: app'] });
     expect(L.add(rows, 'sport')[2]).toEqual(row('sport', 'closed'));
   });
 

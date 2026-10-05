@@ -43,14 +43,7 @@ var CurLogic = (function () {
     return fixAbove(r);
   }
 
-  /** Verwijderen: the row goes; rows that waited on it lose it as van_tag. */
-  function remove(rows, i) {
-    var r = rows.map(copy);
-    r.splice(i, 1);
-    return fixAbove(r);
-  }
-
-  /** Toevoegen: at the bottom, rule dicht (nothing opens by accident). */
+  /** A subject without a row / a new subject: at the bottom, rule dicht (nothing opens by accident). */
   function add(rows, tag) {
     return rows.map(copy).concat([{ tag: tag, rule: 'closed', date: '', percentage: null, from_tags: [] }]);
   }
@@ -103,7 +96,7 @@ var CurLogic = (function () {
     return rows.map(function (r, i) { var c = copy(r); c.order = i + 1; return c; });
   }
 
-  return { setRule: setRule, fixAbove: fixAbove, move: move, remove: remove, add: add, candidates: candidates,
+  return { setRule: setRule, fixAbove: fixAbove, move: move, add: add, candidates: candidates,
     sentence: sentence, preview: preview, forSave: forSave, daysUntil: daysUntil, dateNl: dateNl };
 })();
 </script>

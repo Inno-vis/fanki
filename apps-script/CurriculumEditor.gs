@@ -1,7 +1,8 @@
 // Curriculum editor (teacher page ?page=curriculum, CurriculumPage.html). Same pattern as the review page: the browser
 // calls the curriculumEditor* functions through google.script.run, each checks the teacher allowlist first; no
 // tokens. Saving writes the WHOLE Curriculum tab at once inside LockService, after the shared validation
-// (validateCurriculum_) and a version check; the previous table is kept in the hidden tab Curriculum_backup.
+// (validateCurriculum_) and a version check; the previous table is kept in the hidden tab Curriculum_backup
+// ("Ongedaan maken" puts it back once).
 // The pure parts (curriculumVersion_, curriculumSavePlan_) are unit-tested in src/curriculumEditor.test.ts.
 
 var CURRICULUM_BACKUP = 'Curriculum_backup';
@@ -127,8 +128,8 @@ function curriculumEditorSave(rows, version) {
   });
 }
 
-/** "Vorige versie terugzetten": swaps the tab and Curriculum_backup (so it can be undone). Version-checked. */
-function curriculumEditorRestore(version) {
+/** "Ongedaan maken": puts back the table from before the last Opslaan (once: the backup is then emptied). Version-checked. */
+function curriculumEditorUndo(version) {
   requireTeacher_();
   return withLock_(function () {
     var ss = ss_();
@@ -138,8 +139,8 @@ function curriculumEditorRestore(version) {
     var b = ss.getSheetByName(CURRICULUM_BACKUP);
     if (!b || b.getLastRow() < 2) return { ok: false, message: 'Er is geen vorige versie.' };
     var previous = curriculumTabValues_(b);
-    writeCurriculumTab_(b, current);
     writeCurriculumTab_(sh, previous);
+    writeCurriculumTab_(b, []);
     SpreadsheetApp.flush();
     try { updateCurriculumDashboard_(true); } catch (e) { /* ignore */ }
     return { ok: true };

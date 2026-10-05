@@ -76,7 +76,7 @@ The repo is **public** and hosted on GitHub Pages.
 - Pages: bare link / `?page=start` → Start.html (tiles + "De app delen met leerlingen"), `?page=review` → Review.html,
   `?page=curriculum` → CurriculumPage.html (`serveTeacher_` in Teacher.gs; `include_()` pulls in TeacherStyle / TeacherStrings
   (ALL Dutch labels + ⓘ instructions) / TeacherNav). Curriculum editor = the intended way to edit the Curriculum
-  (hand edits still work): CurriculumEditor.gs (load/save/restore, whole tab in one write under LockService, version
+  (hand edits still work): CurriculumEditor.gs (load/save/undo/new subject, whole tab in one write under LockService, version
   stamp, hidden Curriculum_backup) + CurriculumLogic.html (pure, tested in src/curriculumEditor.test.ts).
   Manual test list: docs/SHEET.md › Curriculum editor.
 - `doGet ?page=…` serves a page only when the visitor's email is in Script Properties TEACHER_EMAILS /

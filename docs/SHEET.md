@@ -193,7 +193,9 @@ The intended way to change the curriculum (the Curriculum tab can still be edite
 `CurriculumPage.html` + pure logic `CurriculumLogic.html`.
 
 - The topics in order: number, label_nl + active cards, the rule as a sentence ("Altijd open", "Opent op 16 november
-  2026", "Opent als 80% bekend is van: klok-1, app", "Dicht"), a preview line, and Omhoog / Omlaag / Verwijderen.
+  2026", "Opent als 80% bekend is van: klok-1, app", "Dicht"), a preview line, and Omhoog / Omlaag. Every subject (Tags row) is in the list; Dicht is how a
+  subject is kept out (no Verwijderen; a subject without a row, e.g. added in the Tags tab by hand, is added at the
+  bottom as Dicht when the page loads).
 - Tap a topic: rule picker (Altijd open / Op een datum / Als genoeg kaarten bekend zijn / Dicht (tijdelijk gesloten)).
   Only the fields of that rule show; switching rules never clears the hidden fields. van_tags can only be chosen from
   topics ABOVE; after a reorder or delete, van_tags that are no longer above are dropped and the page says which
@@ -201,13 +203,12 @@ The intended way to change the curriculum (the Curriculum tab can still be edite
 - Preview (server data): datum → "Opent over N dagen" / "Staat open"; bekend → today's score per van_tag
   ("klok-1: 62% van 80%") from the Progress tab, or "voortgang staat alleen op de telefoon" when Progress is empty;
   dicht → "Dicht: wordt niet aangeboden." It cannot see her latch.
-- "Niet in het curriculum": the other tags with their cards and **Toevoegen** (adds the topic at the bottom as dicht).
 - **Nieuw onderwerp** (bottom of the page): name (label_nl), optional French name; the code (tag key) is made from the
-  name ("Op het werk" → `op-het-werk`). It becomes a Tags row (`curriculumEditorNewTopic`), shows up under "Niet in
-  het curriculum" and in the tag chips of Controleren. The Tags tab is the list of subjects; new ones are made here.
+  name ("Op het werk" → `op-het-werk`). It becomes a Tags row (`curriculumEditorNewTopic`) and is added at the bottom
+  of the list as Dicht (Opslaan stores it); it is in the tag chips of Controleren at once. The Tags tab is the list of subjects; new ones are made here.
 - **Every card needs a subject:** Goedkeuren (Inbox and Kaarten) refuses a card without a tag, and saving a card in
   Kaarten without any tag is refused ("Terug naar Inbox" instead). Untagged cards were moved to the Inbox on 2026-10-05.
-- Opslaan / Laad opnieuw / Vorige versie terugzetten sit in a bar fixed at the bottom of the screen. "Tik op een
+- Opslaan / Laad opnieuw / Ongedaan maken sit in a bar fixed at the bottom of the screen. "Tik op een
   onderwerp om het te wijzigen" and the "Bekend = …" line (values from Settings) are in the ⓘ panel.
 - The navigation shows a red dot on **Controleren** (and on its Start tile, with the counts) when the Inbox has rows or
   Cards has cards that are not yet goedgekeurd/afgekeurd or have 🚩 nakijken (`reviewTodo_`, counted when a page opens).
@@ -215,7 +216,8 @@ The intended way to change the curriculum (the Curriculum tab can still be edite
   is written; warnings are shown but allow saving. Inside LockService the whole tab is written at once, after a
   version check (`curriculumVersion_`, a hash of the tab taken at load): if someone changed the tab meanwhile →
   "Het curriculum is intussen gewijzigd, laad opnieuw" and nothing is written. The previous table is kept in the
-  hidden tab `Curriculum_backup` (1 version); **Vorige versie terugzetten** swaps them (so it can be undone).
+  hidden tab `Curriculum_backup` (1 version); **Ongedaan maken** puts it back once (undo of the last Opslaan; the
+  backup is then emptied, so the button disappears until the next Opslaan).
 - First visit: a closable hint with the four rules (remembered in that browser).
 - Unit tests: `src/curriculumEditor.test.ts` (save plan, loops, unknown tags, above-only van_tags, missing
   percentage/date, duplicate order, version conflict, hidden values kept, reorder never touches a dicht row).
@@ -229,9 +231,9 @@ The intended way to change the curriculum (the Curriculum tab can still be edite
 5. Make an error (bekend without van_tags) → Opslaan shows the error next to that topic; the tab is unchanged.
 6. Fix it, Opslaan → "Opgeslagen…"; the tab and the Dashboard show the change; Curriculum_backup holds the old one.
 7. Open the page in two tabs, save in one, then save in the other → "Het curriculum is intussen gewijzigd…".
-8. Vorige versie terugzetten → the previous table is back (and pressing it again swaps back).
-9. Toevoegen from "Niet in het curriculum" → the topic appears at the bottom as Dicht.
-10. Nieuw onderwerp → it appears under "Niet in het curriculum" and in Controleren's tag chips.
+8. Ongedaan maken → the table from before the last Opslaan is back; the button disappears.
+9. Add a tag by hand in the Tags tab, reload the page → it is at the bottom as Dicht with "Klik op Opslaan".
+10. Nieuw onderwerp → it appears at the bottom as Dicht and in Controleren's tag chips.
 11. Controleren: Goedkeuren a card without a tag → refused with "kies minstens één onderwerp (tag)".
 12. On a phone: everything fits, buttons are tappable, Opslaan stays visible while scrolling.
 

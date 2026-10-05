@@ -48,11 +48,11 @@ function teacherUrl_() {
   try { return ScriptApp.getService().getUrl(); } catch (e) { return ''; }
 }
 
-/** What waits on Controleren: Inbox rows (voorgesteld/nakijken) and Cards not yet checked or with 🚩 nakijken. */
+/** What waits on Controleren: Inbox rows and Cards not yet goedgekeurd or afgekeurd. */
 function reviewTodo_() {
   var inbox = readTable_(sheet_('Inbox')).rows.filter(function (r) { return String(r.nl).trim() && statusCode_(r.status) !== 'approved'; }).length;
   var cards = readTable_(sheet_('Cards')).rows.filter(function (r) {
-    return String(r.nl).trim() && (bool_(r.nakijken) || !checkCode_(r.controle));
+    return String(r.nl).trim() && !checkCode_(r.controle);
   }).length;
   return { inbox: inbox, cards: cards };
 }
@@ -83,7 +83,6 @@ function reviewRow_(r, isInbox) {
   c.row = r._row;
   c.status = isInbox ? (statusCode_(r.status) || 'proposed') : '';
   c.check = isInbox ? '' : checkCode_(r.controle);
-  c.review = isInbox ? false : bool_(r.nakijken);
   c.pos = String(r.pos || '');
   return c;
 }
@@ -175,7 +174,7 @@ function reviewListInbox() {
 
 /**
  * Cards, paged; optional text query (nl/fr/answer), tag, and filter on controle: 'all' (default), 'unchecked'
- * (not approved or rejected yet), 'review' (old 🚩 nakijken), 'approved', 'rejected'. Also returns counts.
+ * (not approved or rejected yet), 'approved', 'rejected'. Also returns counts.
  */
 function reviewListCards(offset, limit, query, tag, check) {
   requireTeacher_();
@@ -183,11 +182,11 @@ function reviewListCards(offset, limit, query, tag, check) {
   check = check || 'all';
   var cards = readTable_(sheet_('Cards')).rows.filter(function (r) { return String(r.id).trim() && String(r.nl).trim(); })
     .map(function (r) { return reviewRow_(r, false); });
-  var counts = { unchecked: 0, review: 0, approved: 0, rejected: 0, all: cards.length };
-  cards.forEach(function (c) { counts[c.check || 'unchecked']++; if (c.review) counts.review++; });
+  var counts = { unchecked: 0, approved: 0, rejected: 0, all: cards.length };
+  cards.forEach(function (c) { counts[c.check || 'unchecked']++; });
   var tagCounts = {};
   var all = cards.filter(function (c) {
-    if (check === 'review' ? !c.review : check !== 'all' && (c.check || 'unchecked') !== check) return false;
+    if (check !== 'all' && (c.check || 'unchecked') !== check) return false;
     c.tags.forEach(function (t) { tagCounts[t] = (tagCounts[t] || 0) + 1; });
     if (tag && c.tags.indexOf(tag) === -1) return false;
     return !q || (c.nl + ' ' + c.fr + ' ' + c.answer).toLowerCase().indexOf(q) !== -1;
@@ -231,15 +230,9 @@ function reviewSetCheck(ids, value) {
       return !e.length;
     });
   }
-  var res = setCardCells_(ids, v ? { controle: v, nakijken: false } : { controle: '' });
+  var res = setCardCells_(ids, { controle: v });
   res.errors = errors;
   return res;
-}
-
-/** Kaarten: 🚩 nakijken on/off (does not change controle, so it never hides a card). */
-function reviewSetCardFlag(ids, on) {
-  requireTeacher_();
-  return setCardCells_(ids, { nakijken: !!on });
 }
 
 function reviewSave(source, id, fields) {
@@ -286,7 +279,7 @@ function approveRow_(id, fields) {
   }
 }
 
-/** Keur alle goed: approves several Inbox rows in one go (rows marked "nakijken" are skipped). */
+/** Keur alle goed: approves several Inbox rows in one go. */
 function reviewApproveMany(ids) {
   requireTeacher_();
   return withLock_(function () {
@@ -302,18 +295,6 @@ function reviewApproveMany(ids) {
   });
 }
 
-/** 🚩 Nakijken: mark an Inbox row to check later (status nakijken) or unmark it (voorgesteld). */
-function reviewSetFlag(id, flagged) {
-  requireTeacher_();
-  return withLock_(function () {
-    var inbox = sheet_('Inbox');
-    var row = findById_(inbox, id);
-    if (!row) throw new Error('Rij niet gevonden (al verplaatst?)');
-    var col = headersOf_(inbox).indexOf('status') + 1;
-    inbox.getRange(row._row, col).setValue(flagged ? STATUS_NL.review : STATUS_NL.proposed);
-    return reviewRow_(findById_(inbox, id), true);
-  });
-}
 
 /** Afwijzen: delete the Inbox row. */
 /** Verwijderen: deletes an Inbox row or a Cards row for good (her Progress/Log rows of that card stay, unused). */

@@ -55,6 +55,8 @@ function el(tag, attrs, kids) {
   (kids || []).forEach(function (c) { if (c) n.appendChild(c); });
   return n;
 }
+/** A subject's name as the student sees it (Tags.label_nl); the code only when the subject is unknown. */
+function tagLabel(tag) { var t = S.boot && S.boot.tags.filter(function (x) { return x.tag === tag; })[0]; return t ? t.label : tag; }
 function checkText(c) { return c.check === 'approved' ? '✓ goedgekeurd' : c.check === 'rejected' ? '✗ afgekeurd' : 'nog niet goedgekeurd'; }
 function typeNl(code) { var t = (S.boot.types.filter(function (x) { return x.code === code; })[0]); return t ? t.nl : code; }
 
@@ -111,7 +113,7 @@ function formFor(item) {
   var answerRow = row('answer (enkel)', inp('answer', 'achterkant van een enkel-kaart'));
   var setAnswerVisible = function () { answerRow.forEach(function (n) { n.style.display = f.type === 'oneway' ? '' : 'none'; }); };
   typeSel.addEventListener('change', function () { f.type = typeSel.value; setAnswerVisible(); });
-  var tagLabels = {}; S.boot.tags.forEach(function (t) { tagLabels[t.tag] = t.label === t.tag ? t.tag : t.tag + ' (' + t.label + ')'; });
+  var tagLabels = {}; S.boot.tags.forEach(function (t) { tagLabels[t.tag] = t.label; }); // the subject's name (label_nl) only
   var grid = el('div', { 'class': 'grid' }, [].concat(
     row('type', typeSel), row('nl', inp('nl', 'Nederlands (enkel: de vraag/emoji)')), row('lidwoord', artSel), row('pos', inp('pos', 'zelfstandig naamwoord…')),
     row('fr', inp('fr', 'Frans')), answerRow, row('example_nl', inp('example_nl')), row('example_fr', inp('example_fr')),
@@ -230,24 +232,24 @@ function approveMany(rows) {
   });
 }
 /** Does a card still belong in the list for the current Kaarten filter? */
-function matches(c) { var f = S.cards.check; return f === 'all' || (f === 'review' ? c.review : (c.check || 'unchecked') === f); }
+function matches(c) { var f = S.cards.check; return f === 'all' || (c.check || 'unchecked') === f; }
 
-/** Kaarten: Goedkeuren / Afkeuren for one or more cards (also clears 🚩); the page moves on at once. */
+/** Kaarten: Goedkeuren for one or more cards; the page moves on at once. */
 function setCards(items, value) {
-  var before = items.map(function (x) { return { check: x.check, review: x.review }; });
+  var before = items.map(function (x) { return { check: x.check }; });
   var count = function (sign) {
     var c = S.cards.counts; if (!c) return;
-    items.forEach(function (x) { c[x.check || 'unchecked'] += sign; if (x.review) c.review += sign; });
+    items.forEach(function (x) { c[x.check || 'unchecked'] += sign; });
   };
   var putBacks = [];
   count(-1);
-  items.forEach(function (x) { x.check = value; x.review = false; });
+  items.forEach(function (x) { x.check = value; });
   count(1);
   items.forEach(function (x) { if (!matches(x)) putBacks.push(takeOut(x)); });
   if (value === 'approved') S.approved += items.length; else S.rejected += items.length;
   var undo = function (subset) {
     count(-1);
-    items.forEach(function (x, i) { if (!subset || subset.indexOf(x.id) !== -1) { x.check = before[i].check; x.review = before[i].review; } });
+    items.forEach(function (x, i) { if (!subset || subset.indexOf(x.id) !== -1) { x.check = before[i].check; } });
     count(1);
     if (value === 'approved') S.approved -= subset ? subset.length : items.length; else S.rejected -= subset ? subset.length : items.length;
   };
@@ -321,7 +323,7 @@ function renderOne(view) {
     btn('Verwijderen', 'bad', '', function () { act('delete', item); })
   ].filter(Boolean));
   view.appendChild(el('div', { 'class': 'panel' }, [
-    el('div', { 'class': 'meta', text: (inbox ? (item.status === 'review' ? '🚩 nakijken · Inbox · ' : 'Inbox · ') : (item.review ? '🚩 nakijken · ' : '') + checkText(item) + ' · Kaart · ') + item.id + ' · ' + typeNl(item.type) + ' · toegevoegd ' + item.added + (item.active === false ? ' · niet actief' : '') }),
+    el('div', { 'class': 'meta', text: (inbox ? 'Inbox · ' : checkText(item) + ' · Kaart · ') + item.id + ' · ' + typeNl(item.type) + ' · toegevoegd ' + item.added + (item.active === false ? ' · niet actief' : '') }),
     form.node, el('div', { 'class': 'errors' }), actions,
     el('div', { 'class': 'help', text: 'Sneltoetsen (buiten een invoerveld): A goedkeuren · ' + (inbox ? '' : 'R afkeuren (naar de Inbox) · ') + 'J volgende · K vorige. Wijzigingen worden bewaard bij Goedkeuren, Afkeuren, Vorige en Volgende.' })
   ]));
@@ -338,7 +340,7 @@ function renderList(view) {
       el('td', { text: typeNl(item.type) + (inbox ? '' : ' · ' + checkText(item)) }),
       el('td', { text: (item.article ? item.article + ' ' : '') + item.nl }),
       el('td', { text: item.type === 'oneway' ? item.answer : item.fr }),
-      el('td', { text: item.tags.join(', ') }),
+      el('td', { text: item.tags.map(tagLabel).join(', ') }),
       el('td', {}, [
         b('Detail', '', function () { S.mode = 'one'; S.idx = S.listStart + i; syncSeg(); render(); }), document.createTextNode(' '),
         inbox ? b('Goedkeuren', 'good', function () { act('approve', item, null); })

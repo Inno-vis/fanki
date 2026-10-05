@@ -128,7 +128,7 @@ function nextRow_(sh, col) {
 var TYPE_NL = { word: 'dubbel', oneway: 'enkel', sentence: 'zin', question: 'vraag' };
 var TYPE_ALIASES = { woord: 'word', calc: 'oneway' }; // older sheet values, still read
 var SOURCE_NL = { manual: 'handmatig', auto: 'automatisch' };
-var STATUS_NL = { proposed: 'voorgesteld', review: 'nakijken', approved: 'goedgekeurd' };
+var STATUS_NL = { proposed: 'voorgesteld', approved: 'goedgekeurd' };
 var CHECK_NL = { approved: 'goedgekeurd', rejected: 'afgekeurd' }; // Cards.controle ('' = not checked yet)
 var CHECK_ALIASES = { gecontroleerd: 'approved' }; // value of the first version (2026-10-02)
 

@@ -431,7 +431,7 @@ function adminSetTeachers_(emails, domain) {
 
 /**
  * Turns on Settings.require_approval (only goedgekeurd cards go to the app). With approveStudied (default),
- * every card that has a Progress row is first set to goedgekeurd + 🚩 nakijken, so the learner keeps the
+ * every card that has a Progress row is first set to goedgekeurd, so the learner keeps the
  * cards she has studied. Dry run unless dryRun:false.
  */
 function adminEnableApproval_(dryRun, approveStudied) {
@@ -439,8 +439,8 @@ function adminEnableApproval_(dryRun, approveStudied) {
     var ss = ss_();
     var cards = ss.getSheetByName('Cards');
     var t = readTable_(cards);
-    var cc = t.headers.indexOf('controle') + 1, fc = t.headers.indexOf('nakijken') + 1;
-    if (!cc || !fc) throw apiError_('setup_needed', 'Cards.controle / nakijken missing: run setup first');
+    var cc = t.headers.indexOf('controle') + 1;
+    if (!cc) throw apiError_('setup_needed', 'Cards.controle missing: run setup first');
     var studied = {};
     readTable_(ss.getSheetByName('Progress')).rows.forEach(function (r) { if (r.card_id) studied[String(r.card_id)] = true; });
     var toApprove = approveStudied ? t.rows.filter(function (r) { return studied[String(r.id)]; }) : [];
@@ -450,16 +450,13 @@ function adminEnableApproval_(dryRun, approveStudied) {
     var report = {
       dryRun: dryRun,
       studiedCards: Object.keys(studied).length,
-      approveAndFlag: toApprove.map(function (r) { return r.id + ' | ' + r.nl + (checkCode_(r.controle) === 'approved' ? ' (al goedgekeurd)' : ''); }),
+      approve: toApprove.map(function (r) { return r.id + ' | ' + r.nl + (checkCode_(r.controle) === 'approved' ? ' (al goedgekeurd)' : ''); }),
       servedBefore: t.rows.filter(function (r) { return cardServed_(r, false); }).length,
       servedAfter: after.length,
       studiedNotServed: Object.keys(studied).filter(function (id) { return !after.some(function (r) { return String(r.id) === id; }); })
     };
     if (dryRun) return report;
-    toApprove.forEach(function (r) {
-      cards.getRange(r._row, cc).setValue(CHECK_NL.approved);
-      cards.getRange(r._row, fc).setValue(true);
-    });
+    toApprove.forEach(function (r) { cards.getRange(r._row, cc).setValue(CHECK_NL.approved); });
     var set = ss.getSheetByName('Settings');
     var row = readTable_(set).rows.filter(function (r) { return String(r.key).trim() === 'require_approval'; })[0];
     if (!row) throw apiError_('setup_needed', 'Settings.require_approval missing: run setup first');
@@ -470,18 +467,18 @@ function adminEnableApproval_(dryRun, approveStudied) {
 
 /**
  * Sets Cards.controle for many cards: {updates:[{id, controle:'goedgekeurd'|'afgekeurd'|''}]} (e.g. to copy
- * PROD approvals to DEV). Clears 🚩 nakijken on approved/rejected cards. Dry run unless dryRun:false.
+ * PROD approvals to DEV). Dry run unless dryRun:false.
  */
 function adminSetCheck_(updates, dryRun) {
   return withLock_(function () {
     var sh = sheet_('Cards');
     var t = readTable_(sh);
-    var cc = t.headers.indexOf('controle'), fc = t.headers.indexOf('nakijken');
-    if (cc < 0 || fc < 0) throw apiError_('setup_needed', 'Cards.controle / nakijken missing: run setup first');
+    var cc = t.headers.indexOf('controle');
+    if (cc < 0) throw apiError_('setup_needed', 'Cards.controle missing: run setup first');
     var byId = {};
     t.rows.forEach(function (r) { byId[String(r.id)] = r; });
     var n = Math.max(sh.getLastRow() - 1, 1); // whole columns, so blank rows keep their place
-    var col = sh.getRange(2, cc + 1, n, 1).getValues(), flag = sh.getRange(2, fc + 1, n, 1).getValues();
+    var col = sh.getRange(2, cc + 1, n, 1).getValues();
     var changed = 0, unknown = [], bad = [];
     (updates || []).forEach(function (u) {
       var r = byId[String(u.id)];
@@ -491,12 +488,10 @@ function adminSetCheck_(updates, dryRun) {
       var v = code ? CHECK_NL[code] : '';
       var i = r._row - 2;
       if (String(col[i][0] || '') !== v) { col[i][0] = v; changed++; }
-      if (v) flag[i][0] = false;
     });
     var report = { dryRun: dryRun, updates: (updates || []).length, changed: changed, unknown: unknown, bad: bad };
     if (dryRun) return report;
     sh.getRange(2, cc + 1, col.length, 1).setValues(col);
-    sh.getRange(2, fc + 1, flag.length, 1).setValues(flag);
     return report;
   });
 }
@@ -600,7 +595,7 @@ function adminImportCards_(rows, dryRun) {
         tags_source: sourceNl_(sourceCode_(r.tags_source) || 'manual'),
         flags: Array.isArray(r.flags) ? r.flags.join(', ') : String(r.flags || ''), answer: String(r.answer || ''),
         added: isNaN(added) ? today : added, active: r.active === undefined ? true : bool_(r.active),
-        controle: code ? CHECK_NL[code] : '', nakijken: false
+        controle: code ? CHECK_NL[code] : ''
       }));
       ids[id] = true; keys[k] = true;
     });
@@ -685,19 +680,6 @@ function adminSetSetting_(key, value, dryRun) {
   });
 }
 
-/** Sets or clears 🚩 nakijken (Cards.nakijken) for cards: {ids:[...], on:true}. Never hides a card. Dry run unless dryRun:false. */
-function adminFlagCards_(ids, on, dryRun) {
-  if (!Array.isArray(ids) || !ids.length) throw apiError_('bad_request', 'ids[] required');
-  return withLock_(function () {
-    var sh = sheet_('Cards');
-    var col = headersOf_(sh).indexOf('nakijken') + 1;
-    if (!col) throw apiError_('setup_needed', 'Cards.nakijken missing: run setup first');
-    var rows = ids.map(function (id) { return findById_(sh, id); }).filter(function (r) { return r; });
-    var report = { dryRun: dryRun, on: !!on, cards: rows.length, notFound: ids.length - rows.length };
-    if (!dryRun) rows.forEach(function (r) { sh.getRange(r._row, col).setValue(!!on); });
-    return report;
-  });
-}
 
 /** Splits a text into its parts: first at " — " (question — answer), else into sentences. */
 function splitParts_(text) {
@@ -768,7 +750,7 @@ function adminSplitCards_(dryRun, includeStudied) {
       jobs.push({ r: r, rows: nl.map(function (part, i) {
         var o = {};
         t.headers.forEach(function (h) { o[h] = r[h]; });
-        o.id = newId_('c_'); o.nl = part; o.fr = fr[i]; o.nakijken = false;
+        o.id = newId_('c_'); o.nl = part; o.fr = fr[i];
         return rowFromObject_(t.headers, o);
       }) });
     });
@@ -825,6 +807,110 @@ function adminUpdateCards_(updates, dryRun) {
       Object.keys(f).forEach(function (k) { report.change.push(u.id + ' ' + k + ': "' + row[k] + '" → "' + f[k] + '"'); });
       if (!dryRun) writeFields_(sh, row, f);
     });
+    return report;
+  });
+}
+
+/**
+ * Tags rows by key: {rows:[{tag, label_nl?, label_fr?, description?, subject_nl?}]} (e.g. DEV → PROD). Changes the
+ * given fields of an existing row; a missing tag gets a new row. Never removes a row. Dry run unless dryRun:false.
+ */
+function adminUpdateTags_(rows, dryRun) {
+  if (!Array.isArray(rows) || !rows.length) throw apiError_('bad_request', 'rows[] required');
+  return withLock_(function () {
+    var sh = sheet_('Tags'), t = readTable_(sh);
+    var byTag = {};
+    t.rows.forEach(function (r) { byTag[String(r.tag).trim().toLowerCase()] = r; });
+    var report = { dryRun: dryRun, change: [], add: [] };
+    rows.forEach(function (u) {
+      var tag = String(u.tag || '').trim().toLowerCase();
+      if (!/^[a-z0-9-]{2,30}$/.test(tag)) throw apiError_('bad_request', 'bad tag ' + tag);
+      var row = byTag[tag];
+      if (!row) {
+        var o = { tag: tag };
+        SCHEMA.Tags.slice(1).forEach(function (k) { o[k] = String(u[k] || ''); });
+        report.add.push(SCHEMA.Tags.map(function (k) { return o[k]; }).join(' | '));
+        if (!dryRun) sh.getRange(nextRow_(sh, 1), 1, 1, SCHEMA.Tags.length).setValues([rowFromObject_(SCHEMA.Tags, o)]);
+        byTag[tag] = o;
+        return;
+      }
+      SCHEMA.Tags.slice(1).forEach(function (k) {
+        if (u[k] === undefined || String(u[k]) === String(row[k] || '')) return;
+        report.change.push(tag + ' ' + k + ': "' + row[k] + '" → "' + u[k] + '"');
+        if (!dryRun) sh.getRange(row._row, t.headers.indexOf(k) + 1).setValue(String(u[k]));
+      });
+    });
+    return report;
+  });
+}
+
+/**
+ * Curriculum rows by tag: {rows:[{tag, order?, regel?, datum?, percentage?, van_tags?}]} (e.g. DEV → PROD). Changes the
+ * given fields of existing rows only (new rows: addCurriculum). Dry run unless dryRun:false.
+ */
+function adminUpdateCurriculum_(rows, dryRun) {
+  if (!Array.isArray(rows) || !rows.length) throw apiError_('bad_request', 'rows[] required');
+  return withLock_(function () {
+    var sh = sheet_('Curriculum'), t = readTable_(sh);
+    var byTag = {};
+    t.rows.forEach(function (r) { byTag[String(r.tag).trim().toLowerCase()] = r; });
+    var report = { dryRun: dryRun, change: [], notFound: [] };
+    rows.forEach(function (u) {
+      var tag = String(u.tag || '').trim().toLowerCase(), row = byTag[tag];
+      if (!row) { report.notFound.push(tag); return; }
+      ['order', 'regel', 'datum', 'percentage', 'van_tags'].forEach(function (k) {
+        if (u[k] === undefined) return;
+        var v = k === 'regel' ? (RULE_NL[ruleCode_(u[k])] || String(u[k])) :
+          k === 'van_tags' ? (Array.isArray(u[k]) ? u[k] : splitTags_(u[k])).join(', ') :
+          k === 'datum' ? String(u[k] || '') : (u[k] === '' || u[k] === null ? '' : Number(u[k]));
+        var cur = row[k] instanceof Date ? Utilities.formatDate(row[k], Session.getScriptTimeZone(), 'yyyy-MM-dd') : String(row[k]);
+        if (String(v) === cur) return;
+        report.change.push(tag + ' ' + k + ': "' + cur + '" → "' + v + '"');
+        if (!dryRun) sh.getRange(row._row, t.headers.indexOf(k) + 1).setValue(v);
+      });
+    });
+    if (!dryRun && report.change.length) updateCurriculumDashboard_(true);
+    return report;
+  });
+}
+
+/**
+ * Replaces one subject by another in the tags of a tab: {from, to, tab:'Inbox'|'Cards'}. `to` must exist in Tags;
+ * a row that already has `to` just loses `from`. Dry run unless dryRun:false.
+ */
+function adminReplaceTag_(from, to, tab, dryRun) {
+  from = String(from || '').trim().toLowerCase(); to = String(to || '').trim().toLowerCase();
+  if (!from || !to || (tab !== 'Inbox' && tab !== 'Cards')) throw apiError_('bad_request', 'from, to and tab (Inbox|Cards) required');
+  return withLock_(function () {
+    var known = readTable_(sheet_('Tags')).rows.map(function (r) { return String(r.tag).trim().toLowerCase(); });
+    if (known.indexOf(to) === -1) throw apiError_('bad_request', to + ' is not in Tags');
+    var sh = sheet_(tab), t = readTable_(sh), col = t.headers.indexOf('tags') + 1;
+    var rows = t.rows.filter(function (r) { return splitTags_(r.tags).indexOf(from) !== -1; });
+    var report = { dryRun: dryRun, tab: tab, rows: rows.length, examples: rows.slice(0, 5).map(function (r) { return r.nl + ' [' + r.tags + ']'; }) };
+    if (!dryRun) rows.forEach(function (r) {
+      var tags = splitTags_(r.tags).map(function (x) { return x === from ? to : x; });
+      sh.getRange(r._row, col).setValue(tags.filter(function (x, i) { return tags.indexOf(x) === i; }).join(', '));
+    });
+    return report;
+  });
+}
+
+/**
+ * One-off (2026-10-05): removes the 🚩 Cards.nakijken column (refuses while a card still has it ticked) and turns
+ * Inbox status nakijken into voorgesteld. Dry run unless dryRun:false.
+ */
+function adminDropNakijken_(dryRun) {
+  return withLock_(function () {
+    var cards = sheet_('Cards'), t = readTable_(cards), col = t.headers.indexOf('nakijken') + 1;
+    var ticked = col ? t.rows.filter(function (r) { return bool_(r.nakijken); }).map(function (r) { return r.id + ' | ' + r.nl; }) : [];
+    var inbox = sheet_('Inbox'), it = readTable_(inbox), sc = it.headers.indexOf('status') + 1;
+    var flaggedInbox = it.rows.filter(function (r) { return String(r.status).trim().toLowerCase() === 'nakijken'; });
+    var report = { dryRun: dryRun, column: col ? 'Cards column ' + col + ' removed' : 'not there', ticked: ticked,
+      inboxNakijkenToVoorgesteld: flaggedInbox.length };
+    if (ticked.length) { report.refused = 'cards still ticked: move them to the Inbox first'; return report; }
+    if (dryRun) return report;
+    flaggedInbox.forEach(function (r) { inbox.getRange(r._row, sc).setValue(STATUS_NL.proposed); });
+    if (col) { cards.getRange(2, col, Math.max(cards.getMaxRows() - 1, 1), 1).clearDataValidations(); cards.deleteColumn(col); }
     return report;
   });
 }

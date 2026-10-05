@@ -4,10 +4,10 @@ var CARD_COLS = ['id', 'type', 'nl', 'article', 'pos', 'fr', 'example_nl', 'exam
   'tags', 'tags_source', 'flags', 'answer', 'added', 'active'];
 
 var SCHEMA = {
-  // Cards only (last columns): `controle` = the teacher's approval ('' = nog niet, goedgekeurd, afgekeurd);
-  // with Settings.require_approval only goedgekeurd cards go to the app. `nakijken` = 🚩 checkbox (to look at
-  // again; does not hide the card).
-  Cards: CARD_COLS.concat(['controle', 'nakijken']),
+  // Cards only (last column): `controle` = the teacher's approval ('' = nog niet, goedgekeurd, afgekeurd);
+  // with Settings.require_approval only goedgekeurd cards go to the app. (The 🚩 `nakijken` column is gone since
+  // 2026-10-05: a card that needs another look goes to the Inbox.)
+  Cards: CARD_COLS.concat(['controle']),
   Progress: ['card_id', 'track', 'state', 'due', 'stability', 'difficulty', 'reps', 'lapses', 'last_review'],
   Log: ['event_id', 'card_id', 'track', 'ts', 'rating', 'mode', 'duration_ms', 'snapshot'],
   Tags: ['tag', 'label_nl', 'label_fr', 'description', 'subject_nl'],

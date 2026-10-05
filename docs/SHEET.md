@@ -52,7 +52,6 @@ from `apps-script/UserInfo.gs` (your own edits in the tab are then replaced).
 | added | date | New cards are introduced in `added` order. Filled with today if blank. |
 | active | checkbox | Untick to hide a card without deleting it (progress is kept). |
 | controle | `goedgekeurd` \| `afgekeurd` \| blank | The teacher's approval. With Settings `require_approval` ☑ the app gets ONLY `goedgekeurd` cards (blank and `afgekeurd` stay hidden; her progress on them is kept and returns when approved). Set on the teacher page; approving an Inbox row sets `goedgekeurd`. All AI-made cards started blank on 2026-10-02 (`gecontroleerd` from the first version is read as `goedgekeurd`). |
-| nakijken | checkbox | 🚩 = look at this card again. Does not hide the card. Cleared by Goedkeuren / Afkeuren. |
 
 ### Seed data
 
@@ -180,8 +179,8 @@ instructions for that page. All Dutch labels and instructions: `apps-script/Teac
   **‹ Vorige** (K), **Volgende ›** (J) and **Verwijderen** (deletes the Inbox row or the Cards row for good, after a
   confirm). There is no Opslaan: edits are saved by Goedkeuren, Afkeuren, Vorige and Volgende.
 - **Lijst (5)**: per row Detail / Goedkeuren / Verwijderen (Inbox) or Afkeuren (Kaarten → Inbox), and
-  **Keur alle 5 goed**. The 🚩 "nakijken" marking is gone: a card that needs another look goes to the Inbox.
-  The last old 🚩 card (E-58 on PROD) went to the Inbox on 2026-10-05; the Cards.nakijken column is no longer used.
+  **Keur alle 5 goed**. There is no 🚩 "nakijken" marking: a card that needs another look goes to the Inbox
+  (the Cards.nakijken column and the Inbox status nakijken were removed on 2026-10-05, `admin <env> dropNakijken`).
 - The public card API never serves these pages and the browser never gets a token.
 
 ### Curriculum editor (`?page=curriculum`)
@@ -215,7 +214,7 @@ The intended way to change the curriculum (the Curriculum tab can still be edite
 - Opslaan / Laad opnieuw / Ongedaan maken sit in a bar fixed at the bottom of the screen. "Tik op een
   onderwerp om het te wijzigen" and the "Bekend = …" line (values from Settings) are in the ⓘ panel.
 - The navigation shows a red dot on **Controleren** (and on its Start tile, with the counts) when the Inbox has rows or
-  Cards has cards that are not yet goedgekeurd/afgekeurd or have 🚩 nakijken (`reviewTodo_`, counted when a page opens).
+  Cards has cards that are not yet goedgekeurd/afgekeurd (`reviewTodo_`, counted when a page opens).
 - **Opslaan**: `curriculumSavePlan_` (the shared `validateCurriculum_`); errors per topic in plain Dutch and NOTHING
   is written; warnings are shown but allow saving. Inside LockService the whole tab is written at once, after a
   version check (`curriculumVersion_`, a hash of the tab taken at load): if someone changed the tab meanwhile →
@@ -247,8 +246,7 @@ The intended way to change the curriculum (the Curriculum tab can still be edite
 
 ## Inbox — proposed new cards
 
-Same columns as Cards plus `status` (`voorgesteld` | `nakijken` | `goedgekeurd`; `nakijken` = marked with 🚩 on the
-review page to check later — it stays in the Inbox and is skipped by "Keur alle 5 goed"). `/addwords` writes rows here as
+Same columns as Cards plus `status` (`voorgesteld` | `goedgekeurd`). `/addwords` writes rows here as
 `voorgesteld`. Review them, set `status` to `goedgekeurd` (edit anything you like), then run `/promote`
 to move them into Cards. Nothing is ever written to Cards by `/addwords`.
 

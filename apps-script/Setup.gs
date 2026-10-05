@@ -44,7 +44,7 @@ function setup() {
     p.setProperty('MIGRATED_NL', '3');
   }
 
-  // 3c. Cards.controle from the first version: gecontroleerd → goedgekeurd, nakijken → '' + 🚩 checkbox.
+  // 3c. Cards.controle from the first version: gecontroleerd → goedgekeurd, nakijken → ''.
   migrateControle_(ss.getSheetByName('Cards'));
 
   // 4. Validation + formats.
@@ -96,24 +96,21 @@ function applyCardValidation_(sh, isInbox) {
   sh.getRange('F2:H').setNumberFormat('@');
   sh.getRange('L2:L').setNumberFormat('@').clearDataValidations(); // answer
   sh.getRange('N2:N').setDataValidation(SpreadsheetApp.newDataValidation().requireCheckbox().build());
-  if (isInbox) sh.getRange('O2:O').setDataValidation(list([STATUS_NL.proposed, STATUS_NL.review, STATUS_NL.approved]));
-  else {
-    sh.getRange('O2:O').setDataValidation(list([CHECK_NL.approved, CHECK_NL.rejected])); // Cards.controle
-    sh.getRange('P2:P').setDataValidation(SpreadsheetApp.newDataValidation().requireCheckbox().build()); // Cards.nakijken
-  }
+  if (isInbox) sh.getRange('O2:O').setDataValidation(list([STATUS_NL.proposed, STATUS_NL.approved]));
+  else sh.getRange('O2:O').setDataValidation(list([CHECK_NL.approved, CHECK_NL.rejected])); // Cards.controle
 }
 
 function migrateControle_(sh) {
   var t = readTable_(sh);
-  var cc = t.headers.indexOf('controle') + 1, fc = t.headers.indexOf('nakijken') + 1;
-  if (!cc || !fc) return;
+  var cc = t.headers.indexOf('controle') + 1;
+  if (!cc) return;
   var old = t.rows.filter(function (r) { return /^(gecontroleerd|nakijken)$/i.test(String(r.controle || '').trim()); });
   if (!old.length) return;
   sh.getRange(2, cc, sh.getMaxRows() - 1, 1).clearDataValidations(); // the old list rule; applyCardValidation_ sets the new one
   old.forEach(function (r) {
     var v = String(r.controle || '').trim().toLowerCase();
     if (v === 'gecontroleerd') sh.getRange(r._row, cc).setValue(CHECK_NL.approved);
-    else if (v === 'nakijken') { sh.getRange(r._row, cc).setValue(''); sh.getRange(r._row, fc).setValue(true); }
+    else if (v === 'nakijken') sh.getRange(r._row, cc).setValue('');
   });
 }
 
@@ -225,7 +222,7 @@ function seedAbbrevCards_(sh) {
     var cur = byId[id];
     var target = beforeId ? byId[beforeId] : null;
     var o = {};
-    SCHEMA.Cards.forEach(function (h) { o[h] = cur ? cur[h] : ''; }); // keeps controle / nakijken when moved
+    SCHEMA.Cards.forEach(function (h) { o[h] = cur ? cur[h] : ''; }); // keeps controle when moved
     o.id = id; o.type = typeNl_('oneway'); o.nl = f[1]; o.pos = 'afkorting'; o.answer = f[2]; o.tags = f[3];
     o.tags_source = sourceNl_('manual'); o.flags = 'abbreviation';
     o.added = target ? target.added : appAdded;

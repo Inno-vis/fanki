@@ -46,7 +46,7 @@ The repo is **public** and hosted on GitHub Pages.
   → `{accepted, duplicate, rejected}`. Idempotent on `event_id`.
 - Admin-only (ADMIN_TOKEN): `listCards, listUntagged, tags, setTags, appendInbox, listInbox,
   promoteInbox, rebuildProgress, setup, readTab, reseedDev (DEV only), purgeSmoke,
-  setCurriculum, addCurriculum, curriculumStatus, migrateToDutch, userInfo, setTeachers, enableApproval, setCheck, removeTags, deleteRejected (DEV only), importCards, cardsToInbox, setSetting, cleanSettings, deleteTabs, flagCards, splitInbox, splitCards, migrateCurriculum, deleteCards, updateCards, replaceKlok, seedEmoji (dry run unless
+  setCurriculum, addCurriculum, curriculumStatus, migrateToDutch, userInfo, setTeachers, enableApproval, setCheck, removeTags, deleteRejected (DEV only), importCards, cardsToInbox, setSetting, cleanSettings, deleteTabs, splitInbox, splitCards, migrateCurriculum, deleteCards, updateCards, replaceTag, dropNakijken, replaceKlok, seedEmoji (dry run unless
   dryRun:false; seedEmoji is DEV only)`. Open items: docs/todo.md.
 - All writes are inside `LockService`. All actions are idempotent, so clients **retry** on
   `no_action` (POST body lost on Google's redirect), `busy`, or non-JSON responses.
@@ -84,9 +84,9 @@ The repo is **public** and hosted on GitHub Pages.
   serves it. Page ↔ server via google.script.run (`review*` functions, each `requireTeacher_()`); no token.
 - Controleren, Eén voor één: Goedkeuren · Afkeuren (Kaarten only → back to the Inbox with the edits, `reviewCardToInbox`)
   · Vorige · Volgende · Verwijderen (`reviewDelete`, Inbox or Cards row). No Opslaan: edits are saved by those buttons.
-  No more 🚩 nakijken marking: a card that needs another look goes to the Inbox (Cards.nakijken is unused).
-- Card approval: Cards.`controle` (`goedgekeurd|afgekeurd|blank` → `approved|rejected|''`, `CHECK_NL`/`checkCode_`)
-  + Cards.`nakijken` (🚩 checkbox, never hides). With Settings.`require_approval` the API serves only approved
+  No 🚩 nakijken marking (column and Inbox status removed): a card that needs another look goes to the Inbox.
+- Card approval: Cards.`controle` (`goedgekeurd|afgekeurd|blank` → `approved|rejected|''`, `CHECK_NL`/`checkCode_`).
+  With Settings.`require_approval` the API serves only approved
   cards (`cardServed_` in Util.gs; also the Dashboard curriculum). Teacher page: Goedkeuren (`reviewSetCheck`),
   Afkeuren = back to the Inbox. Turn on per env with `admin <env> enableApproval` (dry run;
   approveStudied keeps her studied cards). All AI-made cards started blank (2026-10-02).
@@ -114,8 +114,8 @@ The repo is **public** and hosted on GitHub Pages.
   maps the EMOJI_SEED_CARDS emoji (+ `EXTRA` in the script: emoji cards added via the Inbox, e.g. horeca) to hexcodes from `openmoji` (exact-pinned devDependency) and copies ONLY those SVGs,
   SVGO-optimised, to `public/openmoji/` (+ LICENSE.txt). Self-hosted only (never openmoji.org / CDNs); precached by
   the service worker (globPatterns include svg). Re-run it after adding emoji cards; unmatched emoji are listed.
-- Credit (CC BY-SA 4.0) on Over SpeesRep (`about.images`, `about.license`). Cards whose picture changed get 🚩
-  nakijken (`admin <env> flagCards`).
+- Credit (CC BY-SA 4.0) on Over SpeesRep (`about.images`, `about.license`). Cards whose picture changed go to the
+  Inbox for a check (`admin <env> cardsToInbox`).
 
 ## Listening and Voortgang
 
@@ -253,6 +253,18 @@ keys, pos and descriptions. The API maps them to internal codes (`typeCode_`/`so
   (`npm run backup:prod` before and after, additive changes only, dry runs, verify counts and the live app).
   Any change that would break PROD progress needs the teacher's explicit permission first.
 - **DEV progress is expendable**: DEV cards may be moved/replaced/reset without asking.
+
+## Content work (standing instructions)
+
+- PROD sheet changes: `npm run backup:prod` before and after (Log/Progress counts must stay the same), dry run
+  first, additive only. Ask before anything that hides or deletes studied cards.
+- New content goes to the DEV Inbox. The teacher approves it on the teacher page; approved cards are then copied
+  to PROD with `admin prod importCards` (keeps ids). Cards deliberately removed from PROD are not copied back.
+- Every card needs at least one subject (tag) from the Tags tab. Subjects are managed on the Curriculum page
+  (Dicht = parked). On PROD a new subject needs its Tags row before its Curriculum row.
+- Don't hunt for spelling errors and don't mention them; never mention a missing full stop. A spelling error
+  noticed by chance → move that card to the Inbox silently (`cardsToInbox`).
+- Source CSVs (docs/klim-op-*.csv) are git-ignored; keep them out of git.
 
 ## Commands
 

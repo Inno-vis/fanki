@@ -62,9 +62,12 @@ function doPost(e) {
       case 'cleanSettings': return adminCleanSettings_(body.dryRun !== false);
       case 'deleteTabs': return adminDeleteTabs_(body.tabs, body.dryRun !== false);
       case 'setSetting': return adminSetSetting_(body.key, body.value, body.dryRun !== false);
-      case 'flagCards': return adminFlagCards_(body.ids, body.on !== false, body.dryRun !== false);
+      case 'dropNakijken': return adminDropNakijken_(body.dryRun !== false);
       case 'splitInbox': return adminSplitInbox_(body.dryRun !== false, body.parts || null);
-      case 'updateCards': return adminUpdateCards_(body.updates, body.dryRun !== false);
+      case 'replaceTag': return adminReplaceTag_(body.from, body.to, body.tab, body.dryRun !== false);
+      case 'updateTags': return adminUpdateTags_(body.rows, body.dryRun !== false);
+      case 'updateCurriculum': return adminUpdateCurriculum_(body.rows, body.dryRun !== false);
+      case 'updateCards':return adminUpdateCards_(body.updates, body.dryRun !== false);
       case 'deleteCards': return adminDeleteCards_(body.ids, body.dryRun !== false);
       case 'migrateCurriculum': return adminMigrateCurriculum_(body.dryRun !== false);
       case 'splitCards': return adminSplitCards_(body.dryRun !== false, body.includeStudied === true);

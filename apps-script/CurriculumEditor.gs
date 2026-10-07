@@ -69,9 +69,12 @@ function editorTagInfo_(ss) {
   var gate = bool_(readSettings_().require_approval), counts = {};
   readTable_(ss.getSheetByName('Cards')).rows.filter(function (r) { return cardServed_(r, gate); })
     .forEach(function (r) { splitTags_(r.tags).forEach(function (t) { counts[t] = (counts[t] || 0) + 1; }); });
+  var inbox = {}; // Inbox rows per subject: shown as "(12 in Inbox)" behind the card count
+  readTable_(ss.getSheetByName('Inbox')).rows.filter(function (r) { return String(r.nl).trim(); })
+    .forEach(function (r) { splitTags_(r.tags).forEach(function (t) { inbox[t] = (inbox[t] || 0) + 1; }); });
   var tags = readTable_(ss.getSheetByName('Tags')).rows.map(function (r) {
     var tag = String(r.tag).trim().toLowerCase();
-    return { tag: tag, label: String(r.label_nl || tag), cards: counts[tag] || 0 };
+    return { tag: tag, label: String(r.label_nl || tag), cards: counts[tag] || 0, inbox: inbox[tag] || 0 };
   }).filter(function (t) { return t.tag; });
   return { tags: tags, counts: counts, keys: tags.map(function (t) { return t.tag; }) };
 }

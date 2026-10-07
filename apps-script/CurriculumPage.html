@@ -50,7 +50,9 @@ function el(tag, attrs, kids) {
   return n;
 }
 function notice(text, kind) { var n = $('notice'); n.textContent = text || ''; n.className = 'notice' + (kind ? ' ' + kind : ''); }
-function cardsText(n) { return n === 1 ? tr('cur.card') : tr('cur.cards', { n: n }); }
+function cardsText(n, inbox) {
+  return (n === 1 ? tr('cur.card') : tr('cur.cards', { n: n })) + (inbox ? ' ' + tr('cur.inInbox', { n: inbox }) : '');
+}
 function label(tag) { var t = E.tags[tag]; return t ? t.label : tag; }
 function changed() { E.dirty = true; E.checks = null; notice(tr('cur.dirty')); render(); }
 function apply(res) {
@@ -166,7 +168,7 @@ function render() {
       onclick: function () { E.openIdx = E.openIdx === i ? -1 : i; render(); } }, [
       el('span', { 'class': 'num', text: String(i + 1) }),
       el('div', {}, [
-        el('div', {}, [el('span', { 'class': 'name', text: t.label }), ' · ', el('span', { 'class': 'meta', text: cardsText(t.cards) })]),
+        el('div', {}, [el('span', { 'class': 'name', text: t.label }), ' · ', el('span', { 'class': 'meta', text: cardsText(t.cards, t.inbox) })]),
         el('div', { 'class': 'rule', text: CurLogic.sentence(row, tr) }),
         el('div', { 'class': 'prev', text: CurLogic.preview(row, { today: E.today, scores: E.scores }, tr) })
       ]),

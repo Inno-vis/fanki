@@ -28,8 +28,16 @@ for (const r of RATINGS) md += `| ${r.emoji} | ${r.nl} | ${esc(r.fr)} | ${r.rati
 md += `\n## Interval units\n\n| unit | shown |\n|---|---|\n`;
 for (const [k, v] of Object.entries(INTERVAL_UNITS)) md += `| ${k} | ${v} |\n`;
 
-md += `\n## Hulp panel (per screen)\n\n| screen | fr (shown in the panel) |\n|---|---|\n`;
-for (const [k, v] of Object.entries(HELP)) md += `| ${k} | ${esc(v.fr)} |\n`;
+md += `\n## Hulp panel (per screen)\n\nStructured help (\`HelpPage\` in src/i18n.ts): one idea per row; the Dutch label is shown as a chip.\n`;
+const label = (it) => (it.ui ? UI[it.ui].nl.replace(/\{(\w+)\}/g, (m, k) => (it.vars && k in it.vars ? it.vars[k] : m)) : it.nl ?? '');
+for (const [k, page] of Object.entries(HELP)) {
+  md += `\n### ${k}\n\n${esc(page.nl)}\n\n| section | label (nl) | fr |\n|---|---|---|\n`;
+  for (const sec of page.sections) {
+    const title = sec.title + (sec.collapsed ? ' (ingeklapt)' : '') + (sec.kind === 'steps' ? ' (stappen)' : '');
+    for (const it of sec.items) md += `| ${esc(title)} | ${esc([it.icon, label(it)].filter(Boolean).join(' '))} | ${esc(it.fr)} |\n`;
+  }
+  if (page.tip) md += `| 💡 tip |  | ${esc(page.tip)} |\n`;
+}
 
 const out = join(root, 'docs/UI-STRINGS.md');
 if (process.argv.includes('--check')) {

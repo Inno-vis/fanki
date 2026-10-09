@@ -62,8 +62,8 @@ export const UI = {
     fr: 'SpeesRep t’aide à apprendre des mots néerlandais. Tu t’exerces un peu chaque jour.'
   },
   'about.privacy': {
-    nl: 'Je voortgang blijft op dit toestel. SpeesRep heeft geen account nodig en vraagt niet om je naam of e-mailadres.',
-    fr: 'Ta progression reste sur cet appareil. SpeesRep n’a pas besoin de compte et ne demande ni ton nom ni ton e-mail.'
+    nl: 'Je antwoorden gaan naar je leraar. Je leraar kan zien wat je oefent. SpeesRep heeft geen account nodig en vraagt niet om je naam of e-mailadres.',
+    fr: 'Tes réponses sont envoyées à ton professeur, qui voit ce que tu travailles. SpeesRep n’a pas besoin de compte et ne demande ni ton nom ni ton e-mail.'
   },
   'about.imagesTitle': { nl: 'Plaatjes', fr: 'Images' },
   'about.images': {
@@ -171,79 +171,6 @@ export const UI = {
 
 export type UIKey = keyof typeof UI;
 
-/** French instructions per screen, shown only in the Hulp panel. */
-export const HELP = {
-  home: {
-    nl: 'Hier zie je je kaarten voor vandaag. Tik op Starten.',
-    fr:
-      'Touche « SpeesRep » en haut pour le menu : « Voortgang » (ta progression) et « Gemarkeerd » (cartes marquées 🚩). ' +
-      'Cet écran montre combien de cartes tu dois revoir aujourd’hui (« te herhalen ») et combien de nouvelles ' +
-      'cartes t’attendent (« nieuw vandaag »). La barre « Vandaag » montre ton travail du jour ; « Nog 5 kaarten » = ' +
-      'encore 5 cartes. Touche « Starten » pour commencer ; tu peux t’arrêter quand tu veux (« Terug »), tout est ' +
-      'gardé. « Klaar voor nu! » = fini pour le moment ; « Volgende kaarten: 3 over ± 15 min » = 3 cartes ' +
-      'reviennent dans environ 15 minutes ; elles arrivent alors dans « Vandaag » et « Starten » revient. L’appli fonctionne aussi sans internet : tes réponses sont gardées sur le téléphone ' +
-      'et envoyées à la prochaine connexion. Dans le menu (touche « SpeesRep » en haut) : « Synchroniseren » télécharge ' +
-      'les nouvelles cartes et envoie tes réponses quand tu as internet (ça se fait aussi tout seul). ' +
-      'Chaque écran a sa propre page « Hulp » : touche « Hulp » là où tu es.'
-  },
-  about: {
-    nl: 'Hier lees je over SpeesRep.',
-    fr:
-      'Cette page explique SpeesRep : à quoi sert l’appli, que ta progression reste sur ton téléphone (pas de compte, ' +
-      'pas de nom, pas d’e-mail) et d’où viennent les images (OpenMoji, licence CC BY-SA 4.0).'
-  },
-  settings: {
-    nl: 'Hier kies je je instellingen.',
-    fr:
-      'Ces réglages restent sur ton téléphone. « Max. aantal nieuwe woorden per dag » = combien de nouveaux mots ' +
-      'au maximum chaque jour (« Standaard » = le choix de ton professeur). « Luisteroefeningen » = parfois la carte ' +
-      'commence seulement par le son ; « Uit » = jamais. « Antwoord voorlezen » = le téléphone lit la réponse ' +
-      'néerlandaise à voix haute quand tu la montres. « Back-up opslaan » enregistre ta progression dans un ' +
-      'fichier ; « Back-up terugzetten » la remet depuis ce fichier (par exemple sur un nouveau téléphone). ' +
-      'Les changements comptent tout de suite, pour la prochaine carte.'
-  },
-  progress: {
-    nl: 'Hier zie je je voortgang.',
-    fr:
-      'Ta progression : « kaarten geoefend » = cartes déjà travaillées, « kaarten bekend » = cartes bien sues, ' +
-      '« herhalingen deze week » = révisions des 7 derniers jours, « dagen op rij » = jours de suite. ' +
-      'En bas : combien de cartes reviennent aujourd’hui (vandaag), demain (morgen) ' +
-      'et cette semaine (deze week).'
-  },
-  marked: {
-    nl: 'Hier zie je je gemarkeerde kaarten.',
-    fr:
-      'Ici, les cartes que tu as marquées avec 🚩 pendant les révisions, les plus récentes en haut. ' +
-      '« Opgelost » = résolu : la carte passe dans la liste « Opgelost » (rien n’est effacé). « Delen » = ' +
-      'partager la liste (Messages, e-mail…) avec ton prof ou quelqu’un d’autre : c’est toi qui l’envoies, ' +
-      'rien ne part tout seul.'
-  },
-  topics: {
-    nl: 'Kies een of meer onderwerpen. Tik dan op Klaar.',
-    fr:
-      'Choisis un ou plusieurs thèmes : « Starten » ne montre plus que les cartes de ces thèmes ' +
-      '(révisions et nouvelles cartes). « Alle onderwerpen » = tous les thèmes. 🔒 « nog dicht » = pas encore ' +
-      'ouvert : ce thème s’ouvrira plus tard (à une date, ou quand tu connais bien d’autres thèmes). Touche « Klaar » pour revenir.'
-  },
-  review: {
-    nl: 'Lees de kaart. Tik op Antwoord tonen. Kies dan een knop.',
-    fr:
-      'Lis la carte et essaie de te souvenir de la réponse. Touche « Antwoord tonen » pour la voir, puis dis ' +
-      'honnêtement comment ça s’est passé : ❌ Opnieuw = je ne savais pas, 😅 Moeilijk = j’ai hésité, ' +
-      '✅ Goed = bien, 😎 Makkelijk = très facile. Sous chaque bouton : quand la carte reviendra ' +
-      '(min = minutes, u = heures, d = jours, wk = semaines, mnd = mois, jr = ans). Les noms montrent toujours ' +
-      '« de » ou « het ». Badges : « valse vriend » = faux ami, « afkorting » = abréviation. ' +
-      '« Terug » = retour à l’accueil : tu peux t’arrêter quand tu veux, tout est gardé. ' +
-      '🔊 = écouter le mot en néerlandais. Parfois la carte commence seulement par le son (« Wat hoor je? ») : ' +
-      'écoute, devine, puis « Antwoord tonen ». S’il n’y a pas de voix néerlandaise sur ton téléphone : ' +
-      'iPhone : Réglages › Accessibilité › Contenu énoncé › Voix › Néerlandais ; Android : Paramètres › ' +
-      'Synthèse vocale › Installer les données vocales › Néerlandais. ' +
-      '🚩 en haut de la carte = marquer une carte qui te pose question (appui long ou « + notitie » pour ' +
-      'ajouter une note).'
-  }
-} as const satisfies Record<string, Str>;
-
-export type HelpScreen = keyof typeof HELP;
 
 /** Rating buttons, left to right. rating = ts-fsrs Rating (1..4). fr = meaning shown in the help overlay. */
 export const RATINGS = [
@@ -264,6 +191,228 @@ export const INTERVAL_UNITS = {
   month: 'mnd',
   year: 'jr'
 } as const;
+
+// ---------- Hulp pages: structured French help per screen ----------
+// One idea per item (fr ≤ 110 characters), at most 7 items per section. `ui` (a UIKey) is preferred over a literal
+// `nl` so the Dutch chip follows UI-text changes. Rendered by components/Help.tsx; checked by src/help.test.ts.
+
+export type HelpItem = {
+  /** Dutch label exactly as on screen (preferred: follows UI changes). */
+  ui?: UIKey;
+  vars?: Record<string, string | number>;
+  /** Literal Dutch label when there is no UI key (e.g. "de / het"). */
+  nl?: string;
+  /** Emoji before the label (aria-hidden). */
+  icon?: string;
+  /** Rating key: the chip gets that rating button's colour. */
+  rating?: string;
+  /** French explanation, one line, ≤ 110 characters. */
+  fr: string;
+};
+
+export type HelpSection = {
+  /** French heading, ≤ 30 characters. */
+  title: string;
+  /** 'steps' = numbered list; 'chips' = compact grid of label + meaning; default 'list'. */
+  kind?: 'list' | 'steps' | 'chips';
+  /** Inside a closed <details>. */
+  collapsed?: boolean;
+  items: HelpItem[];
+};
+
+export type HelpPage = {
+  /** The Dutch one-liner at the top. */
+  nl: string;
+  sections: HelpSection[];
+  /** One French line at the bottom (💡). */
+  tip?: string;
+};
+
+export const HELP: Record<'home' | 'review' | 'settings' | 'progress' | 'marked' | 'topics' | 'about', HelpPage> = {
+  home: {
+    nl: 'Hier zie je je kaarten voor vandaag. Tik op Starten.',
+    sections: [
+      {
+        title: 'Cet écran',
+        items: [
+          { ui: 'home.due', fr: 'cartes à revoir aujourd’hui' },
+          { ui: 'home.newToday', fr: 'nouvelles cartes qui t’attendent' },
+          { ui: 'today.label', fr: 'ton travail du jour. « Nog 5 kaarten » = encore 5 cartes' },
+          { ui: 'home.start', fr: 'commencer. Tu peux t’arrêter quand tu veux, tout est gardé' },
+          { ui: 'home.allDone', fr: 'fini pour le moment' },
+          // composite label (home.later + home.laterMin): literal on purpose
+          { nl: 'Volgende kaarten: 5 over ± 30 min', fr: '5 cartes reviennent dans environ 30 minutes' }
+        ]
+      },
+      {
+        title: 'Menu (touche « SpeesRep » en haut)',
+        items: [
+          { ui: 'progress.title', icon: '📈', fr: 'ta progression' },
+          { ui: 'mark.title', icon: '🚩', fr: 'les cartes que tu as marquées' },
+          { ui: 'settings.title', icon: '⚙️', fr: 'tes réglages' },
+          { ui: 'sync.button', fr: 'télécharge les nouvelles cartes et envoie tes réponses' }
+        ]
+      },
+      {
+        title: 'Aide',
+        items: [{ ui: 'help.button', fr: 'chaque écran a sa propre aide : touche « Hulp » là où tu es' }]
+      }
+    ],
+    tip: 'Pas d’internet ? Tes réponses sont gardées et envoyées à la prochaine connexion.'
+  },
+  review: {
+    nl: 'Lees de kaart. Tik op Antwoord tonen. Kies dan een knop.',
+    sections: [
+      {
+        title: 'Comment faire',
+        kind: 'steps',
+        items: [
+          { fr: 'Lis la carte et cherche la réponse dans ta tête.' },
+          { ui: 'review.show', fr: 'touche ce bouton pour voir la réponse' },
+          { fr: 'Choisis honnêtement un des quatre boutons.' }
+        ]
+      },
+      {
+        title: 'Les boutons',
+        items: RATINGS.map((r) => ({ nl: r.nl, icon: r.emoji, rating: r.key, fr: r.fr }))
+      },
+      {
+        title: 'Sous les boutons',
+        kind: 'chips',
+        items: [
+          { nl: INTERVAL_UNITS.minute, fr: 'minutes' },
+          { nl: INTERVAL_UNITS.hour, fr: 'heures' },
+          { nl: INTERVAL_UNITS.day, fr: 'jours' },
+          { nl: INTERVAL_UNITS.week, fr: 'semaines' },
+          { nl: INTERVAL_UNITS.month, fr: 'mois' },
+          { nl: INTERVAL_UNITS.year, fr: 'ans' }
+        ]
+      },
+      {
+        title: 'Sur la carte',
+        items: [
+          { icon: '🔊', fr: 'écouter le mot en néerlandais' },
+          { ui: 'audio.question', fr: 'écoute, devine, puis touche « Antwoord tonen »' },
+          { nl: 'de / het', fr: 'l’article, toujours montré avec les noms' },
+          { ui: 'flag.false-friend', fr: 'faux ami' },
+          { ui: 'flag.abbreviation', fr: 'abréviation' }
+        ]
+      },
+      {
+        title: 'Marquer et arrêter',
+        items: [
+          { icon: '🚩', fr: 'marquer une carte qui te pose question' },
+          { ui: 'mark.addNote', fr: 'ajouter une note (ou appui long sur 🚩)' },
+          { ui: 'review.back', fr: 'retour à l’accueil, tout est gardé' }
+        ]
+      },
+      {
+        title: 'Pas de voix néerlandaise ?',
+        kind: 'steps',
+        collapsed: true,
+        items: [
+          { fr: 'iPhone : Réglages › Accessibilité › Contenu énoncé › Voix › Néerlandais' },
+          { fr: 'Android : Paramètres › Synthèse vocale › Installer les données vocales › Néerlandais' }
+        ]
+      }
+    ]
+  },
+  settings: {
+    nl: 'Hier kies je je instellingen.',
+    sections: [
+      {
+        title: 'Réglages',
+        items: [
+          { ui: 'settings.newPerDay', fr: 'maximum de nouveaux mots par jour' },
+          { nl: 'Standaard', fr: 'le choix de ton professeur' },
+          { ui: 'settings.listening', fr: 'parfois la carte commence par le son. « Uit » = jamais' },
+          { ui: 'settings.readAnswer', fr: 'le téléphone lit la réponse néerlandaise à voix haute' }
+        ]
+      },
+      {
+        title: 'Sauvegarde',
+        collapsed: true,
+        items: [
+          { ui: 'backup.save', fr: 'enregistre ta progression dans un fichier' },
+          { ui: 'backup.load', fr: 'remet ta progression depuis ce fichier (nouveau téléphone)' }
+        ]
+      }
+    ],
+    tip: 'Ces réglages restent sur ton téléphone et comptent tout de suite, dès la prochaine carte.'
+  },
+  progress: {
+    nl: 'Hier zie je je voortgang.',
+    sections: [
+      {
+        title: 'Les chiffres',
+        items: [
+          { nl: 'kaarten geoefend', fr: 'cartes déjà travaillées' },
+          { ui: 'progress.known', fr: 'cartes bien sues' },
+          { ui: 'progress.week', fr: 'révisions des 7 derniers jours' },
+          { ui: 'progress.streak', fr: 'jours de suite' }
+        ]
+      },
+      {
+        title: 'En bas : les cartes qui reviennent',
+        kind: 'chips',
+        items: [
+          { ui: 'progress.dueToday', fr: 'aujourd’hui' },
+          { ui: 'progress.dueTomorrow', fr: 'demain' },
+          { ui: 'progress.due7', fr: 'cette semaine' }
+        ]
+      }
+    ]
+  },
+  marked: {
+    nl: 'Hier zie je je gemarkeerde kaarten.',
+    sections: [
+      {
+        title: 'Cet écran',
+        items: [
+          { icon: '🚩', fr: 'les cartes que tu as marquées, les plus récentes en haut' },
+          { ui: 'mark.resolve', fr: 'résolu : la carte passe dans la liste « Opgelost ». Rien n’est effacé.' },
+          { ui: 'mark.share', fr: 'envoyer la liste à ton professeur (Messages, e-mail…)' }
+        ]
+      }
+    ],
+    tip: 'Rien ne part tout seul : c’est toi qui envoies.'
+  },
+  topics: {
+    nl: 'Kies een of meer onderwerpen. Tik dan op Klaar.',
+    sections: [
+      {
+        title: 'Cet écran',
+        items: [
+          { ui: 'tags.all', fr: 'tous les thèmes' },
+          { ui: 'tags.locked', icon: '🔒', fr: 'pas encore ouvert : s’ouvre plus tard (une date, ou d’autres thèmes bien sus)' },
+          { ui: 'tags.done', fr: 'revenir' }
+        ]
+      }
+    ],
+    tip: '« Starten » montre seulement les cartes des thèmes choisis.'
+  },
+  about: {
+    nl: 'Hier lees je over SpeesRep.',
+    sections: [
+      {
+        title: 'Cette page',
+        items: [
+          { icon: '📱', fr: 'À quoi sert l’appli.' },
+          { icon: '👤', fr: 'Pas de compte, pas de nom, pas d’e-mail.' },
+          { icon: '📤', fr: 'Tes réponses sont envoyées à ton professeur, qui voit ce que tu travailles.' },
+          { icon: '🖼️', fr: 'Images : OpenMoji, licence CC BY-SA 4.0.' }
+        ]
+      }
+    ]
+  }
+};
+
+export type HelpScreen = keyof typeof HELP;
+
+/** The Dutch label of a help item ('' when it has none). */
+export function helpLabel(item: HelpItem): string {
+  return item.ui ? t(item.ui, item.vars) : item.nl ?? '';
+}
 
 function fill(s: string, vars?: Record<string, string | number>): string {
   return vars ? s.replace(/\{(\w+)\}/g, (m, k) => (k in vars ? String(vars[k]) : m)) : s;

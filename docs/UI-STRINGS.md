@@ -42,7 +42,7 @@ She sees **nl**. **fr** is hidden help: shown only in the "Hulp" panel and the o
 | `progress.title` | Voortgang | Ma progression |
 | `about.title` | Over SpeesRep | À propos de SpeesRep |
 | `about.intro` | SpeesRep helpt je om Nederlandse woorden te leren. Je oefent elke dag een beetje. | SpeesRep t’aide à apprendre des mots néerlandais. Tu t’exerces un peu chaque jour. |
-| `about.privacy` | Je voortgang blijft op dit toestel. SpeesRep heeft geen account nodig en vraagt niet om je naam of e-mailadres. | Ta progression reste sur cet appareil. SpeesRep n’a pas besoin de compte et ne demande ni ton nom ni ton e-mail. |
+| `about.privacy` | Je antwoorden gaan naar je leraar. Je leraar kan zien wat je oefent. SpeesRep heeft geen account nodig en vraagt niet om je naam of e-mailadres. | Tes réponses sont envoyées à ton professeur, qui voit ce que tu travailles. SpeesRep n’a pas besoin de compte et ne demande ni ton nom ni ton e-mail. |
 | `about.imagesTitle` | Plaatjes | Images |
 | `about.images` | Alle plaatjes zijn gemaakt door OpenMoji (https://openmoji.org/), het open-source emoji- en iconenproject. De plaatjes zijn niet aangepast. | Toutes les images viennent d’OpenMoji (https://openmoji.org/), un projet libre d’emojis et d’icônes. Elles ne sont pas modifiées. |
 | `about.license` | Licentie: CC BY-SA 4.0 (https://creativecommons.org/licenses/by-sa/4.0/) | Licence : CC BY-SA 4.0 (https://creativecommons.org/licenses/by-sa/4.0/) |
@@ -133,12 +133,114 @@ She sees **nl**. **fr** is hidden help: shown only in the "Hulp" panel and the o
 
 ## Hulp panel (per screen)
 
-| screen | fr (shown in the panel) |
-|---|---|
-| home | Touche « SpeesRep » en haut pour le menu : « Voortgang » (ta progression) et « Gemarkeerd » (cartes marquées 🚩). Cet écran montre combien de cartes tu dois revoir aujourd’hui (« te herhalen ») et combien de nouvelles cartes t’attendent (« nieuw vandaag »). La barre « Vandaag » montre ton travail du jour ; « Nog 5 kaarten » = encore 5 cartes. Touche « Starten » pour commencer ; tu peux t’arrêter quand tu veux (« Terug »), tout est gardé. « Klaar voor nu! » = fini pour le moment ; « Volgende kaarten: 3 over ± 15 min » = 3 cartes reviennent dans environ 15 minutes ; elles arrivent alors dans « Vandaag » et « Starten » revient. L’appli fonctionne aussi sans internet : tes réponses sont gardées sur le téléphone et envoyées à la prochaine connexion. Dans le menu (touche « SpeesRep » en haut) : « Synchroniseren » télécharge les nouvelles cartes et envoie tes réponses quand tu as internet (ça se fait aussi tout seul). Chaque écran a sa propre page « Hulp » : touche « Hulp » là où tu es. |
-| about | Cette page explique SpeesRep : à quoi sert l’appli, que ta progression reste sur ton téléphone (pas de compte, pas de nom, pas d’e-mail) et d’où viennent les images (OpenMoji, licence CC BY-SA 4.0). |
-| settings | Ces réglages restent sur ton téléphone. « Max. aantal nieuwe woorden per dag » = combien de nouveaux mots au maximum chaque jour (« Standaard » = le choix de ton professeur). « Luisteroefeningen » = parfois la carte commence seulement par le son ; « Uit » = jamais. « Antwoord voorlezen » = le téléphone lit la réponse néerlandaise à voix haute quand tu la montres. « Back-up opslaan » enregistre ta progression dans un fichier ; « Back-up terugzetten » la remet depuis ce fichier (par exemple sur un nouveau téléphone). Les changements comptent tout de suite, pour la prochaine carte. |
-| progress | Ta progression : « kaarten geoefend » = cartes déjà travaillées, « kaarten bekend » = cartes bien sues, « herhalingen deze week » = révisions des 7 derniers jours, « dagen op rij » = jours de suite. En bas : combien de cartes reviennent aujourd’hui (vandaag), demain (morgen) et cette semaine (deze week). |
-| marked | Ici, les cartes que tu as marquées avec 🚩 pendant les révisions, les plus récentes en haut. « Opgelost » = résolu : la carte passe dans la liste « Opgelost » (rien n’est effacé). « Delen » = partager la liste (Messages, e-mail…) avec ton prof ou quelqu’un d’autre : c’est toi qui l’envoies, rien ne part tout seul. |
-| topics | Choisis un ou plusieurs thèmes : « Starten » ne montre plus que les cartes de ces thèmes (révisions et nouvelles cartes). « Alle onderwerpen » = tous les thèmes. 🔒 « nog dicht » = pas encore ouvert : ce thème s’ouvrira plus tard (à une date, ou quand tu connais bien d’autres thèmes). Touche « Klaar » pour revenir. |
-| review | Lis la carte et essaie de te souvenir de la réponse. Touche « Antwoord tonen » pour la voir, puis dis honnêtement comment ça s’est passé : ❌ Opnieuw = je ne savais pas, 😅 Moeilijk = j’ai hésité, ✅ Goed = bien, 😎 Makkelijk = très facile. Sous chaque bouton : quand la carte reviendra (min = minutes, u = heures, d = jours, wk = semaines, mnd = mois, jr = ans). Les noms montrent toujours « de » ou « het ». Badges : « valse vriend » = faux ami, « afkorting » = abréviation. « Terug » = retour à l’accueil : tu peux t’arrêter quand tu veux, tout est gardé. 🔊 = écouter le mot en néerlandais. Parfois la carte commence seulement par le son (« Wat hoor je? ») : écoute, devine, puis « Antwoord tonen ». S’il n’y a pas de voix néerlandaise sur ton téléphone : iPhone : Réglages › Accessibilité › Contenu énoncé › Voix › Néerlandais ; Android : Paramètres › Synthèse vocale › Installer les données vocales › Néerlandais. 🚩 en haut de la carte = marquer une carte qui te pose question (appui long ou « + notitie » pour ajouter une note). |
+Structured help (`HelpPage` in src/i18n.ts): one idea per row; the Dutch label is shown as a chip.
+
+### home
+
+Hier zie je je kaarten voor vandaag. Tik op Starten.
+
+| section | label (nl) | fr |
+|---|---|---|
+| Cet écran | te herhalen | cartes à revoir aujourd’hui |
+| Cet écran | nieuw vandaag | nouvelles cartes qui t’attendent |
+| Cet écran | Vandaag | ton travail du jour. « Nog 5 kaarten » = encore 5 cartes |
+| Cet écran | Starten | commencer. Tu peux t’arrêter quand tu veux, tout est gardé |
+| Cet écran | Klaar voor nu! | fini pour le moment |
+| Cet écran | Volgende kaarten: 5 over ± 30 min | 5 cartes reviennent dans environ 30 minutes |
+| Menu (touche « SpeesRep » en haut) | 📈 Voortgang | ta progression |
+| Menu (touche « SpeesRep » en haut) | 🚩 Gemarkeerd | les cartes que tu as marquées |
+| Menu (touche « SpeesRep » en haut) | ⚙️ Instellingen | tes réglages |
+| Menu (touche « SpeesRep » en haut) | Synchroniseren | télécharge les nouvelles cartes et envoie tes réponses |
+| Aide | Hulp | chaque écran a sa propre aide : touche « Hulp » là où tu es |
+| 💡 tip |  | Pas d’internet ? Tes réponses sont gardées et envoyées à la prochaine connexion. |
+
+### review
+
+Lees de kaart. Tik op Antwoord tonen. Kies dan een knop.
+
+| section | label (nl) | fr |
+|---|---|---|
+| Comment faire (stappen) |  | Lis la carte et cherche la réponse dans ta tête. |
+| Comment faire (stappen) | Antwoord tonen | touche ce bouton pour voir la réponse |
+| Comment faire (stappen) |  | Choisis honnêtement un des quatre boutons. |
+| Les boutons | ❌ Opnieuw | je ne savais pas |
+| Les boutons | 😅 Moeilijk | j’ai hésité |
+| Les boutons | ✅ Goed | bien |
+| Les boutons | 😎 Makkelijk | très facile |
+| Sous les boutons | min | minutes |
+| Sous les boutons | u | heures |
+| Sous les boutons | d | jours |
+| Sous les boutons | wk | semaines |
+| Sous les boutons | mnd | mois |
+| Sous les boutons | jr | ans |
+| Sur la carte | 🔊 | écouter le mot en néerlandais |
+| Sur la carte | Wat hoor je? | écoute, devine, puis touche « Antwoord tonen » |
+| Sur la carte | de / het | l’article, toujours montré avec les noms |
+| Sur la carte | valse vriend | faux ami |
+| Sur la carte | afkorting | abréviation |
+| Marquer et arrêter | 🚩 | marquer une carte qui te pose question |
+| Marquer et arrêter | + notitie | ajouter une note (ou appui long sur 🚩) |
+| Marquer et arrêter | Terug | retour à l’accueil, tout est gardé |
+| Pas de voix néerlandaise ? (ingeklapt) (stappen) |  | iPhone : Réglages › Accessibilité › Contenu énoncé › Voix › Néerlandais |
+| Pas de voix néerlandaise ? (ingeklapt) (stappen) |  | Android : Paramètres › Synthèse vocale › Installer les données vocales › Néerlandais |
+
+### settings
+
+Hier kies je je instellingen.
+
+| section | label (nl) | fr |
+|---|---|---|
+| Réglages | Max. aantal nieuwe woorden per dag | maximum de nouveaux mots par jour |
+| Réglages | Standaard | le choix de ton professeur |
+| Réglages | Luisteroefeningen | parfois la carte commence par le son. « Uit » = jamais |
+| Réglages | Antwoord voorlezen | le téléphone lit la réponse néerlandaise à voix haute |
+| Sauvegarde (ingeklapt) | Back-up opslaan | enregistre ta progression dans un fichier |
+| Sauvegarde (ingeklapt) | Back-up terugzetten | remet ta progression depuis ce fichier (nouveau téléphone) |
+| 💡 tip |  | Ces réglages restent sur ton téléphone et comptent tout de suite, dès la prochaine carte. |
+
+### progress
+
+Hier zie je je voortgang.
+
+| section | label (nl) | fr |
+|---|---|---|
+| Les chiffres | kaarten geoefend | cartes déjà travaillées |
+| Les chiffres | kaarten bekend | cartes bien sues |
+| Les chiffres | herhalingen deze week | révisions des 7 derniers jours |
+| Les chiffres | dagen op rij | jours de suite |
+| En bas : les cartes qui reviennent | vandaag | aujourd’hui |
+| En bas : les cartes qui reviennent | morgen | demain |
+| En bas : les cartes qui reviennent | deze week | cette semaine |
+
+### marked
+
+Hier zie je je gemarkeerde kaarten.
+
+| section | label (nl) | fr |
+|---|---|---|
+| Cet écran | 🚩 | les cartes que tu as marquées, les plus récentes en haut |
+| Cet écran | Opgelost | résolu : la carte passe dans la liste « Opgelost ». Rien n’est effacé. |
+| Cet écran | Delen | envoyer la liste à ton professeur (Messages, e-mail…) |
+| 💡 tip |  | Rien ne part tout seul : c’est toi qui envoies. |
+
+### topics
+
+Kies een of meer onderwerpen. Tik dan op Klaar.
+
+| section | label (nl) | fr |
+|---|---|---|
+| Cet écran | Alle onderwerpen | tous les thèmes |
+| Cet écran | 🔒 nog dicht | pas encore ouvert : s’ouvre plus tard (une date, ou d’autres thèmes bien sus) |
+| Cet écran | Klaar | revenir |
+| 💡 tip |  | « Starten » montre seulement les cartes des thèmes choisis. |
+
+### about
+
+Hier lees je over SpeesRep.
+
+| section | label (nl) | fr |
+|---|---|---|
+| Cette page | 📱 | À quoi sert l’appli. |
+| Cette page | 👤 | Pas de compte, pas de nom, pas d’e-mail. |
+| Cette page | 📤 | Tes réponses sont envoyées à ton professeur, qui voit ce que tu travailles. |
+| Cette page | 🖼️ | Images : OpenMoji, licence CC BY-SA 4.0. |

@@ -2,6 +2,7 @@ import { useState } from 'preact/hooks';
 import { NS } from '../config';
 import { RATINGS, t } from '../i18n';
 import { useSettings } from '../settings';
+import { Sheet } from './Sheet';
 
 const SEEN_KEY = `${NS}:rating-help-seen`;
 
@@ -36,25 +37,31 @@ export function RatingHelp() {
         ?
       </button>
       {open && (
-        <div class="sheet-backdrop" onClick={close}>
-          <div class="sheet" role="dialog" aria-modal="true" aria-label={t('rating.helpTitle')} onClick={(e) => e.stopPropagation()}>
-            <h2>{t('rating.helpTitle')}</h2>
-            <ul class="rating-help-list">
-              {RATINGS.map((r) => (
-                <li key={r.key}>
-                  <span class="rating-emoji" aria-hidden="true">
-                    {r.emoji}
-                  </span>
-                  <strong lang="nl">{r.nl}</strong>
-                  <span lang="fr">= {r.fr}</span>
-                </li>
-              ))}
-            </ul>
+        <Sheet
+          title={t('rating.helpTitle')}
+          onClose={close}
+          footer={
             <button class="btn btn-primary btn-block" onClick={close}>
               {t('rating.helpOk')}
             </button>
-          </div>
-        </div>
+          }
+        >
+          <dl class="help-list">
+            {RATINGS.map((r) => (
+              <div class="help-row" key={r.key}>
+                <dt>
+                  <span class="help-row-icon" aria-hidden="true">
+                    {r.emoji}
+                  </span>
+                  <span class={`help-chip help-chip-${r.key}`} lang="nl">
+                    {r.nl}
+                  </span>
+                </dt>
+                <dd lang="fr">{r.fr}</dd>
+              </div>
+            ))}
+          </dl>
+        </Sheet>
       )}
     </>
   );

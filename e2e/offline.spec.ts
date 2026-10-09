@@ -269,3 +269,61 @@ test('enkel/emoji card, 🔊 without a Dutch voice, and 🚩 flags (flag, note, 
   await expect(page.getByRole('menuitem', { name: /Gemarkeerd/ })).toHaveText(/^🚩 Gemarkeerd$/);
 });
 
+
+// Readable Hulp pages: every screen, two phone sizes, light and dark. Screenshots go to test-results/help/.
+for (const [w, h] of [[375, 667], [320, 568]] as const) {
+  for (const scheme of ['light', 'dark'] as const) {
+    test(`Hulp pages are readable at ${w}×${h} (${scheme})`, async ({ page }) => {
+      await page.setViewportSize({ width: w, height: h });
+      await page.emulateMedia({ colorScheme: scheme });
+      const server = mockServer();
+      await server.install(page);
+      await page.goto('/fanki/dev/');
+      await waitSynced(page);
+
+      const check = async (name: string, hasDetails = false) => {
+        const btn = page.getByRole('button', { name: /^Hulp/ });
+        await btn.click();
+        const sheet = page.getByRole('dialog', { name: 'Hulp' });
+        await expect(sheet).toBeVisible();
+        // no horizontal scroll, in the page or in the sheet
+        expect(await page.evaluate(() => document.documentElement.scrollWidth <= document.documentElement.clientWidth)).toBe(true);
+        expect(await sheet.evaluate((el) => el.scrollWidth <= el.clientWidth + 1)).toBe(true);
+        // Sluiten is visible without scrolling (sticky footer)
+        const close = sheet.getByRole('button', { name: 'Sluiten' });
+        await expect(close).toBeInViewport();
+        if (hasDetails) {
+          const details = sheet.locator('details');
+          expect(await details.first().evaluate((d) => (d as HTMLDetailsElement).open)).toBe(false);
+          await details.first().locator('summary').click();
+          expect(await details.first().evaluate((d) => (d as HTMLDetailsElement).open)).toBe(true);
+        }
+        await page.screenshot({ path: `test-results/help/${w}x${h}-${scheme}-${name}.png` });
+        // Escape closes; focus goes back to the Hulp button
+        await page.keyboard.press('Escape');
+        await expect(sheet).toBeHidden();
+        await expect(btn).toBeFocused();
+      };
+      const viaMenu = async (item: RegExp) => {
+        await page.getByRole('button', { name: 'Menu openen' }).click();
+        await page.getByRole('menuitem', { name: item }).click();
+      };
+
+      await check('home');
+      await page.getByRole('button', { name: /^Onderwerp/ }).click();
+      await check('topics');
+      await page.getByRole('button', { name: 'Klaar' }).click();
+      await viaMenu(/Voortgang/);
+      await check('progress');
+      await viaMenu(/Gemarkeerd/);
+      await check('marked');
+      await viaMenu(/Instellingen/);
+      await check('settings', true);
+      await viaMenu(/Over SpeesRep/);
+      await check('about');
+      await page.goto('/fanki/dev/');
+      await page.getByRole('button', { name: 'Starten' }).click();
+      await check('review', true);
+    });
+  }
+}

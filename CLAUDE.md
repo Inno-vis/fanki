@@ -57,12 +57,15 @@ The repo is **public** and hosted on GitHub Pages.
 
 - **Every** learner-facing string lives in `src/i18n.ts` as `{ nl, fr }`. Components call `t(key)`;
   never hard-code UI text in a component. `fr` is hidden help text.
-- French appears only (a) in the "Hulp" panel (`?` button on every screen, `HELP[screen].fr`) when she
+- French appears only (a) in the "Hulp" panel (`?` button on every screen, `HELP[screen]`) when she
   taps it, and (b) in the one-time rating-buttons overlay. Both are hidden when Settings
   `show_french_help` is FALSE.
 - Interface vocabulary is course content: the 50 "app" words (`APP_SEED_CARDS` in `apps-script/Schema.gs`,
   tag `app`, added 2026-09-27) are seeded in DEV **and** PROD. `npm run ui-vocab` warns about UI words
   that are neither taught nor on its function-word allowlist (CI: warning only).
+- Help content is structured (`HelpPage` in src/i18n.ts, rendered by components/Help.tsx in the shared `Sheet`): write one
+  idea per item, ≤ 110 characters, use `ui` keys for labels (checked by src/help.test.ts; screenshots of every Hulp
+  page at 320/375 px, light/dark: e2e › test-results/help/).
 - `docs/UI-STRINGS.md` is generated: `npm run ui-strings` after editing `src/i18n.ts`.
 - Relative times in Dutch (`timeAgo` in `src/format.ts`): "zojuist", "5 minuten geleden", "2 dagen geleden".
 - The tag filter ("Kies een onderwerp") shows Tags.`label_nl`; the keys in Cards.tags are unchanged.

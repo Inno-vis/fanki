@@ -296,14 +296,206 @@ body {
   width: 100%;
   max-width: 560px;
   border-radius: 20px 20px 0 0;
-  padding: 20px calc(var(--safe-right) + 20px) calc(var(--safe-bottom) + 16px) calc(var(--safe-left) + 20px);
+  padding: 20px calc(var(--safe-right) + 20px) 0 calc(var(--safe-left) + 20px);
   max-height: 85dvh;
   overflow: auto;
+  overscroll-behavior: contain;
 }
 
 .sheet h2 {
   margin: 0 0 8px;
   font-size: 20px;
+}
+
+.sheet h2:focus {
+  outline: none;
+}
+
+/* The close button stays visible while the sheet scrolls. */
+.sheet-footer {
+  position: sticky;
+  bottom: 0;
+  background: var(--surface);
+  margin: 12px calc(-1 * (var(--safe-right) + 20px)) 0 calc(-1 * (var(--safe-left) + 20px));
+  padding: 12px calc(var(--safe-right) + 20px) calc(var(--safe-bottom) + 16px) calc(var(--safe-left) + 20px);
+  box-shadow: 0 -6px 12px -8px rgb(0 0 0 / 0.35);
+}
+
+/* ---------- Hulp pages: Dutch label chip on the left, French on the right, one idea per line ---------- */
+.help-lead {
+  background: var(--surface-2);
+  border-radius: 12px;
+  padding: 10px 12px;
+  margin: 4px 0 4px;
+  font-size: 17px;
+  font-weight: 600;
+  line-height: 1.4;
+}
+
+.help-section h3,
+.help-more summary {
+  font-size: 13px;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+
+.help-section h3 {
+  margin: 20px 0 8px;
+}
+
+.help-list {
+  display: grid;
+  /* the label column is at most about half the width; a longer label wraps */
+  grid-template-columns: fit-content(48%) minmax(0, 1fr);
+  gap: 8px 10px;
+  align-items: baseline;
+  margin: 0;
+}
+
+.help-row {
+  display: contents;
+}
+
+.help-list dt {
+  display: flex;
+  align-items: baseline;
+  gap: 4px;
+  min-width: 0;
+}
+
+.help-row-icon {
+  display: inline-block;
+  width: 28px;
+  flex: 0 0 28px;
+  text-align: center;
+  font-size: 18px;
+}
+
+.help-list dd,
+.help-chips dd,
+.help-steps li,
+.help-tip {
+  margin: 0;
+  font-size: 16px;
+  line-height: 1.45;
+  color: var(--text);
+}
+
+.help-chip {
+  display: inline-block;
+  background: var(--surface-2);
+  color: var(--text);
+  border-radius: 8px;
+  padding: 2px 8px;
+  font-weight: 600;
+  font-size: 15px;
+  white-space: normal;
+  overflow-wrap: anywhere;
+}
+
+/* the rating chips get their button's colour as a bar (text stays high-contrast) */
+.help-chip-again { box-shadow: inset 4px 0 0 var(--again); padding-left: 12px; }
+.help-chip-hard { box-shadow: inset 4px 0 0 var(--hard); padding-left: 12px; }
+.help-chip-good { box-shadow: inset 4px 0 0 var(--good); padding-left: 12px; }
+.help-chip-easy { box-shadow: inset 4px 0 0 var(--easy); padding-left: 12px; }
+
+.help-steps {
+  list-style: none;
+  counter-reset: step;
+  padding: 0;
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.help-steps li {
+  counter-increment: step;
+  position: relative;
+  padding-left: 34px;
+  min-height: 24px;
+}
+
+.help-steps li::before {
+  content: counter(step);
+  position: absolute;
+  left: 0;
+  top: 0;
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  background: var(--primary);
+  color: var(--primary-text);
+  display: grid;
+  place-items: center;
+  font-size: 14px;
+  font-weight: 700;
+}
+
+.help-chips {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 8px;
+  margin: 0;
+}
+
+.help-chip-pair {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 2px 6px;
+}
+
+.help-chip-pair dt {
+  margin: 0;
+}
+
+.help-more {
+  margin-top: 16px;
+}
+
+.help-more summary {
+  min-height: 44px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  cursor: pointer;
+  list-style: none;
+}
+
+.help-more summary::-webkit-details-marker {
+  display: none;
+}
+
+.help-more summary::before {
+  content: '▸';
+  font-size: 16px;
+}
+
+.help-more[open] summary::before {
+  content: '▾';
+}
+
+.help-tip {
+  margin-top: 18px;
+}
+
+@media (max-width: 359px) {
+  .help-list {
+    grid-template-columns: 1fr;
+    gap: 2px;
+  }
+  .help-list dd {
+    margin: 0 0 10px 32px;
+  }
+  .help-list.no-icons dd {
+    margin-left: 0;
+  }
+  .help-chips {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
 }
 
 .btn-block {
@@ -628,22 +820,6 @@ body {
   font-weight: 700;
 }
 
-.rating-help-list {
-  list-style: none;
-  padding: 0;
-  margin: 8px 0;
-  display: flex;
-  flex-direction: column;
-  gap: 10px;
-  font-size: 18px;
-}
-
-.rating-help-list li {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-}
-
 /* 🚩 student flags */
 .card-wrap {
   position: relative;
@@ -910,6 +1086,7 @@ body {
   display: flex;
   flex-direction: column;
   gap: 8px;
+  padding-bottom: calc(var(--safe-bottom) + 16px); /* the menu has no sticky footer */
 }
 
 .menu-item {

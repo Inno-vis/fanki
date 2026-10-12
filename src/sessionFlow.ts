@@ -1,7 +1,7 @@
 import type { Settings } from './types';
 import type { Progress } from './scheduler';
 import { pickNextIndex, type Item } from './session';
-import { inDueWindow } from './today';
+import { shortStep } from './today';
 
 type Rules = Pick<Settings, 'max_learning_backlog' | 'due_window_minutes' | 'lapse_queue_threshold' | 'lapse_requeue_min' | 'lapse_requeue_max' | 'lapse_max_retries'>;
 
@@ -20,8 +20,8 @@ const key = (i: Item) => `${i.card.id}|${i.track}`;
  *    cards remain in this run, comes back `lapse_requeue_min`..`lapse_requeue_max` cards later (random; after the
  *    last card when fewer remain — never next), at most `lapse_max_retries` times per card per run. It may come
  *    before its FSRS due time (an early review; FSRS itself is unchanged). After that it follows its due time.
- *  - otherwise the card goes back into this run ONLY if its next step is inside the due window (strictly less than
- *    due_window_minutes — the same rule as the round itself, `inDueWindow`), marked `learning`, 3 places later;
+ *  - otherwise the card goes back into this run ONLY if its new step is short (strictly less than
+ *    due_window_minutes — the same rule as the round itself, `shortStep`/`inRound`), marked `learning`, 3 places later;
  *    "Goed" (10 min) and "Makkelijk" leave the run and come back via the later-today line;
  *  - the next card: `pickNextIndex` (not before its due time while others are ready; backlog rule for new cards).
  */
@@ -40,7 +40,7 @@ export function afterRating(queue: Item[], next: Progress, rules: Rules, now = D
     lapse!.retries[k] = (lapse!.retries[k] ?? 0) + 1;
     // offset 5 = 5 cards come first; fewer left → after the last card (never next: rest is not empty)
     rest.splice(Math.min(offset, rest.length), 0, { ...item, isNew: false, learning: false, retry: true, progress: next });
-  } else if (inDueWindow(next.due, now, rules)) {
+  } else if (shortStep(next, rules)) {
     rest.splice(Math.min(3, rest.length), 0, { ...item, isNew: false, learning: true, progress: next });
   }
   const n = pickNextIndex(rest, rules.max_learning_backlog, now);

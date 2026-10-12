@@ -91,11 +91,11 @@ describe('new cards wait for the learning backlog (option 1)', () => {
 describe('due window and daily cap', () => {
   const at = (min: number) => new Date(now.getTime() + min * 60_000).toISOString();
 
-  it('includes learning cards due within due_window_minutes (10), not later ones', () => {
+  it('includes learning cards in a short step (< due_window_minutes, 10), not those with a longer step', () => {
     const cards = [card('l1'), card('l2'), card('r1')];
     const progress = new Map([
-      [progressKey('l1', 'recog'), { ...prog('l1', 'recog', at(8)), state: 'Learning' as const }],
-      [progressKey('l2', 'recog'), { ...prog('l2', 'recog', at(12)), state: 'Learning' as const }],
+      [progressKey('l1', 'recog'), { ...prog('l1', 'recog', at(8)), state: 'Learning' as const, last_review: at(0) }],
+      [progressKey('l2', 'recog'), { ...prog('l2', 'recog', at(12)), state: 'Learning' as const, last_review: at(0) }],
       [progressKey('r1', 'recog'), prog('r1', 'recog', at(-60))]
     ]);
     const plan = planToday(cards, progress, settings, empty(), now);

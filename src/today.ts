@@ -34,17 +34,32 @@ export function dueDoneCount(done: DoneToday): number {
   return Object.values(done.items).filter((k) => k === 'due').length;
 }
 
+type Step = Pick<Progress, 'due' | 'last_review'>;
+
 /**
- * THE due-window rule, used everywhere (round membership in planToday, requeue in afterRating, "done" in
- * leavesWindow), so they can never disagree: due now or in LESS than due_window_minutes.
+ * The card's own step: from its last rating to its due time. A step SHORTER than due_window_minutes keeps the card in
+ * the round; 10 min or more ("Goed" on a new card, "Opnieuw" on a review card) does not. Unknown last rating → no
+ * short step.
  */
-export function inDueWindow(due: string | number, now: number, settings: Pick<Settings, 'due_window_minutes'>): boolean {
-  return (typeof due === 'number' ? due : Date.parse(due)) < now + dueWindowMs(settings);
+export function shortStep(p: Step, settings: Pick<Settings, 'due_window_minutes'>): boolean {
+  const last = Date.parse(p.last_review || '');
+  if (!Number.isFinite(last)) return false;
+  return Date.parse(p.due) - last < dueWindowMs(settings);
 }
 
-/** A rated item is done (for the bar) when its next due time is outside the due window. */
-export function leavesWindow(nextDue: string, now: Date, settings: Pick<Settings, 'due_window_minutes'>): boolean {
-  return !inDueWindow(nextDue, now.getTime(), settings);
+/**
+ * THE round rule, used everywhere (round membership in planToday, requeue in afterRating, "done" in leavesWindow,
+ * the later-today line), so they can never disagree: a started card is in the round when its due time has PASSED,
+ * or when it is in a short step (shorter than due_window_minutes). Membership does not depend on how far away the
+ * due time is from "now", so a 10-minute "Goed" never comes back early — not even 1 ms after the rating.
+ */
+export function inRound(p: Step, now: number, settings: Pick<Settings, 'due_window_minutes'>): boolean {
+  return Date.parse(p.due) <= now || shortStep(p, settings);
+}
+
+/** A rated item is done (for the bar) when its new step is not short (it leaves the round until it is due). */
+export function leavesWindow(next: Step, settings: Pick<Settings, 'due_window_minutes'>): boolean {
+  return !shortStep(next, settings);
 }
 
 /**
@@ -106,7 +121,6 @@ export function laterToday(
   eligible?: (c: Card) => boolean
 ): { groups: LaterGroup[]; nextAt: number | null } {
   const t = now.getTime();
-  const win = dueWindowMs(settings);
   const end = new Date(now);
   end.setHours(24, 0, 0, 0);
   const dues: number[] = [];
@@ -116,10 +130,11 @@ export function laterToday(
       const p = progress.get(progressKey(card.id, track));
       if (!p || (p.state === 'New' && p.reps === 0)) continue;
       const at = Date.parse(p.due);
-      if (at >= t + win && at < end.getTime()) dues.push(at);
+      // later today = not in the round yet (no short step, not due yet), due before midnight
+      if (!inRound(p, t, settings) && at < end.getTime()) dues.push(at);
     }
   }
   dues.sort((a, b) => a - b);
   const groups: LaterGroup[] = dues.length >= LATER_BATCH ? [{ n: LATER_BATCH, ...roundLater((dues[LATER_BATCH - 1] - t) / 60_000) }] : [];
-  return { groups, nextAt: dues.length ? dues[0] - win : null };
+  return { groups, nextAt: dues.length ? dues[0] : null }; // wake up when the first one is really due
 }

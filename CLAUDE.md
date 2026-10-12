@@ -187,11 +187,12 @@ keys, pos and descriptions (no tags_source column since 2026-10-05). The API map
   latch kept). `apps-script/Curriculum.gs` mirrors validation + status (Dashboard) — parity test. Full rules:
   docs/SHEET.md › Curriculum.
 - Studying now (no sessions, no timers, no cooldown): `planToday` (src/session.ts) + `src/today.ts`. The round = started
-  cards due in LESS than `due_window_minutes` (strict), capped at `max_reviews_per_day` (overflow rolls over), + new
+  cards whose due time has PASSED or whose OWN step (last rating → due) is SHORTER than `due_window_minutes` (10)
+  (`inRound`/`shortStep`, src/today.ts — never "distance from now", so a 10-min Goed is never back early), capped at `max_reviews_per_day` (overflow rolls over), + new
   cards from `getNewPerDay()` — the ONLY reader of `new_per_day`. `interleave`: due first, 1 new per 3 due. A rated
-  card goes back into the run ONLY if its next step is inside the window (`afterRating`, src/sessionFlow.ts) —
-  ONE rule, `inDueWindow` (src/today.ts), for the round, the requeue and "done", so they never disagree; "Goed"
-  (10 min) and "Makkelijk" leave the run and return via the later-today line. Long runs (> Settings `lapse_queue_threshold`
+  card goes back into the run ONLY if its new step is short (`afterRating`, src/sessionFlow.ts) — ONE rule for the
+  round, the requeue, "done" (`leavesWindow`) and the later-today line, so they never disagree; "Goed" (10 min),
+  "Makkelijk" and Opnieuw on a review card (10 min) leave the run and rejoin when actually due. Long runs (> Settings `lapse_queue_threshold`
   due cards left): a NON-new card rated Opnieuw is retried `lapse_requeue_min`..`max` cards later (never next), at most
   `lapse_max_retries` per card per run (`LapseContext` in afterRating). Cards that become due during the run join at the
   END (`appendDue`, fed by the plan's due list). `pickNextIndex`: a card in a short
@@ -249,7 +250,7 @@ keys, pos and descriptions (no tags_source column since 2026-10-05). The API map
   sentence/question cards only `prod`. `prod` unlocks when `recog` stability ≥ `unlock_prod_stability_days`.
 - Scheduling (`src/scheduler.ts`, `src/session.ts`): ts-fsrs, fuzz on, retention from Settings. The four
   outcomes are computed once when the answer is revealed; the tapped one is applied, so the interval on
-  the button is exactly what is scheduled. Steps inside the due window (< due_window_minutes) come back in the same run.
+  the button is exactly what is scheduled. Steps shorter than due_window_minutes come back in the same run.
 - New cards per day capped by Settings.`new_per_day`, ordered by `added` (then sheet order). A word's
   unlocked `prod` track has its own cap of the same size. Today's introductions are stored (`meta.intro`).
 - Each rating = progress + outbox event + intro list in ONE IndexedDB transaction (`recordReview`).

@@ -32,9 +32,10 @@ describe('the "Vandaag" bar', () => {
     expect(todayBar(todaysDone(undefined, now), []).fill).toBe(0);
   });
 
-  it('an item is done once it leaves the due window', () => {
-    expect(leavesWindow(at(8), now, settings)).toBe(false);
-    expect(leavesWindow(at(11), now, settings)).toBe(true);
+  it('an item is done once its new step is not short (step ≥ due_window_minutes)', () => {
+    expect(leavesWindow({ due: at(8), last_review: at(0) }, settings)).toBe(false);
+    expect(leavesWindow({ due: at(10), last_review: at(0) }, settings)).toBe(true);
+    expect(leavesWindow({ due: at(11), last_review: at(0) }, settings)).toBe(true);
   });
 
   it('resets at local midnight', () => {
@@ -78,16 +79,22 @@ describe('"Klaar voor nu!" and the next card later today', () => {
   });
 });
 
-describe('strict due window (due_window_minutes = 10)', () => {
-  it('9 minutes away is part of the round, exactly 10 minutes is not', () => {
+describe('round membership by the card\'s own step (due_window_minutes = 10)', () => {
+  it('a 9-minute step is part of the round, a 10-minute step is not — however close its due time is', () => {
     const cards = [card('a9'), card('a10')];
+    const step = (id: string, min: number): Progress => ({ ...prog(id, at(min)), last_review: at(0) });
     const progress = new Map([
-      [progressKey('a9', 'recog'), prog('a9', at(9))],
-      [progressKey('a10', 'recog'), prog('a10', at(10))]
+      [progressKey('a9', 'recog'), step('a9', 9)],
+      [progressKey('a10', 'recog'), step('a10', 10)]
     ]);
-    expect(planToday(cards, progress, settings, todaysIntro(undefined, now), now).due.map((i) => i.card.id)).toEqual(['a9']);
-    expect(leavesWindow(at(9), now, settings)).toBe(false);
-    expect(leavesWindow(at(10), now, settings)).toBe(true);
+    for (const ms of [0, 1, 1000, 60_000, 9 * 60_000 + 59_999]) {
+      const t = new Date(now.getTime() + ms);
+      expect(planToday(cards, progress, settings, todaysIntro(undefined, t), t).due.map((i) => i.card.id), `${ms} ms after`).toEqual(['a9']);
+    }
+    const ten = new Date(now.getTime() + 10 * 60_000); // its due time has passed → in the round
+    expect(planToday(cards, progress, settings, todaysIntro(undefined, ten), ten).due.map((i) => i.card.id)).toEqual(['a9', 'a10']);
+    expect(leavesWindow({ due: at(9), last_review: at(0) }, settings)).toBe(false);
+    expect(leavesWindow({ due: at(10), last_review: at(0) }, settings)).toBe(true);
   });
 });
 
@@ -132,7 +139,7 @@ describe('later today ("Volgende kaarten: …")', () => {
     const progress = new Map(ids.map((id, i) => [progressKey(id, 'recog'), prog(id, at(mins[i]))]));
     const r = laterToday(ids.map(card), progress, settings, now);
     expect(r.groups).toEqual([{ n: 5, hour: 1 }]); // the 5th (61 min) → "5 over ± 1 uur"
-    expect(r.nextAt).toBe(now.getTime() + 60_000); // the first (11 min) joins the round in 1 min (window 10)
+    expect(r.nextAt).toBe(now.getTime() + 11 * 60_000); // home wakes up when the first (11 min) is really due
     const four = ids.slice(0, 4);
     expect(laterToday(four.map(card), progress, settings, now).groups).toEqual([]); // only 4 later today
     const tomorrowOnly = new Map([[progressKey('t', 'recog'), prog('t', at(20 * 60))]]);
@@ -149,7 +156,9 @@ describe('later today ("Volgende kaarten: …")', () => {
     const plan = planToday(cards, progress, settings, { ...todaysIntro(undefined, now), main: ['x', 'y'] }, now);
     expect(plan.due.map((i) => i.card.id)).toEqual(['now1']); // Starten
     expect(laterToday(cards, progress, settings, now).groups).toEqual([{ n: 5, min: 35 }]); // + the line
-    const later = new Date(now.getTime() + 6 * 60_000); // s1 is now 9 min away → in the round
+    const early = new Date(now.getTime() + 6 * 60_000); // s1 is 9 min away: NOT yet in the round (its step is long)
+    expect(planToday(cards, progress, settings, { ...todaysIntro(undefined, early), main: ['x', 'y'] }, early).due.map((i) => i.card.id)).toEqual(['now1']);
+    const later = new Date(now.getTime() + 15 * 60_000); // s1 is due → in the round
     expect(planToday(cards, progress, settings, { ...todaysIntro(undefined, later), main: ['x', 'y'] }, later).due.map((i) => i.card.id)).toEqual(['now1', 's1']);
     expect(laterToday(cards, progress, settings, later).groups).toEqual([]); // 4 left later → no line
   });

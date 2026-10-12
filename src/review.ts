@@ -40,7 +40,7 @@ export async function rate(item: Item, outcome: Outcome, shownAt: number, now = 
   };
   let doneToday = todaysDone(s.doneToday, now);
   let round = todaysRound(s.round, now);
-  if (leavesWindow(next.due, now, currentSettings())) {
+  if (leavesWindow(next, currentSettings())) {
     const introduced = item.track === 'prod' && item.card.type === 'word' ? intro.prod : intro.main;
     const kind = introduced.includes(item.card.id) ? 'new' : 'due';
     doneToday = { ...doneToday, items: { ...doneToday.items, [next.key]: doneToday.items[next.key] ?? kind } };

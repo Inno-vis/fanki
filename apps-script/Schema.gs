@@ -38,7 +38,7 @@ var SETTINGS_DEFAULTS = [
   ['max_learning_backlog', 3, 'Een nieuwe kaart komt pas als minder dan dit aantal kaarten nog in de korte stappen zit'],
   ['require_approval', false, 'Alleen kaarten met controle = goedgekeurd gaan naar de app (aan = de leerling ziet geen ongecontroleerde kaarten)'],
   ['listen_share', 0.3, 'Deel van de herkenningskaarten als luisterkaart (0 = uit; alleen met een Nederlandse stem op de telefoon)'],
-  ['due_window_minutes', 5, 'Kaarten die binnen minder dan zoveel minuten terugkomen, tellen al mee (en komen terug in dezelfde ronde)'],
+  ['due_window_minutes', 10, 'Een kaart met een stap korter dan zoveel minuten blijft in de ronde; met 10 min of meer komt ze pas terug als ze echt aan de beurt is'],
   ['max_reviews_per_day', 100, 'Maximaal aantal herhalingen per dag (stil; de rest schuift door naar morgen)'],
   ['lapse_queue_threshold', 20, 'Lange rij: zijn er méér dan zoveel herhalingen over, dan komt een vergeten kaart (Opnieuw) later in dezelfde ronde terug'],
   ['lapse_requeue_min', 5, '… minstens zoveel kaarten later'],

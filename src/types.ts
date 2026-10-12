@@ -28,7 +28,7 @@ export type Settings = {
   known_min_reviews: number; // … and at least this many reviews
   show_french_help: boolean;
   max_learning_backlog: number;
-  due_window_minutes: number; // cards due within this many minutes count as due now
+  due_window_minutes: number; // a card whose own step is SHORTER than this stays in the round (inRound, src/today.ts)
   max_reviews_per_day: number; // silent cap on the due part of today's work; overflow rolls to tomorrow
   lapse_queue_threshold: number; // above this many remaining due cards, a failed review card is retried later in the run
   lapse_requeue_min: number; // … between this many
@@ -58,7 +58,7 @@ export const DEFAULT_SETTINGS: Settings = {
   known_min_reviews: 2,
   show_french_help: true,
   max_learning_backlog: 3,
-  due_window_minutes: 5,
+  due_window_minutes: 10,
   max_reviews_per_day: 100,
   lapse_queue_threshold: 20,
   lapse_requeue_min: 5,

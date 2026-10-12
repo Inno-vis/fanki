@@ -1,7 +1,8 @@
 import { describe, expect, it } from 'vitest';
 import { afterRating, appendDue } from './sessionFlow';
 import { planToday, todaysIntro, type Item } from './session';
-import { laterToday, leavesWindow } from './today';
+import { inRound, laterToday, leavesWindow, shortStep } from './today';
+import { makeScheduler, previewOutcomes } from './scheduler';
 import { progressKey, type Progress } from './scheduler';
 import type { Card } from './types';
 
@@ -31,14 +32,15 @@ describe('requeue = the due window (one rule, strictly less than due_window_minu
   it('"Goed": the bar counts it as done, home lists it as later, and it rejoins the round when its time comes', () => {
     const due = T0 + 10 * MIN;
     const p = { ...prog('g', due), state: 'Learning' as const };
-    expect(leavesWindow(p.due, new Date(T0), rules)).toBe(true); // done for the bar
+    expect(leavesWindow(p, rules)).toBe(true); // done for the bar
     const progress = new Map([[p.key, p]]);
     const at = (t: number) => planToday([card('g')], progress, settings, todaysIntro(undefined, new Date(t)), new Date(t));
     expect(at(T0).due).toEqual([]);
     const later = laterToday([card('g')], progress, settings, new Date(T0));
     expect(later.groups).toEqual([]); // one card: no line (only from 5 cards)
-    expect(later.nextAt).toBe(due - 10 * MIN); // but home wakes up when it joins the round
-    expect(ids(at(T0 + 2 * MIN).due)).toEqual(['g']); // now 8 min away → back in the round
+    expect(later.nextAt).toBe(due); // but home wakes up when it is really due
+    for (const ms of [1, 1000, MIN, 2 * MIN, 10 * MIN - 1]) expect(ids(at(T0 + ms).due), `${ms} ms after`).toEqual([]); // never early
+    expect(ids(at(T0 + 10 * MIN).due)).toEqual(['g']); // after 10 real minutes → back in the round
   });
 });
 
@@ -135,5 +137,37 @@ describe('cards that become due during the run join at the end (appendDue)', () 
     expect(ids(appendDue(q, [g], T0 + 5 * MIN))).toEqual(['a', 'b']); // not yet
     expect(ids(appendDue(q, [g], T0 + 10 * MIN))).toEqual(['a', 'b', 'g']); // its time: at the end, never before the current card
     expect(ids(appendDue([...q, g], [g], T0 + 11 * MIN))).toEqual(['a', 'b', 'g']); // once
+  });
+});
+
+describe('round membership by the card\'s own step (window 10, real FSRS)', () => {
+  const sched = makeScheduler({ desired_retention: 0.9 });
+  const at = new Date(T0);
+  const w = { due_window_minutes: 10 };
+
+  it('new card: Moeilijk (~6 min) stays in the round, Goed (10 min) leaves it', () => {
+    const o = previewOutcomes(sched, 'n', 'recog', undefined, at);
+    expect(Math.round(o[2].intervalMs / MIN)).toBeLessThan(10);
+    expect(shortStep(o[2].next, w)).toBe(true);
+    expect(Math.round(o[3].intervalMs / MIN)).toBe(10);
+    expect(shortStep(o[3].next, w)).toBe(false);
+    expect(leavesWindow(o[3].next, w)).toBe(true);
+  });
+
+  it('review card: Opnieuw (10 min) leaves the round', () => {
+    const p: Progress = { ...prog('r', T0), state: 'Review', stability: 12, reps: 6, learning_steps: 0, last_review: new Date(T0 - 12 * 24 * 60 * MIN).toISOString(), scheduled_days: 12 };
+    const o = previewOutcomes(sched, 'r', 'recog', p, at);
+    expect(Math.round(o[1].intervalMs / MIN)).toBe(10);
+    expect(leavesWindow(o[1].next, w)).toBe(true);
+  });
+
+  it('a 10-min Goed is never in the round before 10 real minutes (1 ms, 1 s, 1 min after) and is at 10 min', () => {
+    const g = previewOutcomes(sched, 'n', 'recog', undefined, at)[3].next;
+    for (const ms of [0, 1, 1000, MIN, 9 * MIN + 59_999]) expect(inRound(g, T0 + ms, w), `${ms} ms`).toBe(false);
+    expect(inRound(g, T0 + 10 * MIN, w)).toBe(true);
+    const q = afterRating(['n', 'x'].map(newItem), g, { ...rules, due_window_minutes: 10 }, T0 + 1);
+    expect(ids(q)).toEqual(['x']); // not requeued: it leaves the run
+    expect(ids(appendDue(q, [{ card: card('n'), track: 'recog', isNew: false, progress: g }], T0 + MIN))).toEqual(['x']);
+    expect(ids(appendDue(q, [{ card: card('n'), track: 'recog', isNew: false, progress: g }], T0 + 10 * MIN))).toEqual(['x', 'n']);
   });
 });

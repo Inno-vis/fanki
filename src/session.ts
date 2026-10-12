@@ -1,6 +1,6 @@
 import type { Card, Settings } from './types';
 import { progressKey, tracksFor, type Progress, type Track } from './scheduler';
-import { getNewPerDay, inDueWindow } from './today';
+import { getNewPerDay, inRound } from './today';
 
 export type Mode = 'nl_fr' | 'fr_nl' | 'cloze' | 'question' | 'oneway' | 'listen';
 
@@ -61,7 +61,7 @@ export function planToday(
     for (const track of tracks) {
       const p = progress.get(progressKey(card.id, track));
       if (isStarted(p)) {
-        if (inDueWindow(p!.due, now.getTime(), settings)) {
+        if (inRound(p!, now.getTime(), settings)) {
           const learning = p!.state === 'Learning' || p!.state === 'Relearning';
           due.push({ card, track, progress: p, isNew: false, ...(learning ? { learning } : {}) });
         }

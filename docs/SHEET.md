@@ -261,7 +261,7 @@ to move them into Cards. Nothing is ever written to Cards by `/addwords`.
 | require_approval | FALSE | ☑ = the app gets only Cards with `controle` = goedgekeurd. Turn on with `admin <env> enableApproval` (dry run first; `approveStudied` approves + 🚩 the cards she has studied, default on). On in DEV and PROD since 2026-10-02 |
 | listen_share | 0.3 | Share of word-recognition reviews that start with only the sound (🔊 "Wat hoor je?"); 0 = off. Only on phones with a Dutch voice |
 | max_learning_backlog | 3 | The next NEW card waits while this many cards are still in their short "again in minutes" steps |
-| due_window_minutes | 5 | Cards due in LESS than this many minutes count as due now (the round), and only such short steps come back in the same run. Keep it below the "Goed" step of a new card (10 min). Set to 5 on 2026-10-04 |
+| due_window_minutes | 10 | Round membership by the card's OWN step (from its rating to its due time): a step SHORTER than this keeps the card in the round (❌ Opnieuw 1 min, 😅 Moeilijk ~6 min on a new card); a step of 10 min or more (✅ Goed on a new card, ❌ Opnieuw on a review card) leaves the round until its due time has really passed. Not "distance from now", so a 10-minute Goed never comes back early. 10 since 2026-10-12 (was 5 under the old rule) |
 | max_reviews_per_day | 100 | Silent cap on the due part of today's work; the rest stays due and rolls to tomorrow |
 | lapse_queue_threshold | 20 | Long runs only: when MORE than this many due (non-new) cards remain in the run at the moment of rating, a card the student already knew and now rates ❌ Opnieuw is retried later in the same run (below) |
 | lapse_requeue_min | 5 | … at least this many cards later (random between min and max; after the last card when fewer remain — never next) |
@@ -351,15 +351,17 @@ cards = `dicht` (a `bekend` row that waited on one of them now waits on the near
 No sessions, no timers, no cooldown. What she can study NOW is one finite round (`src/today.ts`, `planToday` in
 src/session.ts):
 
-- **In the round:** every started card due now or in LESS than `due_window_minutes` (strict: 9 min in, exactly 10
-  min out), oldest first, capped at `max_reviews_per_day` (counting today's finished due reviews; the overflow
+- **In the round:** every started card whose due time has PASSED, or whose own step (from its last rating to its due
+  time) is SHORTER than `due_window_minutes` (`inRound`, src/today.ts: 9-min step in, 10-min step out — even 1 ms after
+  the rating), oldest first, capped at `max_reviews_per_day` (counting today's finished due reviews; the overflow
   stays due and rolls to tomorrow, silently) + today's remaining new cards (`getNewPerDay()`, per local day).
 - **Order:** due cards first, one new card after every 3 due cards, then the remaining new cards; a new card
   waits while `max_learning_backlog` cards are in short steps. Stopping is always allowed: every rating is saved.
-- **After a rating:** the card comes back in the same run ONLY if its next step is inside the due window
-  (strictly less than `due_window_minutes`: ❌ Opnieuw 1 min, 😅 Moeilijk ~6 min). ✅ Goed (10 min) and 😎 Makkelijk
-  leave the run: the bar counts the card as done and home lists it under "Volgende kaarten"; it joins the round
-  again when its time is inside the window. One rule decides the round, the comeback and "done". A card that
+- **After a rating:** the card comes back in the same run ONLY if its new step is short (strictly less than
+  `due_window_minutes`: ❌ Opnieuw 1 min, 😅 Moeilijk ~6 min on a new card). ✅ Goed (10 min), 😎 Makkelijk and ❌ Opnieuw
+  on a review card (10 min) leave the run: the bar counts the card as done and home lists it under "Volgende
+  kaarten"; it rejoins only when its due time has actually passed (at the end of the running queue, or Starten on
+  home, which wakes up exactly then). One rule decides the round, the comeback, "done" and the later-today line. A card that
   came back is not shown before its due time while other cards are ready (if nothing else is left, it is shown).
 - **Lapse retry (long runs):** above `lapse_queue_threshold` remaining due cards, a NON-new card rated ❌ Opnieuw
   comes back `lapse_requeue_min`..`lapse_requeue_max` cards later in the same run (it may come before its 10-minute

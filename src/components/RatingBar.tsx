@@ -1,6 +1,6 @@
 import type { Grade } from 'ts-fsrs';
 import { RATINGS, t } from '../i18n';
-import { formatInterval } from '../format';
+import { ratingLabels } from '../intervalGuard';
 import type { Outcome } from '../scheduler';
 
 /**
@@ -8,11 +8,12 @@ import type { Outcome } from '../scheduler';
  * All cards are self-rated; there is no typed answer.
  */
 export function RatingBar({ outcomes, onRate, disabled }: { outcomes: Record<Grade, Outcome>; onRate: (g: Grade) => void; disabled?: boolean }) {
+  const labels = ratingLabels(outcomes); // four different labels, from the same (final) intervals as the stored due times
   return (
     <div class="rating-bar">
       {RATINGS.map((r) => {
         const g = r.rating as Grade;
-        const interval = formatInterval(outcomes[g].intervalMs);
+        const interval = labels[g];
         return (
           <button
             key={r.key}

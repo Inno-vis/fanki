@@ -381,6 +381,22 @@ src/session.ts):
   the first later card joins the round, so Starten comes back.
 - The review screen shows only the card.
 
+## Rating buttons (phone only)
+
+The four buttons always go up, strictly: ❌ Opnieuw < 😅 Moeilijk < ✅ Goed < 😎 Makkelijk, for the stored due time
+AND the label under the button, for every card (new, learning, relearning, review). This is post-processing only
+(`src/intervalGuard.ts`); FSRS parameters, steps and fuzz are untouched.
+
+- **Due times:** from low to high, a button whose due time is equal to or earlier than the one below it moves to the
+  next rung above that one: 1 min, 5 min, 10 min, 30 min, 1 u, 6 u, 1 d, 2 d, 3 d, whole days up to 100 d, then
+  whole weeks, months and years. A push can cascade upwards; nothing ever moves down. Measured on 20,000 random cards
+  per state (2026-10-12): new cards never needed it; learning cards had Goed = Makkelijk in 9 % (Makkelijk +1 d);
+  relearning cards in up to half the cases (Goed +1–2 d, Makkelijk +1–3 d); review cards almost never (0.1 %).
+- **Labels:** when two neighbouring due times differ but would look the same (review cards: 52 d and 71 d both
+  "2 mnd"), the due dates stay and that pair gets finer labels (whole days up to ~100 d, then weeks; hours and
+  minutes only when still needed).
+- The label and the stored due time come from the same final value: what the button shows is what gets scheduled.
+
 ## Dashboard (formulas, read-only)
 
 Column A–B: te herhalen (all directions), goed onthouden (30 days), herhalingen deze week, actieve

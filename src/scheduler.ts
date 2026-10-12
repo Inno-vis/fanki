@@ -1,4 +1,5 @@
 import { createEmptyCard, fsrs, generatorParameters, State, type Card as FsrsCard, type Grade, type FSRS } from 'ts-fsrs';
+import { enforceOrder } from './intervalGuard';
 import type { Card, Settings } from './types';
 
 export type Track = 'recog' | 'prod';
@@ -70,7 +71,7 @@ export function snapshotOf(p: Progress): Snapshot {
 export type Outcome = { rating: Grade; next: Progress; intervalMs: number };
 
 /**
- * All four outcomes, computed ONCE when the answer is shown. The button labels and the applied result
+ * All four outcomes, computed ONCE when the answer is shown, then made strictly increasing (`enforceOrder`). The button labels and the applied result
  * come from the same computation, so with fuzz on the shown interval is exactly what gets scheduled.
  */
 export function previewOutcomes(sched: FSRS, card_id: string, track: Track, prev: Progress | undefined, now: Date): Record<Grade, Outcome> {
@@ -80,7 +81,9 @@ export function previewOutcomes(sched: FSRS, card_id: string, track: Track, prev
     const next = fromFsrsCard(card_id, track, preview[rating].card);
     out[rating] = { rating, next, intervalMs: new Date(next.due).getTime() - now.getTime() };
   }
-  return out;
+  // Opnieuw < Moeilijk < Goed < Makkelijk, strictly (post-processing; FSRS is untouched): the stored due time and the
+  // button label both come from this final value.
+  return enforceOrder(out, now);
 }
 
 /** Tracks a card has: word → recog (+ prod once unlocked); sentence/question → prod only. */

@@ -153,6 +153,10 @@ The repo is **public** and hosted on GitHub Pages.
   emoji (large) / Dutch label / interval (smallest). `RATINGS` + `INTERVAL_UNITS` in `src/i18n.ts`:
   ❌ Opnieuw (1) · 😅 Moeilijk (2) · ✅ Goed (3) · 😎 Makkelijk (4).
 - Intervals from ts-fsrs, formatted by `formatInterval`: "10 min", "2 u", "3 d", "3 wk", "4 mnd", "1 jr".
+- Strictly Opnieuw < Moeilijk < Goed < Makkelijk for due times AND labels (`src/intervalGuard.ts`, post-processing only):
+  `enforceOrder` (in `previewOutcomes`) pushes an equal/earlier button to the next ladder rung above the one below
+  (1/5/10/30 min, 1/6 u, 1/2/3 d, days to 100 d, weeks, months, years; cascades, never down); `ratingLabels` gives
+  a pair that would look equal finer labels without moving the dates. Docs: docs/SHEET.md › Rating buttons.
 - `aria-label` = "<Dutch label>, <interval>".
 - **Every card is self-rated** (the core feature): she reads the front, taps "Antwoord tonen", then
   rates herself. There are no typed answers anywhere.

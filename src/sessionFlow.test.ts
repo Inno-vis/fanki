@@ -171,3 +171,21 @@ describe('round membership by the card\'s own step (window 10, real FSRS)', () =
     expect(ids(appendDue(q, [{ card: card('n'), track: 'recog', isNew: false, progress: g }], T0 + 10 * MIN))).toEqual(['x', 'n']);
   });
 });
+
+describe('Opnieuw on a review card: leaves the round only at or below lapse_queue_threshold', () => {
+  const sched = makeScheduler({ desired_retention: 0.9 });
+  const p: Progress = { ...prog('r0', T0), state: 'Review', stability: 12, reps: 6, learning_steps: 0, last_review: new Date(T0 - 12 * 24 * 60 * MIN).toISOString(), scheduled_days: 12 };
+  const fail = previewOutcomes(sched, 'r0', 'recog', p, new Date(T0))[1].next; // ❌ Opnieuw: 10 min
+  const run = (left: number): Item[] => [
+    { card: card('r0'), track: 'recog', isNew: false, progress: p },
+    ...Array.from({ length: left }, (_, i): Item => ({ card: card(`r${i + 1}`), track: 'recog', isNew: false, progress: { ...p, key: progressKey(`r${i + 1}`, 'recog'), card_id: `r${i + 1}` } }))
+  ];
+  const r10 = { ...rules, due_window_minutes: 10 };
+  const after = (left: number) => afterRating(run(left), fail, r10, T0, { grade: 1, retries: {}, random: () => 0 });
+
+  it('below (5 left) and at (20 left) the threshold: it leaves the round; above (21 left): it is retried 5 cards later', () => {
+    expect(ids(after(5))).not.toContain('r0');
+    expect(ids(after(20))).not.toContain('r0');
+    expect(ids(after(21)).indexOf('r0')).toBe(5);
+  });
+});

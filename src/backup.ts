@@ -1,5 +1,5 @@
 import { NS } from './config';
-import { db, type Meta, type ReviewEvent, type StudentFlag } from './db';
+import { db, purgeDeletedCards, type Meta, type ReviewEvent, type StudentFlag } from './db';
 import type { Progress } from './scheduler';
 import { cleanUserSettings } from './userSettings';
 import { localDate } from './session';
@@ -15,10 +15,10 @@ export type Backup = {
   progress: Progress[];
   queue: ReviewEvent[]; // reviews not yet sent to the server
   flags: StudentFlag[];
-  meta: Partial<Pick<Meta, 'intro' | 'doneToday' | 'dayCounts' | 'studyTags' | 'userSettings' | 'curriculumOpened'>>;
+  meta: Partial<Pick<Meta, 'intro' | 'doneToday' | 'dayCounts' | 'studyTags' | 'userSettings' | 'curriculumOpened' | 'deletedCards'>>;
 };
 
-const META_KEYS = ['intro', 'doneToday', 'dayCounts', 'studyTags', 'userSettings', 'curriculumOpened'] as const;
+const META_KEYS = ['intro', 'doneToday', 'dayCounts', 'studyTags', 'userSettings', 'curriculumOpened', 'deletedCards'] as const;
 
 export async function exportBackup(now = new Date()): Promise<Backup> {
   const d = await db();
@@ -91,6 +91,13 @@ export async function importBackup(raw: unknown, now = new Date()): Promise<{ pr
     for (const [day, n] of Object.entries(b.meta.dayCounts)) merged[day] = Math.max(merged[day] ?? 0, Number(n) || 0);
     await meta.put({ key: 'dayCounts', value: merged });
   }
+  if (b.meta.deletedCards && typeof b.meta.deletedCards === 'object') {
+    // 🗑️ deleted cards: union, the earliest time wins; purged from cards and progress after this transaction.
+    const cur = ((await meta.get('deletedCards'))?.value ?? {}) as Record<string, string>;
+    const merged = { ...cur };
+    for (const [id, ts] of Object.entries(b.meta.deletedCards)) if (typeof ts === 'string' && (!merged[id] || ts < merged[id])) merged[id] = ts;
+    await meta.put({ key: 'deletedCards', value: merged });
+  }
   if (b.meta.curriculumOpened && typeof b.meta.curriculumOpened === 'object') {
     // Opened topics: union, the earliest date wins (a dicht row clears its tag again at the next evaluation).
     const cur = ((await meta.get('curriculumOpened'))?.value ?? {}) as Record<string, string>;
@@ -115,6 +122,7 @@ export async function importBackup(raw: unknown, now = new Date()): Promise<{ pr
     await meta.put({ key: 'doneToday', value: cur && cur.date === today ? { date: today, items: { ...done.items, ...cur.items } } : done });
   }
   await tx.done;
+  await purgeDeletedCards(); // restored deletions apply again (cards and progress leave this phone)
   return count;
 }
 

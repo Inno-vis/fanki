@@ -276,6 +276,12 @@ Removed 2026-10-04 (`admin <env> cleanSettings` deletes the rows, dry run first)
 
 All settings are read by the phone on every sync — change them here, no redeploy.
 
+**Deleted on the phone (never in this Sheet):** the student can delete a card on the review screen (🗑️, after a
+confirmation). That only affects that phone: the card stays in Cards, her earlier answers stay in Log and Progress,
+and other devices or students still see it. The phone keeps the list (`meta.deletedCards`, also in her JSON backup)
+and never shows the card again, even after a sync. To bring it back on that phone, the student has to restore an
+older backup or reinstall the app.
+
 **Phone-only settings (never in this Sheet):** on her phone, menu › ⚙️ Instellingen, she can override three
 things for herself. They are stored only on her device (IndexedDB `meta.userSettings`) and never sent to the
 Sheet or any server; they leave the phone only in her own JSON backup.

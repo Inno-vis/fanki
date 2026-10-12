@@ -114,6 +114,10 @@ export const UI = {
   },
 
   // 🚩 Student flags ("Gemarkeerd", local only). NOT the sheet's Cards.flags (see 'flag.*' below).
+  'card.delete': { nl: 'Verwijderen', fr: 'supprimer cette carte de ton téléphone' },
+  'card.deleteConfirm': { nl: 'Weet je het zeker? Je ziet deze kaart dan nooit meer.', fr: 'Tu es sûr·e ? Tu ne verras plus jamais cette carte sur ce téléphone.' },
+  'card.deleteCancel': { nl: 'Annuleren', fr: 'annuler' },
+  'card.deleted': { nl: 'Verwijderd', fr: 'supprimée' },
   'mark.button': { nl: 'Kaart markeren', fr: 'Marquer cette carte (pour en parler plus tard)' },
   'mark.done': { nl: 'Gemarkeerd', fr: 'Carte marquée' },
   'mark.addNote': { nl: '+ notitie', fr: '+ ajouter une note' },
@@ -302,6 +306,7 @@ export const HELP: Record<'home' | 'review' | 'settings' | 'progress' | 'marked'
         title: 'Marquer et arrêter',
         items: [
           { icon: '🚩', fr: 'marquer une carte qui te pose question' },
+          { icon: '🗑️', ui: 'card.delete', fr: 'ne plus jamais voir cette carte sur ce téléphone (on te demande d’abord)' },
           { ui: 'mark.addNote', fr: 'ajouter une note (ou appui long sur 🚩)' },
           { ui: 'review.back', fr: 'retour à l’accueil, tout est gardé' }
         ]

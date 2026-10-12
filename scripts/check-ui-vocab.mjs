@@ -13,7 +13,7 @@ const ALLOW = new Set(
   `de het een ik je jij jou u hij zij ze we wij is ben bent zijn was en of maar niet wel ook nog nu
    hier daar er dit dat deze die op in aan met van voor naar uit om te tot bij als dan wat wie waar hoe
    mijn jouw jullie ons onze heb hebt heeft kan kun kunt wil moet ja nee al zo heel veel meer tik
-   alle ok mag niets per min u d wk mnd jr fanki speesrep openmoji dev
+   alle ok mag niets per min u d wk mnd jr fanki speesrep openmoji dev ziet
    max teruggezet iconenproject`.split(/\s+/).filter(Boolean) // max = maximaal, teruggezet = terugzetten, iconenproject = icoon + project (all taught)
 );
 

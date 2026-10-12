@@ -33,6 +33,7 @@ export type Meta = {
   intro: Intro; // new cards introduced today
   curriculum: CurriculumRow[];
   curriculumOpened: Record<string, string>; // latch: tag → local date it opened (src/curriculum.ts)
+  deletedCards: Record<string, string>; // 🗑️ cards the student deleted on THIS phone: card_id → ISO time (never synced)
   studyTags: string[]; // tag filter ("Kies een onderwerp"); [] = everything
   doneToday: DoneToday; // items finished today (silent daily due cap); another date counts as empty
   round: Round; // the current round (the "Vandaag" bar); see src/today.ts
@@ -141,8 +142,10 @@ export async function saveSnapshot(cards: Card[], meta: Partial<Meta>): Promise<
     if (old) await flagStore.put({ ...f, label: cardLabel(old) });
   }
   await cardStore.clear();
-  for (const c of cards) await cardStore.put(c);
   const metaStore = tx.objectStore('meta');
+  const deleted = ((await metaStore.get('deletedCards'))?.value ?? {}) as Record<string, string>;
+  for (const c of cards) if (!deleted[c.id]) await cardStore.put(c); // a card deleted on this phone never comes back
+
   for (const [key, value] of Object.entries(meta)) await metaStore.put({ key: key as keyof Meta, value });
   await tx.done;
 }
@@ -195,11 +198,12 @@ export async function deleteEvents(ids: string[]): Promise<void> {
  */
 export async function mergeServerProgress(rows: Progress[]): Promise<number> {
   const d = await db();
-  const tx = d.transaction(['progress', 'queue'], 'readwrite');
+  const tx = d.transaction(['progress', 'queue', 'meta'], 'readwrite');
   const pending = new Set((await tx.objectStore('queue').getAll()).map((e) => `${e.card_id}|${e.track}`));
+  const deleted = ((await tx.objectStore('meta').get('deletedCards'))?.value ?? {}) as Record<string, string>;
   let changed = 0;
   for (const row of rows) {
-    if (pending.has(row.key)) continue;
+    if (pending.has(row.key) || deleted[row.card_id]) continue;
     const local = await tx.objectStore('progress').get(row.key);
     if (!local || (row.last_review || '') > (local.last_review || '')) {
       await tx.objectStore('progress').put(row);
@@ -208,4 +212,26 @@ export async function mergeServerProgress(rows: Progress[]): Promise<number> {
   }
   await tx.done;
   return changed;
+}
+
+/**
+ * 🗑️ Deletes a card on THIS phone only (never the Sheet): remembered in meta.deletedCards, removed from the cards
+ * store with its progress (all tracks). Answers already given for it stay in the outbox and are still sent.
+ */
+export async function deleteCardLocally(cardId: string, now = new Date()): Promise<void> {
+  const d = await db();
+  const tx = d.transaction(['cards', 'progress', 'meta'], 'readwrite');
+  const meta = tx.objectStore('meta');
+  const deleted = { ...(((await meta.get('deletedCards'))?.value ?? {}) as Record<string, string>) };
+  if (!deleted[cardId]) deleted[cardId] = now.toISOString();
+  await meta.put({ key: 'deletedCards', value: deleted });
+  await tx.objectStore('cards').delete(cardId);
+  for (const key of await tx.objectStore('progress').index('card_id').getAllKeys(cardId)) await tx.objectStore('progress').delete(key);
+  await tx.done;
+}
+
+/** Removes every card in meta.deletedCards (and its progress) from this phone, e.g. after restoring a backup. */
+export async function purgeDeletedCards(): Promise<void> {
+  const ids = Object.keys(((await getMeta('deletedCards')) ?? {}) as Record<string, string>);
+  for (const id of ids) await deleteCardLocally(id);
 }

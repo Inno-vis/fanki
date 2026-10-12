@@ -107,7 +107,7 @@ The repo is **public** and hosted on GitHub Pages.
   `listening` = voice && her toggle; `listenMode()` (src/tts.ts) decides listening cards. Components never read
   `state.settings` / `state.userSettings` directly (`useSettingControls()` / `setUserSetting()` for the page).
 - JSON backup (same page; `src/backup.ts`): export = progress, unsent reviews, 🚩 flags, intro, doneToday,
-  dayCounts, studyTags, userSettings (no cards). Import MERGES (newer progress/flag wins, reviews added, today's
+  dayCounts, studyTags, userSettings, curriculumOpened, deletedCards (no cards). Import MERGES (newer progress/flag wins, reviews added, today's
   records only from today) and refuses files of the other app (DEV/PROD). iPhone: share sheet; else a download.
 
 ## OpenMoji pictures (emoji cards)
@@ -223,6 +223,19 @@ keys, pos and descriptions (no tags_source column since 2026-10-05). The API map
   "Gemarkeerd" still names a card that left the phone (e.g. not approved).
 - Strings use the `mark.*` i18n keys. Never mix up with `Card.flags` / `flag.*` (sheet content markers:
   false-friend, separable).
+
+## 🗑️ Deleting a card — this phone only
+
+- 🗑️ next to 🚩 on the review screen (`components/DeleteButton.tsx`, aria-label "Verwijderen"), far from the rating
+  buttons. A confirmation sheet ("Weet je het zeker? Je ziet deze kaart dan nooit meer." · Annuleren / Verwijderen);
+  nothing happens before Verwijderen, Annuleren returns to the same card.
+- `deleteCardLocally` (src/db.ts): `meta.deletedCards` {card_id: ISO time}, the card and its progress (all tracks) leave
+  IndexedDB; answers already given stay in the outbox and are still sent. `saveSnapshot` and `mergeServerProgress`
+  skip deleted cards, so a sync never brings one back; everything (review, new cards, "Kies een onderwerp", curriculum
+  scores) works from the cards on the phone, so it disappears everywhere. In the JSON backup; a restore re-applies
+  the deletions (`purgeDeletedCards`).
+- Scope: ONLY this phone. The Sheet, the teacher's Log/Progress (her earlier answers), other devices and other
+  students are untouched; the teacher can't see the deletion.
 
 ## Domain rules
 

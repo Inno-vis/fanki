@@ -189,6 +189,14 @@ var APP_SEED_CARDS = [
   'word|toestel|het|noun|l\'appareil|Mijn toestel heeft geen stem.|Mon appareil n\'a pas de voix.|app|manual|',
   'word|back-up|de|noun|la sauvegarde|Ik maak een back-up.|Je fais une sauvegarde.|app|manual|',
   'word|terugzetten||verb (separable)|remettre, restaurer|Ik zet de back-up terug.|Je restaure la sauvegarde.|app|manual|separable',
+  // 🗑️ delete button + About (2026-10-12)
+  'word|verwijderen||verb|supprimer, effacer|Ik verwijder de kaart.|Je supprime la carte.|app|manual|',
+  'word|annuleren||verb|annuler|Ik annuleer de afspraak.|J\'annule le rendez-vous.|app|manual|',
+  'word|zeker||adj|sûr, certain|Weet je het zeker?|Tu es sûr·e ?|app|manual|',
+  'word|nooit||adv|jamais|Ik ben nooit te laat.|Je ne suis jamais en retard.|app|manual|',
+  'word|weten||verb|savoir|Ik weet het antwoord.|Je connais la réponse.|app|manual|',
+  'word|zien||verb|voir|Ik zie de kaart.|Je vois la carte.|app|manual|',
+  'word|leraar|de|noun|le professeur|De leraar helpt mij.|Le professeur m\'aide.|app|manual|',
   'word|voorlezen||verb (separable)|lire à voix haute|De telefoon leest het antwoord voor.|Le téléphone lit la réponse à voix haute.|app|manual|separable',
   'word|ander||adj|autre (andere = autre, avec -e)|Heb je een andere dag?|Tu as un autre jour ?|app|manual|',
   // Over SpeesRep words (2026-10-04)

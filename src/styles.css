@@ -846,6 +846,32 @@ body {
   opacity: 1;
 }
 
+/* 🗑️ next to 🚩 (top right of the card), far from the rating buttons at the bottom */
+.delete-btn {
+  position: absolute;
+  top: 6px;
+  right: 54px;
+  width: 44px;
+  height: 44px;
+  border: 0;
+  border-radius: 50%;
+  background: transparent;
+  font-size: 18px;
+  opacity: 0.45;
+  touch-action: manipulation;
+}
+
+.confirm-actions {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+}
+
+.btn-danger {
+  background: var(--again);
+  color: var(--primary-text); /* white in light, near-black in dark: readable on --again in both */
+}
+
 .flag-btn:active {
   opacity: 1;
   transform: scale(1.1);

@@ -327,3 +327,35 @@ for (const [w, h] of [[375, 667], [320, 568]] as const) {
     });
   }
 }
+
+test('🗑️ delete a card on this phone: cancel keeps it, confirm removes it, a sync does not bring it back', async ({ page }) => {
+  const server = mockServer();
+  await server.install(page);
+  await page.goto('/fanki/dev/');
+  await waitSynced(page);
+  await inMenu(page, () => expect(page.getByText('· 5 kaarten')).toBeVisible());
+  await page.getByRole('button', { name: 'Starten' }).click();
+  const front = page.locator('.card-front');
+  const first = await front.textContent();
+
+  // Annuleren: nothing happens, same card
+  await page.getByRole('button', { name: 'Verwijderen' }).click();
+  const dialog = page.getByRole('dialog', { name: 'Weet je het zeker? Je ziet deze kaart dan nooit meer.' });
+  await expect(dialog).toBeVisible();
+  await dialog.getByRole('button', { name: 'Annuleren' }).click();
+  await expect(dialog).toBeHidden();
+  await expect(front).toHaveText(first!);
+
+  // Verwijderen after confirming: the next card
+  await page.getByRole('button', { name: 'Verwijderen' }).click();
+  await dialog.getByRole('button', { name: 'Verwijderen' }).click();
+  await expect(dialog).toBeHidden();
+  await expect(front).not.toHaveText(first!);
+
+  // back home, sync again: still 4 cards on this phone
+  await page.getByRole('button', { name: /Terug/ }).click();
+  await inMenu(page, async () => {
+    await page.getByRole('button', { name: 'Synchroniseren' }).click();
+    await expect(page.getByText('· 4 kaarten')).toBeVisible({ timeout: 20_000 });
+  });
+});

@@ -10,6 +10,7 @@ import { modeFor, pickNextIndex, type Item } from '../session';
 import { afterRating, appendDue } from '../sessionFlow';
 import { subjectFor } from '../display';
 import { FlagButton } from '../components/FlagButton';
+import { DeleteButton } from '../components/DeleteButton';
 import { markEngaged } from '../installPrompt';
 import { rate } from '../review';
 import { useStore } from '../store';
@@ -62,6 +63,18 @@ export function Review({ items, due = [], onExit }: { items: Item[]; due?: Item[
     [item, revealed]
   );
 
+  /** 🗑️ The card left this phone: drop all its tracks from the run and show the next card. */
+  const removeCard = (cardId: string) => {
+    setRevealed(false);
+    shownAt.current = Date.now();
+    setQueue((q) => {
+      const rest = q.filter((i) => i.card.id !== cardId);
+      const k = pickNextIndex(rest, settings.max_learning_backlog);
+      if (k > 0) rest.unshift(...rest.splice(k, 1));
+      return rest;
+    });
+  };
+
   const onRate = async (g: Grade) => {
     if (!outcomes || busy) return;
     setBusy(true);
@@ -92,6 +105,7 @@ export function Review({ items, due = [], onExit }: { items: Item[]; due?: Item[
           <div class="card-wrap">
             <CardFace card={item.card} mode={modeFor(item.card, item.track, item.listen)} revealed={revealed} readAnswer={settings.readAnswer} />
             <FlagButton key={item.card.id} cardId={item.card.id} />
+            <DeleteButton key={`d-${item.card.id}`} cardId={item.card.id} onDeleted={removeCard} />
           </div>
           <div class="review-actions">
             {revealed && outcomes ? (

@@ -72,6 +72,10 @@ She sees **nl**. **fr** is hidden help: shown only in the "Hulp" panel and the o
 | `audio.play` | Luisteren | Écouter le mot en néerlandais |
 | `audio.question` | Wat hoor je? | Qu’est-ce que tu entends ? Essaie de comprendre le mot, puis montre la réponse. |
 | `audio.noVoice` | Geen Nederlandse stem op deze telefoon. | Pas de voix néerlandaise sur ce téléphone. iPhone : Réglages › Accessibilité › Contenu énoncé › Voix › Néerlandais (télécharger). Android : Paramètres › Synthèse vocale (Google) › Installer les données vocales › Néerlandais. |
+| `card.delete` | Verwijderen | supprimer cette carte de ton téléphone |
+| `card.deleteConfirm` | Weet je het zeker? Je ziet deze kaart dan nooit meer. | Tu es sûr·e ? Tu ne verras plus jamais cette carte sur ce téléphone. |
+| `card.deleteCancel` | Annuleren | annuler |
+| `card.deleted` | Verwijderd | supprimée |
 | `mark.button` | Kaart markeren | Marquer cette carte (pour en parler plus tard) |
 | `mark.done` | Gemarkeerd | Carte marquée |
 | `mark.addNote` | + notitie | + ajouter une note |
@@ -179,6 +183,7 @@ Lees de kaart. Tik op Antwoord tonen. Kies dan een knop.
 | Sur la carte | valse vriend | faux ami |
 | Sur la carte | afkorting | abréviation |
 | Marquer et arrêter | 🚩 | marquer une carte qui te pose question |
+| Marquer et arrêter | 🗑️ Verwijderen | ne plus jamais voir cette carte sur ce téléphone (on te demande d’abord) |
 | Marquer et arrêter | + notitie | ajouter une note (ou appui long sur 🚩) |
 | Marquer et arrêter | Terug | retour à l’accueil, tout est gardé |
 | Pas de voix néerlandaise ? (ingeklapt) (stappen) |  | iPhone : Réglages › Accessibilité › Contenu énoncé › Voix › Néerlandais |

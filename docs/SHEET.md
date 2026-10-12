@@ -266,6 +266,7 @@ to move them into Cards. Nothing is ever written to Cards by `/addwords`.
 | lapse_queue_threshold | 20 | Long runs only: when MORE than this many due (non-new) cards remain in the run at the moment of rating, a card the student already knew and now rates ❌ Opnieuw is retried later in the same run (below) |
 | lapse_requeue_min | 5 | … at least this many cards later (random between min and max; after the last card when fewer remain — never next) |
 | lapse_requeue_max | 10 | … at most this many cards later |
+| easy_first_interval_days | 14 | 😎 Makkelijk on the FIRST review of a NEW card (recognition track only): due after this many days ±15 % (12–16 d at 14). FSRS's own stability (8.3 d) is kept; only the due date and scheduled_days change, so the next review is simply a bit later for FSRS. The prod track and all later reviews keep FSRS's values. 0 = FSRS's own (about 6–10 d) |
 | lapse_max_retries | 2 | … at most this many retries per card per run; after that the card follows its FSRS due time |
 
 Removed 2026-10-04 (`admin <env> cleanSettings` deletes the rows, dry run first): `cooldown_minutes`,
@@ -276,8 +277,8 @@ Removed 2026-10-04 (`admin <env> cleanSettings` deletes the rows, dry run first)
 
 All settings are read by the phone on every sync — change them here, no redeploy.
 
-**Deleted on the phone (never in this Sheet):** the student can delete a card on the review screen (🗑️, after a
-confirmation). That only affects that phone: the card stays in Cards, her earlier answers stay in Log and Progress,
+**Deleted on the phone (never in this Sheet):** the student can delete a card on the review screen (🗑️, shown only
+after "Antwoord tonen", then a confirmation). That only affects that phone: the card stays in Cards, her earlier answers stay in Log and Progress,
 and other devices or students still see it. The phone keeps the list (`meta.deletedCards`, also in her JSON backup)
 and never shows the card again, even after a sync. To bring it back on that phone, the student has to restore an
 older backup or reinstall the app.
@@ -397,6 +398,8 @@ AND the label under the button, for every card (new, learning, relearning, revie
 - **Labels:** when two neighbouring due times differ but would look the same (review cards: 52 d and 71 d both
   "2 mnd"), the due dates stay and that pair gets finer labels (whole days up to ~100 d, then weeks; hours and
   minutes only when still needed).
+- First review of a new card (recognition only): 😎 Makkelijk uses `easy_first_interval_days` ±15 % (see Settings),
+  applied before the order guard, so the ladder still holds.
 - The label and the stored due time come from the same final value: what the button shows is what gets scheduled.
 
 ## Dashboard (formulas, read-only)

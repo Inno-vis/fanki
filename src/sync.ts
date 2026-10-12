@@ -49,6 +49,7 @@ export function cleanSettings(raw: Partial<Settings> | undefined): Settings {
     lapse_requeue_min: Math.round(num(s.lapse_requeue_min, 5, 1, 1000)),
     lapse_requeue_max: Math.round(num(s.lapse_requeue_max, 10, 1, 1000)),
     lapse_max_retries: Math.round(num(s.lapse_max_retries, 2, 0, 100)),
+    easy_first_interval_days: num(s.easy_first_interval_days, 14, 0, 365),
     listen_share: num(s.listen_share, 0.3, 0, 1)
   };
 }

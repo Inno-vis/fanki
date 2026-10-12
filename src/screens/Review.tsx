@@ -59,7 +59,12 @@ export function Review({ items, due = [], onExit }: { items: Item[]; due?: Item[
   const item = queue[0];
   // Computed once per reveal: the intervals on the buttons are exactly what gets applied.
   const outcomes = useMemo<Record<Grade, Outcome> | null>(
-    () => (item && revealed ? previewOutcomes(sched, item.card.id, item.track, s.progress.get(`${item.card.id}|${item.track}`), new Date()) : null),
+    () =>
+      item && revealed
+        ? previewOutcomes(sched, item.card.id, item.track, s.progress.get(`${item.card.id}|${item.track}`), new Date(), {
+            easyFirstDays: settings.easy_first_interval_days
+          })
+        : null,
     [item, revealed]
   );
 
@@ -105,7 +110,7 @@ export function Review({ items, due = [], onExit }: { items: Item[]; due?: Item[
           <div class="card-wrap">
             <CardFace card={item.card} mode={modeFor(item.card, item.track, item.listen)} revealed={revealed} readAnswer={settings.readAnswer} />
             <FlagButton key={item.card.id} cardId={item.card.id} />
-            <DeleteButton key={`d-${item.card.id}`} cardId={item.card.id} onDeleted={removeCard} />
+            {revealed && <DeleteButton key={`d-${item.card.id}`} cardId={item.card.id} onDeleted={removeCard} />}
           </div>
           <div class="review-actions">
             {revealed && outcomes ? (

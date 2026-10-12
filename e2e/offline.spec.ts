@@ -328,7 +328,7 @@ for (const [w, h] of [[375, 667], [320, 568]] as const) {
   }
 }
 
-test('🗑️ delete a card on this phone: cancel keeps it, confirm removes it, a sync does not bring it back', async ({ page }) => {
+test('🗑️ delete a card on this phone (only after Antwoord tonen): cancel keeps it, confirm removes it, a sync does not bring it back', async ({ page }) => {
   const server = mockServer();
   await server.install(page);
   await page.goto('/fanki/dev/');
@@ -338,6 +338,12 @@ test('🗑️ delete a card on this phone: cancel keeps it, confirm removes it, 
   const front = page.locator('.card-front');
   const first = await front.textContent();
 
+  // 🗑️ only after "Antwoord tonen"
+  await expect(page.getByRole('button', { name: 'Verwijderen' })).toHaveCount(0);
+  await page.getByRole('button', { name: 'Antwoord tonen' }).click();
+  await page.getByRole('dialog', { name: 'De vier knoppen' }).getByRole('button', { name: 'Klaar' }).click(); // one-time overlay
+  await expect(page.getByRole('button', { name: 'Verwijderen' })).toBeVisible();
+
   // Annuleren: nothing happens, same card
   await page.getByRole('button', { name: 'Verwijderen' }).click();
   const dialog = page.getByRole('dialog', { name: 'Weet je het zeker? Je ziet deze kaart dan nooit meer.' });
@@ -346,11 +352,12 @@ test('🗑️ delete a card on this phone: cancel keeps it, confirm removes it, 
   await expect(dialog).toBeHidden();
   await expect(front).toHaveText(first!);
 
-  // Verwijderen after confirming: the next card
+  // Verwijderen after confirming: the next card (shown without its answer, so 🗑️ is hidden again)
   await page.getByRole('button', { name: 'Verwijderen' }).click();
   await dialog.getByRole('button', { name: 'Verwijderen' }).click();
   await expect(dialog).toBeHidden();
   await expect(front).not.toHaveText(first!);
+  await expect(page.getByRole('button', { name: 'Verwijderen' })).toHaveCount(0);
 
   // back home, sync again: still 4 cards on this phone
   await page.getByRole('button', { name: /Terug/ }).click();

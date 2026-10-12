@@ -43,7 +43,8 @@ var SETTINGS_DEFAULTS = [
   ['lapse_queue_threshold', 20, 'Lange rij: zijn er méér dan zoveel herhalingen over, dan komt een vergeten kaart (Opnieuw) later in dezelfde ronde terug'],
   ['lapse_requeue_min', 5, '… minstens zoveel kaarten later'],
   ['lapse_requeue_max', 10, '… hoogstens zoveel kaarten later'],
-  ['lapse_max_retries', 2, '… hoogstens zoveel keer per kaart per ronde (daarna geldt de gewone tijd van de kaart)']
+  ['lapse_max_retries', 2, '… hoogstens zoveel keer per kaart per ronde (daarna geldt de gewone tijd van de kaart)'],
+  ['easy_first_interval_days', 14, 'Makkelijk bij de eerste keer van een nieuwe kaart (herkennen): terug na ongeveer zoveel dagen (±15 %; 0 = zoals FSRS)']
 ];
 
 // tag | label_nl (shown to the learner) | label_fr (teacher) | description | subject_nl (label above the card)

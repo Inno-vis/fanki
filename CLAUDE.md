@@ -157,6 +157,8 @@ The repo is **public** and hosted on GitHub Pages.
   `enforceOrder` (in `previewOutcomes`) pushes an equal/earlier button to the next ladder rung above the one below
   (1/5/10/30 min, 1/6 u, 1/2/3 d, days to 100 d, weeks, months, years; cascades, never down); `ratingLabels` gives
   a pair that would look equal finer labels without moving the dates. Docs: docs/SHEET.md › Rating buttons.
+- First review of a NEW card on the recog track: 😎 Makkelijk = Settings `easy_first_interval_days` (14) ±15 %
+  (`PreviewOptions.easyFirstDays` in previewOutcomes, before the guard); FSRS stability kept, only due + scheduled_days.
 - `aria-label` = "<Dutch label>, <interval>".
 - **Every card is self-rated** (the core feature): she reads the front, taps "Antwoord tonen", then
   rates herself. There are no typed answers anywhere.
@@ -231,8 +233,8 @@ keys, pos and descriptions (no tags_source column since 2026-10-05). The API map
 
 ## 🗑️ Deleting a card — this phone only
 
-- 🗑️ next to 🚩 on the review screen (`components/DeleteButton.tsx`, aria-label "Verwijderen"), far from the rating
-  buttons. A confirmation sheet ("Weet je het zeker? Je ziet deze kaart dan nooit meer." · Annuleren / Verwijderen);
+- 🗑️ next to 🚩 on the review screen, ONLY after "Antwoord tonen" (`components/DeleteButton.tsx`, aria-label
+  "Verwijderen"), far from the rating buttons. A confirmation sheet ("Weet je het zeker? Je ziet deze kaart dan nooit meer." · Annuleren / Verwijderen);
   nothing happens before Verwijderen, Annuleren returns to the same card.
 - `deleteCardLocally` (src/db.ts): `meta.deletedCards` {card_id: ISO time}, the card and its progress (all tracks) leave
   IndexedDB; answers already given stay in the outbox and are still sent. `saveSnapshot` and `mergeServerProgress`

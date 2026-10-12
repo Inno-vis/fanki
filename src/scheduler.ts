@@ -71,15 +71,42 @@ export function snapshotOf(p: Progress): Snapshot {
 export type Outcome = { rating: Grade; next: Progress; intervalMs: number };
 
 /**
- * All four outcomes, computed ONCE when the answer is shown, then made strictly increasing (`enforceOrder`). The button labels and the applied result
+ * All four outcomes, computed ONCE when the answer is shown (with the first-view Makkelijk override), then made
+ * strictly increasing (`enforceOrder`). The button labels and the applied result
  * come from the same computation, so with fuzz on the shown interval is exactly what gets scheduled.
  */
-export function previewOutcomes(sched: FSRS, card_id: string, track: Track, prev: Progress | undefined, now: Date): Record<Grade, Outcome> {
+export type PreviewOptions = {
+  /** Settings.easy_first_interval_days: 😎 Makkelijk on a NEW card's first recog review (0/undefined = FSRS's own). */
+  easyFirstDays?: number;
+  /** For the ±15 % spread; injectable for tests. */
+  random?: () => number;
+};
+
+const DAY_MS = 86_400_000;
+
+export function previewOutcomes(
+  sched: FSRS,
+  card_id: string,
+  track: Track,
+  prev: Progress | undefined,
+  now: Date,
+  opts: PreviewOptions = {}
+): Record<Grade, Outcome> {
   const preview = sched.repeat(toFsrsCard(prev, now), now);
   const out = {} as Record<Grade, Outcome>;
   for (const rating of [1, 2, 3, 4] as Grade[]) {
     const next = fromFsrsCard(card_id, track, preview[rating].card);
     out[rating] = { rating, next, intervalMs: new Date(next.due).getTime() - now.getTime() };
+  }
+  // First review of a NEW card, recognition track only: 😎 Makkelijk comes back after easyFirstDays ±15 %. FSRS's own
+  // stability is kept (only due + scheduled_days change), so the next review is just a little earlier/later for FSRS.
+  const isFirst = !prev || (prev.state === 'New' && !prev.reps);
+  if (isFirst && track === 'recog' && opts.easyFirstDays && opts.easyFirstDays > 0) {
+    const days = opts.easyFirstDays * (0.85 + 0.3 * (opts.random ?? Math.random)());
+    const ms = Math.round(days * DAY_MS);
+    const o = out[4];
+    o.intervalMs = ms;
+    o.next = { ...o.next, due: new Date(now.getTime() + ms).toISOString(), scheduled_days: Math.max(1, Math.round(days)) };
   }
   // Opnieuw < Moeilijk < Goed < Makkelijk, strictly (post-processing; FSRS is untouched): the stored due time and the
   // button label both come from this final value.

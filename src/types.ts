@@ -34,6 +34,7 @@ export type Settings = {
   lapse_requeue_min: number; // … between this many
   lapse_requeue_max: number; // … and this many cards later
   lapse_max_retries: number; // … at most this many times per card per run
+  easy_first_interval_days: number; // 😎 Makkelijk on a NEW card's first (recog) review: due after this many days (±15 %)
   listen_share: number; // share of word-recognition reviews done as listening cards (0 = off)
 };
 
@@ -64,6 +65,7 @@ export const DEFAULT_SETTINGS: Settings = {
   lapse_requeue_min: 5,
   lapse_requeue_max: 10,
   lapse_max_retries: 2,
+  easy_first_interval_days: 14,
   listen_share: 0.3
 };
 

@@ -35,8 +35,8 @@ export function App() {
     voicesReady().then((v) => setState({ hasVoice: !!v }));
   }, []);
   /** Today's run; with listening on, some word-recognition reviews become listening cards. */
-  const todayItems = () =>
-    interleave(plan).map((i) => ({ ...i, listen: listenMode(i.card, i.track, i.progress?.reps ?? 0, settings) }));
+  const withListen = (i: Item) => ({ ...i, listen: listenMode(i.card, i.track, i.progress?.reps ?? 0, settings) });
+  const todayItems = () => interleave(plan).map(withListen);
 
   // Load what's on the phone first (works offline), then refresh from the sheet when online.
   useEffect(() => {
@@ -86,6 +86,8 @@ export function App() {
     settings.new_per_day, settings.due_window_minutes, settings.max_reviews_per_day, settings.unlock_prod_stability_days,
     s.curriculumOpened, s.tags, settings.known_stability_days, settings.known_min_reviews
   ]);
+  // Due cards as planned right now: the review screen appends those whose time has passed (after each rating).
+  const dueNow = useMemo(() => plan.due.map(withListen), [plan]);
 
   // The curriculum latch: a topic that opened stays open (a dicht row clears it). Stored on the phone.
   useEffect(() => {
@@ -116,7 +118,7 @@ export function App() {
       <div class="app">
         <UpdateBanner />
         <Toast />
-        <Review items={screen.items} onExit={() => setScreen({ name: 'home' })} />
+        <Review items={screen.items} due={dueNow} onExit={() => setScreen({ name: 'home' })} />
       </div>
     );
   }

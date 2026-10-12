@@ -187,7 +187,10 @@ keys, pos and descriptions (no tags_source column since 2026-10-05). The API map
   cards from `getNewPerDay()` — the ONLY reader of `new_per_day`. `interleave`: due first, 1 new per 3 due. A rated
   card goes back into the run ONLY if its next step is inside the window (`afterRating`, src/sessionFlow.ts) —
   ONE rule, `inDueWindow` (src/today.ts), for the round, the requeue and "done", so they never disagree; "Goed"
-  (10 min) and "Makkelijk" leave the run and return via the later-today line. `pickNextIndex`: a card in a short
+  (10 min) and "Makkelijk" leave the run and return via the later-today line. Long runs (> Settings `lapse_queue_threshold`
+  due cards left): a NON-new card rated Opnieuw is retried `lapse_requeue_min`..`max` cards later (never next), at most
+  `lapse_max_retries` per card per run (`LapseContext` in afterRating). Cards that become due during the run join at the
+  END (`appendDue`, fed by the plan's due list). `pickNextIndex`: a card in a short
   step is not shown before its due time while other cards are ready (if only such cards are left, the first due
   one is shown). Home: "Vandaag" bar = current round
   (`meta.round`, `nextRound`: finished → new round at 0, arrivals join a running round; written in

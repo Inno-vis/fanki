@@ -30,6 +30,10 @@ export type Settings = {
   max_learning_backlog: number;
   due_window_minutes: number; // cards due within this many minutes count as due now
   max_reviews_per_day: number; // silent cap on the due part of today's work; overflow rolls to tomorrow
+  lapse_queue_threshold: number; // above this many remaining due cards, a failed review card is retried later in the run
+  lapse_requeue_min: number; // … between this many
+  lapse_requeue_max: number; // … and this many cards later
+  lapse_max_retries: number; // … at most this many times per card per run
   listen_share: number; // share of word-recognition reviews done as listening cards (0 = off)
 };
 
@@ -56,6 +60,10 @@ export const DEFAULT_SETTINGS: Settings = {
   max_learning_backlog: 3,
   due_window_minutes: 5,
   max_reviews_per_day: 100,
+  lapse_queue_threshold: 20,
+  lapse_requeue_min: 5,
+  lapse_requeue_max: 10,
+  lapse_max_retries: 2,
   listen_share: 0.3
 };
 

@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { afterRating } from './sessionFlow';
+import { afterRating, appendDue } from './sessionFlow';
 import { planToday, todaysIntro, type Item } from './session';
 import { laterToday, leavesWindow } from './today';
 import { progressKey, type Progress } from './scheduler';
@@ -7,7 +7,7 @@ import type { Card } from './types';
 
 const T0 = Date.parse('2026-10-04T10:00:00');
 const MIN = 60_000;
-const rules = { max_learning_backlog: 3, due_window_minutes: 10 };
+const rules = { max_learning_backlog: 3, due_window_minutes: 10, lapse_queue_threshold: 20, lapse_requeue_min: 5, lapse_requeue_max: 10, lapse_max_retries: 2 };
 const settings = { ...rules, new_per_day: 0, unlock_prod_stability_days: 3, max_reviews_per_day: 100 };
 const card = (id: string): Card =>
   ({ id, type: 'word', nl: id, article: '', pos: '', fr: id, example_nl: '', example_fr: '', tags: [], flags: [], answer: '', added: '2026-10-01', active: true }) as Card;
@@ -76,5 +76,64 @@ describe('next card', () => {
       n++;
     }
     expect(n).toBe(40);
+  });
+});
+
+describe('lapse retry in long runs (above lapse_queue_threshold)', () => {
+  const reviewItem = (id: string): Item => ({ card: card(id), track: 'recog', isNew: false, progress: { ...prog(id, T0), state: 'Review' } });
+  const run = (n: number) => Array.from({ length: n }, (_, i) => reviewItem(`r${i}`));
+  const fail = (id: string) => ({ ...prog(id, T0 + 10 * MIN), state: 'Relearning' as const }); // ❌ Opnieuw on a review card: 10 min
+  const opnieuw = (q: Item[], ctx: { retries: Record<string, number>; random?: () => number }, r = rules) =>
+    afterRating(q, fail(q[0].card.id), r, T0, { grade: 1, ...ctx });
+
+  it('at or below the threshold nothing changes: the failed card leaves the run (10 min ≥ window)', () => {
+    const q = run(21); // 20 left after the current card = threshold, not above
+    expect(ids(opnieuw(q, { retries: {} }))).not.toContain('r0');
+  });
+
+  it('above it, a failed review card comes back 5–10 cards later — never next', () => {
+    for (const [random, at] of [[0, 5], [0.5, 8], [0.999, 10]] as const) {
+      const out = opnieuw(run(30), { retries: {}, random: () => random });
+      expect(out.findIndex((i) => i.card.id === 'r0'), `random ${random}`).toBe(at);
+      expect(out[0].card.id).not.toBe('r0');
+    }
+  });
+
+  it('fewer cards left than the offset: after the last card (still not next)', () => {
+    const r = { ...rules, lapse_queue_threshold: 2 };
+    const out = opnieuw(run(4), { retries: {}, random: () => 0 }, r); // 3 left, offset 5
+    expect(ids(out)).toEqual(['r1', 'r2', 'r3', 'r0']);
+  });
+
+  it('at most lapse_max_retries requeues per card per run; after that it follows its FSRS due time', () => {
+    const ctx = { retries: {} as Record<string, number>, random: () => 0 };
+    let q = run(40);
+    q = opnieuw(q, ctx); // retry 1
+    q = [q[q.findIndex((i) => i.card.id === 'r0')], ...q.filter((i) => i.card.id !== 'r0')];
+    q = opnieuw(q, ctx); // retry 2
+    q = [q[q.findIndex((i) => i.card.id === 'r0')], ...q.filter((i) => i.card.id !== 'r0')];
+    expect(ids(opnieuw(q, ctx))).not.toContain('r0'); // third failure: no retry
+    expect(ctx.retries['r0|recog']).toBe(2);
+  });
+
+  it('Moeilijk and new cards are unchanged', () => {
+    const hard = afterRating(run(30), { ...prog('r0', T0 + 6 * 24 * 60 * MIN), state: 'Review' }, rules, T0, { grade: 2, retries: {} });
+    expect(ids(hard)).not.toContain('r0'); // Moeilijk on a review card: days → leaves
+    const q = [newItem('n0'), ...run(30)];
+    const out = afterRating(q, prog('n0', T0 + 1 * MIN), rules, T0, { grade: 1, retries: {} }); // new card, 1-min step
+    expect(out.findIndex((i) => i.card.id === 'n0')).toBe(3); // the usual: 3 places later, waiting for its time
+    expect(out.find((i) => i.card.id === 'n0')!.learning).toBe(true);
+  });
+});
+
+describe('cards that become due during the run join at the end (appendDue)', () => {
+  const due = (id: string, at: number): Item => ({ card: card(id), track: 'recog', isNew: false, progress: prog(id, at) });
+
+  it('a ≥ 10 min card does not appear early, and joins at the END when its time comes', () => {
+    const q = ['a', 'b'].map(newItem);
+    const g = due('g', T0 + 10 * MIN); // rated Goed at T0
+    expect(ids(appendDue(q, [g], T0 + 5 * MIN))).toEqual(['a', 'b']); // not yet
+    expect(ids(appendDue(q, [g], T0 + 10 * MIN))).toEqual(['a', 'b', 'g']); // its time: at the end, never before the current card
+    expect(ids(appendDue([...q, g], [g], T0 + 11 * MIN))).toEqual(['a', 'b', 'g']); // once
   });
 });

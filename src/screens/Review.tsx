@@ -7,7 +7,7 @@ import { RatingHelp } from '../components/RatingHelp';
 import { HelpButton } from '../components/Help';
 import { makeScheduler, previewOutcomes, type Outcome } from '../scheduler';
 import { modeFor, pickNextIndex, type Item } from '../session';
-import { afterRating } from '../sessionFlow';
+import { afterRating, appendDue } from '../sessionFlow';
 import { subjectFor } from '../display';
 import { FlagButton } from '../components/FlagButton';
 import { markEngaged } from '../installPrompt';
@@ -24,7 +24,8 @@ const ENGAGED_AFTER = 3;
  * once, so "Terug" (or closing the app) may stop at any moment; home shows what is left. When the queue is
  * empty she goes back home ("Klaar voor vandaag!" or what is left).
  */
-export function Review({ items, onExit }: { items: Item[]; onExit: () => void }) {
+/** `due` = today's due items as planned right now (cards that became due while she reviews join at the end). */
+export function Review({ items, due = [], onExit }: { items: Item[]; due?: Item[]; onExit: () => void }) {
   const s = useStore();
   const settings = useSettings();
   const online = useOnline();
@@ -38,6 +39,7 @@ export function Review({ items, onExit }: { items: Item[]; onExit: () => void })
   const [revealed, setRevealed] = useState(false);
   const [busy, setBusy] = useState(false);
   const rated = useRef(0);
+  const retries = useRef<Record<string, number>>({}); // lapse retries per card+track in this run
   const shownAt = useRef(Date.now());
   const sched = useMemo(() => makeScheduler(settings), [settings.desired_retention]);
 
@@ -48,6 +50,10 @@ export function Review({ items, onExit }: { items: Item[]; onExit: () => void })
   useEffect(() => {
     if (!queue.length) exit();
   }, [queue.length]);
+  // After each rating the plan is recomputed: cards whose due time has passed meanwhile join at the END.
+  useEffect(() => {
+    if (queue.length) setQueue((q) => appendDue(q, due));
+  }, [due]);
 
   const item = queue[0];
   // Computed once per reveal: the intervals on the buttons are exactly what gets applied.
@@ -62,7 +68,7 @@ export function Review({ items, onExit }: { items: Item[]; onExit: () => void })
     const outcome = outcomes[g];
     await rate(item, outcome, shownAt.current);
     rated.current++;
-    setQueue(afterRating(queue, outcome.next, settings));
+    setQueue(afterRating(queue, outcome.next, settings, Date.now(), { grade: g, retries: retries.current }));
     setRevealed(false);
     setBusy(false);
     shownAt.current = Date.now();

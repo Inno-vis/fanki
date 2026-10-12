@@ -263,6 +263,10 @@ to move them into Cards. Nothing is ever written to Cards by `/addwords`.
 | max_learning_backlog | 3 | The next NEW card waits while this many cards are still in their short "again in minutes" steps |
 | due_window_minutes | 5 | Cards due in LESS than this many minutes count as due now (the round), and only such short steps come back in the same run. Keep it below the "Goed" step of a new card (10 min). Set to 5 on 2026-10-04 |
 | max_reviews_per_day | 100 | Silent cap on the due part of today's work; the rest stays due and rolls to tomorrow |
+| lapse_queue_threshold | 20 | Long runs only: when MORE than this many due (non-new) cards remain in the run at the moment of rating, a card the student already knew and now rates ❌ Opnieuw is retried later in the same run (below) |
+| lapse_requeue_min | 5 | … at least this many cards later (random between min and max; after the last card when fewer remain — never next) |
+| lapse_requeue_max | 10 | … at most this many cards later |
+| lapse_max_retries | 2 | … at most this many retries per card per run; after that the card follows its FSRS due time |
 
 Removed 2026-10-04 (`admin <env> cleanSettings` deletes the rows, dry run first): `cooldown_minutes`,
 `session_max_cards`, `session_max_minutes`, `session_extra_cards`, `session_resume_minutes`,
@@ -351,6 +355,14 @@ src/session.ts):
   leave the run: the bar counts the card as done and home lists it under "Volgende kaarten"; it joins the round
   again when its time is inside the window. One rule decides the round, the comeback and "done". A card that
   came back is not shown before its due time while other cards are ready (if nothing else is left, it is shown).
+- **Lapse retry (long runs):** above `lapse_queue_threshold` remaining due cards, a NON-new card rated ❌ Opnieuw
+  comes back `lapse_requeue_min`..`lapse_requeue_max` cards later in the same run (it may come before its 10-minute
+  relearning step; FSRS, steps and intervals are unchanged, the retry is a normal review in the Log), at most
+  `lapse_max_retries` times per card per run. At or below the threshold nothing changes. Moeilijk and new cards are
+  never retried this way. A card that passes on the retry gets days, so it is not in the later-today line.
+- **Joining during the run:** after each rating, cards whose due time has passed meanwhile (same rules as the round:
+  topics, daily cap) are added at the END of the running queue — never before the current card. The Vandaag bar's
+  count stays and its total grows (a running round takes arrivals).
 - **"Vandaag" bar = the current round** (`meta.round` on the phone): done in this round / (done + remaining),
   unique cards, with "Nog N kaarten". A card is done when its next due time is outside the window. When nothing
   is left the round is finished ("Klaar voor nu!"); the next time cards are there, a NEW round starts at 0. A

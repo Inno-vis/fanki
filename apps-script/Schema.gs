@@ -39,7 +39,11 @@ var SETTINGS_DEFAULTS = [
   ['require_approval', false, 'Alleen kaarten met controle = goedgekeurd gaan naar de app (aan = de leerling ziet geen ongecontroleerde kaarten)'],
   ['listen_share', 0.3, 'Deel van de herkenningskaarten als luisterkaart (0 = uit; alleen met een Nederlandse stem op de telefoon)'],
   ['due_window_minutes', 5, 'Kaarten die binnen minder dan zoveel minuten terugkomen, tellen al mee (en komen terug in dezelfde ronde)'],
-  ['max_reviews_per_day', 100, 'Maximaal aantal herhalingen per dag (stil; de rest schuift door naar morgen)']
+  ['max_reviews_per_day', 100, 'Maximaal aantal herhalingen per dag (stil; de rest schuift door naar morgen)'],
+  ['lapse_queue_threshold', 20, 'Lange rij: zijn er méér dan zoveel herhalingen over, dan komt een vergeten kaart (Opnieuw) later in dezelfde ronde terug'],
+  ['lapse_requeue_min', 5, '… minstens zoveel kaarten later'],
+  ['lapse_requeue_max', 10, '… hoogstens zoveel kaarten later'],
+  ['lapse_max_retries', 2, '… hoogstens zoveel keer per kaart per ronde (daarna geldt de gewone tijd van de kaart)']
 ];
 
 // tag | label_nl (shown to the learner) | label_fr (teacher) | description | subject_nl (label above the card)

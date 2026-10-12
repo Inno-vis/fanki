@@ -45,6 +45,10 @@ export function cleanSettings(raw: Partial<Settings> | undefined): Settings {
     max_learning_backlog: Math.round(num(s.max_learning_backlog, 3, 1, 100)),
     due_window_minutes: num(s.due_window_minutes, 5, 0, 24 * 60),
     max_reviews_per_day: Math.round(num(s.max_reviews_per_day, 100, 1, 10_000)),
+    lapse_queue_threshold: Math.round(num(s.lapse_queue_threshold, 20, 0, 10_000)),
+    lapse_requeue_min: Math.round(num(s.lapse_requeue_min, 5, 1, 1000)),
+    lapse_requeue_max: Math.round(num(s.lapse_requeue_max, 10, 1, 1000)),
+    lapse_max_retries: Math.round(num(s.lapse_max_retries, 2, 0, 100)),
     listen_share: num(s.listen_share, 0.3, 0, 1)
   };
 }

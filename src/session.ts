@@ -5,7 +5,7 @@ import { getNewPerDay, inDueWindow } from './today';
 export type Mode = 'nl_fr' | 'fr_nl' | 'cloze' | 'question' | 'oneway' | 'listen';
 
 /** learning = in a short (re)learning step (Learning/Relearning, or put back in today's run). */
-export type Item = { card: Card; track: Track; progress?: Progress; isNew: boolean; learning?: boolean; listen?: boolean };
+export type Item = { card: Card; track: Track; progress?: Progress; isNew: boolean; learning?: boolean; listen?: boolean; retry?: boolean };
 
 /** New cards introduced on one local day (so the daily cap survives closing the app). */
 export type Intro = { date: string; main: string[]; prod: string[] };
